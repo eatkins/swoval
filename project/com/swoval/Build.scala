@@ -180,8 +180,10 @@ object Build {
 
   def addLib(dir: File): File = {
     val target = dir.toPath.resolve("node_modules/lib")
-    if (!Files.isSymbolicLink(target))
-      Files.createSymbolicLink(target, files.js.base.toPath.toAbsolutePath.resolve("npm/lib"))
+    if (Properties.isMac) {
+      if (!Files.exists(target) && !Files.isSymbolicLink(target))
+        Files.createSymbolicLink(target, files.js.base.toPath.toAbsolutePath.resolve("npm/lib"))
+    }
     dir
   }
   def nodeNativeLibs: SettingsDefinition = settings(
@@ -227,34 +229,34 @@ object Build {
                 val relativeSource = sharedBase.relativize(p)
                 val resolved = dir.resolve(relativeSource)
                 if (!Files.exists(resolved.getParent)) Files.createDirectories(resolved.getParent)
-                if (!Files.exists(resolved) && !Files.isSymbolicLink(resolved)) {
-                  try {
-                    Files.createSymbolicLink(resolved, resolved.getParent.relativize(p))
-                    Some(root.relativize(resolved))
-                  } catch {
-                    case e: IOException if e.toString.contains("A required privilege") =>
-                      Files.copy(p, resolved, REPLACE_EXISTING)
-                      Some(root.relativize(resolved))
-                  }
-                } else {
-                  None
+                if (Properties.isWin) {
+                  val needCopy = scala.util
+                    .Try(
+                      new String(Files.readAllBytes(p)) != new String(Files.readAllBytes(resolved)))
+                    .getOrElse(true)
+                  if (needCopy) Files.copy(p, resolved, REPLACE_EXISTING)
+                } else if (!Files.exists(resolved) && !Files.isSymbolicLink(resolved)) {
+                  Files.createSymbolicLink(resolved, resolved.getParent.relativize(p))
                 }
+                Some(root.relativize(resolved))
               } else {
                 None
               }
             }
           } else None
         }
-        this.synchronized {
-          val content = new String(Files.readAllBytes(root.resolve(".gitignore")))
-          val name = s"$projectName ${conf.name.toUpperCase}"
-          val newGitignore = if (content.contains(name)) {
-            content.replaceAll(s"(?s)(#BEGIN $name SYMLINKS)(.*)(#END $name SYMLINKS)",
-                               s"$$1\n${links.mkString("\n")}\n$$3")
-          } else {
-            s"$content${links.mkString(s"\n#BEGIN $name SYMLINKS\n", "\n", s"\n#END $name SYMLINKS\n")}"
+        if (!Properties.isWin) {
+          this.synchronized {
+            val content = new String(Files.readAllBytes(root.resolve(".gitignore")))
+            val name = s"$projectName ${conf.name.toUpperCase}"
+            val newGitignore = if (content.contains(name)) {
+              content.replaceAll(s"(?s)(#BEGIN $name SYMLINKS)(.*)(#END $name SYMLINKS)",
+                                 s"$$1\n${links.mkString("\n")}\n$$3")
+            } else {
+              s"$content${links.mkString(s"\n#BEGIN $name SYMLINKS\n", "\n", s"\n#END $name SYMLINKS\n")}"
+            }
+            Files.write(root.resolve(".gitignore"), newGitignore.getBytes)
           }
-          Files.write(root.resolve(".gitignore"), newGitignore.getBytes)
         }
         Nil
       }

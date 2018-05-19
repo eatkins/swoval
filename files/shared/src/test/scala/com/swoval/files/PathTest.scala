@@ -22,7 +22,7 @@ object PathTest extends TestSuite {
           val relativeSubdir = base.relativize(Path("", "foo", "bar"))
           val relativeFile = relativeSubdir.relativize(Path("bar", "baz"))
           base.resolve(relativeSubdir.resolve(relativeFile)).toString ==>
-            Seq("", "foo", "bar", "baz").mkString(sep)
+            Seq(Path.root, "foo", "bar", "baz").mkString(sep)
         }
       }
       'absolute {
@@ -30,13 +30,13 @@ object PathTest extends TestSuite {
           val base = Path("", "foo", "bar", "baz")
           val subdir = Path(s"", "foo", "bar", "baz", "buzz")
           val resolved = base.resolve(subdir)
-          resolved.toString ==> Seq("", "foo", "bar", "baz", "buzz").mkString(sep)
+          resolved.toString ==> Seq(Path.root, "foo", "bar", "baz", "buzz").mkString(sep)
         }
         'unrelated - {
           val base = Path(s"", "foo", "bar", "baz")
           val subdir = Path(s"", "ok", "foo", "bar", "baz", "buzz")
           val resolved = base.resolve(subdir)
-          resolved.toString ==> Seq("", "ok", "foo", "bar", "baz", "buzz").mkString(sep)
+          resolved.toString ==> Seq(Path.root, "ok", "foo", "bar", "baz", "buzz").mkString(sep)
         }
       }
     }
@@ -50,7 +50,7 @@ object PathTest extends TestSuite {
       'unrelated - {
         val base = Path("", "foo", "bar", "baz")
         val subdir = Path("", "ok", "foo", "bar", "baz", "buzz")
-        base.relativize(subdir).toString ==> s"../../..$subdir"
+        base.relativize(subdir).toString ==> s"..$sep..$sep..$sep${subdir.parts.mkString(sep)}"
       }
     }
     'parts - {
