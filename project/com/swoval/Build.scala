@@ -205,7 +205,8 @@ object Build {
   )
   def createCrossLinks(projectName: String): SettingsDefinition = {
     def createLinks(conf: Configuration): Def.Setting[Task[Seq[File]]] =
-      managedSources in conf ++= {
+      sources in conf := {
+        val original = (sources in conf).value
         val base = baseDirectory.value.toPath
         val root = base.getParent.getParent
         val shared = base.getParent.resolve("shared")
@@ -258,7 +259,9 @@ object Build {
             Files.write(root.resolve(".gitignore"), newGitignore.getBytes)
           }
         }
-        Nil
+        (original
+          .map(_.toPath)
+          .filterNot(_.startsWith(shared)) ++ links.map(_.toAbsolutePath())).distinct.map(_.toFile)
       }
     settings(createLinks(Compile), createLinks(Test))
   }
@@ -272,16 +275,6 @@ object Build {
       name := "file-utilities",
       bintrayPackage := "file-utilities",
       description := "File system apis.",
-      sources in Compile := {
-        val unfiltered = (sources in Compile).value
-        val base = baseDirectory.value.toPath.getParent.resolve("shared")
-        unfiltered.filterNot(_.toPath.startsWith(base))
-      },
-      sources in Test := {
-        val unfiltered = (sources in Test).value
-        val base = baseDirectory.value.toPath.getParent.resolve("shared")
-        unfiltered.filterNot(_.toPath.startsWith(base))
-      },
       watchSources in Compile ++= {
         Files
           .walk(baseDirectory.value.toPath.getParent)
