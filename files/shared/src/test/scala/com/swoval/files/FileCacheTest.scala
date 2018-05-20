@@ -113,10 +113,7 @@ trait FileCacheTest extends TestSuite {
           var allFiles = (subdirs ++ files).toSet
           val observer = Observers.apply[JPath]((_: Entry[JPath]) => creationLatch.countDown(),
                                                 (_: Entry[JPath], _: Entry[JPath]) => {},
-                                                (e: Entry[JPath]) => {
-                                                  deletionLatch.countDown()
-                                                  println(s"Deleted ${e.path} ${deletionLatch.getCount}")
-                                                })
+                                                (e: Entry[JPath]) => deletionLatch.countDown())
           usingAsync(FileCache.apply[JPath](identity, observer, factory)) { c =>
             c.reg(dir)
             executor.run(new Runnable {
