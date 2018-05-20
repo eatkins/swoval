@@ -18,8 +18,8 @@ object PathTest extends TestSuite {
           resolved.toString ==> (parts :+ "buzz").mkString(sep)
         }
         'nested - {
-          val base = Path("", "foo")
-          val relativeSubdir = base.relativize(Path("", "foo", "bar"))
+          val base = Path(Path.root, "foo")
+          val relativeSubdir = base.relativize(Path(Path.root, "foo", "bar"))
           val relativeFile = relativeSubdir.relativize(Path("bar", "baz"))
           base.resolve(relativeSubdir.resolve(relativeFile)).toString ==>
             Seq(Path.root, "foo", "bar", "baz").mkString(sep)
