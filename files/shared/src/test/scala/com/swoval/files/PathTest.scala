@@ -1,8 +1,11 @@
 package com.swoval.files
 
+import java.nio.file.Paths
+
 import utest._
+
 import scala.util.Random
-import Path.{ separator => sep }
+import Path.{separator => sep}
 import com.swoval.test._
 
 object PathTest extends TestSuite {
@@ -73,7 +76,7 @@ object PathTest extends TestSuite {
     }
     'mkdir - {
       'absolute - {
-        val path = Path("", "tmp", s"foo${random.nextInt}")
+        val path = Paths.get(System.getProperty("java.io.tmpdir"), "").resolve(s"foo${random.nextInt}")
         path.delete()
         path.mkdir ==> path
         assert(path.exists)
