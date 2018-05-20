@@ -96,6 +96,8 @@ trait FileCacheTest extends TestSuite {
         }
         'addmany - withTempDirectory { dir =>
           val subdirsToAdd = if (System.getProperty("java.vm.name", "") == "Scala.js") 50 else 2000
+          // Windows is slow (at least on my vm)
+          val timeout = if (Platform.isWin) DEFAULT_TIMEOUT * 60 else DEFAULT_TIMEOUT * 10
           val filesPerSubdir = 4
           val executor = Executor.make("com.swoval.files.FileCacheTest.addmany.worker-thread")
           val creationLatch = new CountDownLatch(subdirsToAdd * (filesPerSubdir + 1))
@@ -120,7 +122,7 @@ trait FileCacheTest extends TestSuite {
               }
             })
             creationLatch
-              .waitFor(DEFAULT_TIMEOUT * 10) {
+              .waitFor(timeout) {
                 val found = c.ls(dir).map(_.path).toSet
                 // Need to synchronize since files is first set on a different thread
                 files.synchronized { found === files }
@@ -128,11 +130,12 @@ trait FileCacheTest extends TestSuite {
               .flatMap { _ =>
                 executor.run(new Runnable {
                   override def run(): Unit = {
-                    files.synchronized(files.foreach(_.deleteRecursive()))
+                    val toDelete = files.synchronized(files.toSeq.sorted.sortBy(_.isDirectory))
+                    toDelete.foreach(_.deleteRecursive())
                   }
 
                 })
-                deletionLatch.waitFor(DEFAULT_TIMEOUT * 10) {
+                deletionLatch.waitFor(timeout) {
                   c.ls(dir) === Seq.empty
                 }
               }
@@ -140,9 +143,9 @@ trait FileCacheTest extends TestSuite {
             case Failure(e) =>
               println(s"Task failed $e")
               executor.close()
-              if (creationLatch.getCount != 0)
+              if (creationLatch.getCount > 0)
                 println(s"$this Creation latch not triggered (${creationLatch.getCount})")
-              if (deletionLatch.getCount != 0)
+              if (deletionLatch.getCount > 0)
                 println(s"$this Deletion latch not triggered (${deletionLatch.getCount})")
             case _ =>
               executor.close()

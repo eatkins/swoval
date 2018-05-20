@@ -55,8 +55,8 @@ class File(pathname: String) {
   def mkdirs(): Boolean = {
     !exists && {
       val parts = new JSPath(JPath.resolve(pathname)).parts
-        if (isAbsolute) absolutePath.split(JSPath.regexSep).drop(1)
-        else absolutePath.split(JSPath.regexSep)
+      if (isAbsolute) absolutePath.split(JSPath.regexSep).drop(1)
+      else absolutePath.split(JSPath.regexSep)
       parts
         .foldLeft((new File(parsed.root.toOption.getOrElse(JPath.sep)), false)) {
           case ((a, r), p) =>
