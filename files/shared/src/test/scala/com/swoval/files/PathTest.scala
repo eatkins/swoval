@@ -22,7 +22,7 @@ object PathTest extends TestSuite {
           val relativeSubdir = base.relativize(Path("", "foo", "bar"))
           val relativeFile = relativeSubdir.relativize(Path("bar", "baz"))
           base.resolve(relativeSubdir.resolve(relativeFile)).toString ==>
-            Seq("", "foo", "bar", "baz").mkString(sep)
+            Seq(Path.root, "foo", "bar", "baz").mkString(sep)
         }
       }
       'absolute {
