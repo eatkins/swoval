@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-class NativeDirectoryLister implements DirectoryLister {
+public class NativeDirectoryLister implements DirectoryLister {
   public NativeDirectoryLister() {}
 
   static final int UNKNOWN = SimpleFileTreeView.UNKNOWN;

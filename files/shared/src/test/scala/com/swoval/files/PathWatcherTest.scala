@@ -6,8 +6,6 @@ import java.nio.file.{ Path, Paths }
 import java.util
 import java.util.concurrent.{ TimeUnit, TimeoutException }
 
-import com.swoval.files.FileTreeDataViews.Converter
-import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.PathWatchers.Event.Kind
 import com.swoval.files.PathWatchers.Event.Kind.{ Delete, Modify }
 import com.swoval.files.TestHelpers._

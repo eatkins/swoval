@@ -210,7 +210,7 @@ class ApplePathWatcher implements PathWatcher<Event> {
    * @throws InterruptedException if the native file events implementation is interrupted during
    *     initialization
    */
-  ApplePathWatcher(
+  public ApplePathWatcher(
       final long latency,
       final TimeUnit timeUnit,
       final Flags.Create flags,
