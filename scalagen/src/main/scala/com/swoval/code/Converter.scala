@@ -87,6 +87,8 @@ object Converter {
         "FollowWrapper",
         "NoFollowSymlinks",
         "NoFollowWrapper",
+        "PathWatcherProvider",
+        "PathWatcherProviderImpl",
         "SwovalProvider",
         "SwovalProviderImpl",
         "UpdatableFileTreeDataView",

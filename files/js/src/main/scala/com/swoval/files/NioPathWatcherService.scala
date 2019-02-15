@@ -6,8 +6,8 @@ import java.io.IOException
 import java.nio.file.{ FileSystemLoopException, Files, Path, Paths }
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.swoval.files.PathWatchers.Event
 import com.swoval.files.PathWatchers.Event.Kind.{ Delete, Error, Modify }
-import com.swoval.files.PathWatchers.{ Event, Overflow }
 import com.swoval.functional.Consumer
 import com.swoval.logging.Loggers.Level
 import com.swoval.logging.{ Logger, Loggers }
@@ -22,10 +22,9 @@ import scala.util.Try
 /**
  * Native directory watcher implementation for Linux and Windows
  */
-private[files] class NioPathWatcherService(
-    eventConsumer: Consumer[functional.Either[Overflow, Event]],
-    registerable: RegisterableWatchService,
-    logger: Logger)
+private[files] class NioPathWatcherService(eventConsumer: Consumer[Event],
+                                           registerable: RegisterableWatchService,
+                                           logger: Logger)
     extends AutoCloseable {
   private[this] var closed = false
   private[this] val options = new FSWatcherOptions(recursive = false, persistent = false)
@@ -72,7 +71,7 @@ private[files] class NioPathWatcherService(
               if (Loggers.shouldLog(logger, Level.DEBUG)) {
                 logger.debug(this + " received event " + event)
               }
-              eventConsumer.accept(functional.Either.right(event))
+              eventConsumer.accept(event)
             }
 
           val closed = new AtomicBoolean(false)
@@ -82,7 +81,7 @@ private[files] class NioPathWatcherService(
               closed.set(true)
               watcher.close()
               watchedDirectoriesByPath += path -> WatchedDirectories.INVALID
-              eventConsumer.accept(functional.Either.right(new Event(TypedPaths.get(path), Error)))
+              eventConsumer.accept(new Event(TypedPaths.get(path), Error))
             }
             ()
           }

@@ -2,11 +2,16 @@ package com
 package swoval
 package files
 
-import java.nio.file.Files
+import java.io.IOException
+import java.lang
+import java.nio.file.{ Files, Path }
+import java.util.concurrent.TimeUnit
 
+import com.swoval.files.FileTreeRepositories.NoFollowSymlinks
 import com.swoval.files.PathWatchers.FollowSymlinks
 import com.swoval.files.TestHelpers._
 import com.swoval.files.test._
+import com.swoval.logging.Logger
 import com.swoval.runtime.Platform
 import com.swoval.test._
 import utest._
@@ -14,6 +19,21 @@ import utest._
 trait PathWatcherSymlinkTest extends TestSuite {
   def defaultWatcher(callback: PathWatchers.Event => _)(
       implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event]
+  class Wrapper[T](delegate: PathWatcher[T]) extends PathWatcher[T] {
+    override def register(path: Path, maxDepth: Int): functional.Either[IOException, lang.Boolean] =
+      delegate.register(path, maxDepth)
+    override def unregister(path: Path): Unit = delegate.unregister(path)
+    override def close(): Unit = delegate.close()
+    override def addObserver(observer: FileTreeViews.Observer[_ >: T]): Int =
+      delegate.addObserver(observer)
+    override def removeObserver(handle: Int): Unit = delegate.removeObserver(handle)
+  }
+  class FollowWrapper[T](delegate: PathWatcher[T])
+      extends Wrapper[T](delegate)
+      with PathWatchers.FollowSymlinks[T]
+  class NoFollowWrapper[T](delegate: PathWatcher[T])
+      extends Wrapper[T](delegate)
+      with PathWatchers.NoFollowSymlinks[T]
   val testsImpl = Tests {
     'follow - {
       'file - {
@@ -86,7 +106,8 @@ trait PathWatcherSymlinkTest extends TestSuite {
 object PathWatcherSymlinkTest extends PathWatcherSymlinkTest {
   override def defaultWatcher(callback: Predef.Function[PathWatchers.Event, _])(
       implicit testLogger: TestLogger): FollowSymlinks[PathWatchers.Event] = {
-    val res = PathWatchers.followSymlinks(testLogger)
+    val provider = SwovalProviderImpl.getDefaultProvider.getPathWatcherProvider
+    val res = provider.followSymlinks(testLogger)
     res.addObserver(callback)
     res
   }
@@ -96,8 +117,20 @@ object NioPathWatcherSymlinkTest extends PathWatcherSymlinkTest {
   override def defaultWatcher(callback: Predef.Function[PathWatchers.Event, _])(
       implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
     val registry = new DirectoryRegistryImpl
-    val watcher = PlatformWatcher.make(registry, testLogger)
-    val res = new SymlinkFollowingPathWatcherImpl(watcher, registry, testLogger)
+    val provider: PathWatcherProvider = new PathWatcherProvider {
+      private def newWatcher(logger: Logger) = PlatformWatcher.make(registry, logger)
+      override def noFollowSymlinks(
+          logger: Logger): PathWatchers.NoFollowSymlinks[PathWatchers.Event] =
+        new NoFollowWrapper[PathWatchers.Event](newWatcher(logger))
+      override def followSymlinks(logger: Logger): FollowSymlinks[PathWatchers.Event] = ???
+      override def polling(pollInterval: Long,
+                           timeUnit: TimeUnit,
+                           logger: Logger): PathWatcher[PathWatchers.Event] = ???
+    }
+    val res = new SymlinkFollowingPathWatcherImpl(provider.noFollowSymlinks(testLogger),
+                                                  registry,
+                                                  testLogger,
+                                                  provider)
     res.addObserver(callback)
     res
   }

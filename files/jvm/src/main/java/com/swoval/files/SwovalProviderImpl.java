@@ -1,11 +1,5 @@
 package com.swoval.files;
 
-import com.swoval.files.FileTreeDataViews.Converter;
-import com.swoval.files.FileTreeRepositories.FollowSymlinks;
-import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
-import com.swoval.logging.Logger;
-import java.io.IOException;
-
 class SwovalProviderImpl implements SwovalProvider {
   private static final SwovalProvider impl = load();
 
@@ -18,42 +12,29 @@ class SwovalProviderImpl implements SwovalProvider {
     return userDefined != null ? userDefined : new Impl();
   }
 
+  @Override
+  public FileTreeRepositoryProvider getFileTreeRepositoryProvider() {
+    return SwovalProviderImpl.impl.getFileTreeRepositoryProvider();
+  }
+
+  @Override
+  public PathWatcherProvider getPathWatcherProvider() {
+    return SwovalProviderImpl.impl.getPathWatcherProvider();
+  }
+
   private static class Impl implements SwovalProvider {
     final FileTreeRepositoryProvider fileTreeRepositoryProvider =
         new FileTreeRepositoryProviderImpl();
+    final PathWatcherProvider pathWatcherProvider = new PathWatcherProviderImpl();
 
     @Override
-    public FileTreeRepository<Object> getDefault() throws InterruptedException, IOException {
-      return fileTreeRepositoryProvider.getDefault();
+    public FileTreeRepositoryProvider getFileTreeRepositoryProvider() {
+      return fileTreeRepositoryProvider;
     }
 
     @Override
-    public <T> FollowSymlinks<T> followSymlinks(Converter<T> converter, Logger logger)
-        throws InterruptedException, IOException {
-      return fileTreeRepositoryProvider.followSymlinks(converter, logger);
+    public PathWatcherProvider getPathWatcherProvider() {
+      return pathWatcherProvider;
     }
-
-    @Override
-    public <T> NoFollowSymlinks<T> noFollowSymlinks(Converter<T> converter, Logger logger)
-        throws InterruptedException, IOException {
-      return fileTreeRepositoryProvider.noFollowSymlinks(converter, logger);
-    }
-  }
-
-  @Override
-  public FileTreeRepository<Object> getDefault() throws InterruptedException, IOException {
-    return SwovalProviderImpl.impl.getDefault();
-  }
-
-  @Override
-  public <T> FollowSymlinks<T> followSymlinks(Converter<T> converter, Logger logger)
-      throws InterruptedException, IOException {
-    return SwovalProviderImpl.impl.followSymlinks(converter, logger);
-  }
-
-  @Override
-  public <T> NoFollowSymlinks<T> noFollowSymlinks(Converter<T> converter, Logger logger)
-      throws InterruptedException, IOException {
-    return SwovalProviderImpl.impl.noFollowSymlinks(converter, logger);
   }
 }

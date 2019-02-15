@@ -469,25 +469,6 @@ trait PathWatcherTest extends TestSuite {
         }
       }
     }
-    'converter - {
-      'simple - withTempDirectory { dir =>
-        implicit val logger: TestLogger = new CachingLogger
-        val converter: Converter[java.lang.Long] =
-          (tp: TypedPath) => java.lang.Long.valueOf(tp.getPath.lastModified)
-        usingAsync(PathWatchers.followSymlinks(converter, logger)) { pw =>
-          val latch = new CountDownLatch(1)
-          pw.addObserver(new Observer[java.lang.Long] {
-            override def onError(t: _root_.java.lang.Throwable): Unit = {}
-            override def onNext(t: java.lang.Long): Unit = if (t == 3000L) latch.countDown()
-          })
-          pw.register(dir, Int.MaxValue)
-          dir setLastModifiedTime 3000L
-          latch.waitFor(DEFAULT_TIMEOUT) {
-            dir.lastModified ==> 3000L
-          }
-        }
-      }
-    }
     'repeatedDeletions - (if (this != PollingPathWatcherTest) withTempDirectory { root =>
                             val dir = root.resolve("base")
                             implicit val logger: TestLogger = new CachingLogger
@@ -559,7 +540,8 @@ object PollingPathWatcherTest extends PathWatcherTest {
   override def checkModified(event: PathWatchers.Event): Boolean = event.getKind != Delete
   override def defaultWatcher(callback: PathWatchers.Event => _, followLinks: Boolean)(
       implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
-    val res = PathWatchers.polling(followLinks, 100, TimeUnit.MILLISECONDS, testLogger)
+    val res: PathWatcher[PathWatchers.Event] =
+      PathWatchers.polling(100, TimeUnit.MILLISECONDS, testLogger)
     res.addObserver(callback)
     res
   }

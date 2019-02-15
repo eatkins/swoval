@@ -226,7 +226,7 @@ object PathWatchers {
    * @return an appropriate [[PathWatcher]] for the runtime platform.
    */
   def followLinks(): PathWatcher =
-    new PathWatcher(SPathWatchers.followSymlinks())
+    new PathWatcher(SPathWatchers.followSymlinks(Loggers.getLogger()))
 
   /**
    * Create a [[PathWatcher]] that follows symlinks for the runtime platform.
@@ -234,7 +234,7 @@ object PathWatchers {
    * @return an appropriate [[PathWatcher]] for the runtime platform.
    */
   def noFollowLinks(): PathWatcher =
-    new PathWatcher(SPathWatchers.noFollowSymlinks())
+    new PathWatcher(SPathWatchers.noFollowSymlinks(Loggers.getLogger()))
 
   /**
    * Create a path watcher that periodically polls the file system to detect changes
@@ -245,8 +245,7 @@ object PathWatchers {
    */
   def polling(followLinks: js.UndefOr[Boolean], intervalMS: js.UndefOr[Double]): PathWatcher = {
     new PathWatcher(
-      SPathWatchers.polling(followLinks.toOption.getOrElse(true),
-                            intervalMS.toOption.getOrElse(500.0).toLong,
+      SPathWatchers.polling(intervalMS.toOption.getOrElse(500.0).toLong,
                             TimeUnit.MILLISECONDS,
                             Loggers.getLogger()))
   }

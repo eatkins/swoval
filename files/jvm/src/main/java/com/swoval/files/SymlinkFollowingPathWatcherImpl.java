@@ -22,12 +22,13 @@ class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
   SymlinkFollowingPathWatcherImpl(
       final PathWatcher<PathWatchers.Event> pathWatcher,
       final DirectoryRegistry directoryRegistry,
-      final Logger logger)
+      final Logger logger,
+      final PathWatcherProvider provider)
       throws InterruptedException, IOException {
     this.pathWatcher = pathWatcher;
     this.pathWatcherDirectoryRegistry = directoryRegistry;
     this.observers = new Observers<>(logger);
-    this.symlinkWatcher = new SymlinkWatcher(PathWatchers.noFollowSymlinks(logger), logger);
+    this.symlinkWatcher = new SymlinkWatcher(provider.noFollowSymlinks(logger), logger);
     pathWatcher.addObserver(
         new Observer<Event>() {
           @Override

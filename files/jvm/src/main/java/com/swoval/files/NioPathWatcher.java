@@ -9,7 +9,6 @@ import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatchers.Event;
-import com.swoval.files.PathWatchers.Overflow;
 import com.swoval.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
@@ -95,15 +94,14 @@ class NioPathWatcher implements PathWatcher<PathWatchers.Event>, AutoCloseable {
     this.observers = new Observers<>(logger);
     this.service =
         new NioPathWatcherService(
-            new Consumer<Either<Overflow, Event>>() {
+            new Consumer<Event>() {
               @Override
-              public void accept(final Either<Overflow, Event> either) {
+              public void accept(final Event event) {
                 if (!closed.get()) {
-                  if (either.isRight()) {
-                    final Event event = either.get();
+                  if (event.getKind() != Overflow) {
                     handleEvent(event);
                   } else {
-                    handleOverflow(Either.leftProjection(either).getValue());
+                    handleOverflow(event);
                   }
                 }
               }
@@ -299,8 +297,8 @@ class NioPathWatcher implements PathWatcher<PathWatchers.Event>, AutoCloseable {
     }
   }
 
-  private void handleOverflow(final Overflow overflow) {
-    final Path path = overflow.getPath();
+  private void handleOverflow(final Event event) {
+    final Path path = event.getTypedPath().getPath();
     if (Loggers.shouldLog(logger, Level.DEBUG))
       logger.debug(this + " received overflow for " + path);
     final List<Event> events = new ArrayList<>();

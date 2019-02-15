@@ -2,4 +2,10 @@
 
 package com.swoval.files
 
-trait SwovalProvider extends FileTreeRepositoryProvider
+trait SwovalProvider {
+
+  def getFileTreeRepositoryProvider(): FileTreeRepositoryProvider
+
+  def getPathWatcherProvider(): PathWatcherProvider
+
+}

@@ -2,11 +2,6 @@
 
 package com.swoval.files
 
-import com.swoval.files.FileTreeDataViews.Converter
-import com.swoval.files.FileTreeRepositories.FollowSymlinks
-import com.swoval.files.FileTreeRepositories.NoFollowSymlinks
-import com.swoval.logging.Logger
-import java.io.IOException
 import SwovalProviderImpl._
 
 object SwovalProviderImpl {
@@ -25,16 +20,14 @@ object SwovalProviderImpl {
     val fileTreeRepositoryProvider: FileTreeRepositoryProvider =
       new FileTreeRepositoryProviderImpl()
 
-    override def getDefault(): FileTreeRepository[AnyRef] =
-      fileTreeRepositoryProvider.getDefault
+    val pathWatcherProvider: PathWatcherProvider =
+      new PathWatcherProviderImpl()
 
-    override def followSymlinks[T <: AnyRef](converter: Converter[T],
-                                             logger: Logger): FollowSymlinks[T] =
-      fileTreeRepositoryProvider.followSymlinks(converter, logger)
+    override def getFileTreeRepositoryProvider(): FileTreeRepositoryProvider =
+      fileTreeRepositoryProvider
 
-    override def noFollowSymlinks[T <: AnyRef](converter: Converter[T],
-                                               logger: Logger): NoFollowSymlinks[T] =
-      fileTreeRepositoryProvider.noFollowSymlinks(converter, logger)
+    override def getPathWatcherProvider(): PathWatcherProvider =
+      pathWatcherProvider
 
   }
 
@@ -42,15 +35,10 @@ object SwovalProviderImpl {
 
 class SwovalProviderImpl extends SwovalProvider {
 
-  override def getDefault(): FileTreeRepository[AnyRef] =
-    SwovalProviderImpl.impl.getDefault
+  override def getFileTreeRepositoryProvider(): FileTreeRepositoryProvider =
+    SwovalProviderImpl.impl.getFileTreeRepositoryProvider
 
-  override def followSymlinks[T <: AnyRef](converter: Converter[T],
-                                           logger: Logger): FollowSymlinks[T] =
-    SwovalProviderImpl.impl.followSymlinks(converter, logger)
-
-  override def noFollowSymlinks[T <: AnyRef](converter: Converter[T],
-                                             logger: Logger): NoFollowSymlinks[T] =
-    SwovalProviderImpl.impl.noFollowSymlinks(converter, logger)
+  override def getPathWatcherProvider(): PathWatcherProvider =
+    SwovalProviderImpl.impl.getPathWatcherProvider
 
 }

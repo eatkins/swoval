@@ -10,7 +10,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 import com.swoval.files.PathWatchers.Event;
-import com.swoval.files.PathWatchers.Overflow;
+import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
@@ -43,7 +43,7 @@ class NioPathWatcherService implements AutoCloseable {
   private final Logger logger;
 
   NioPathWatcherService(
-      final Consumer<Either<Overflow, Event>> eventConsumer,
+      final Consumer<Event> eventConsumer,
       final RegisterableWatchService watchService,
       final Logger logger)
       throws InterruptedException {
@@ -81,8 +81,9 @@ class NioPathWatcherService implements AutoCloseable {
                     logger.debug(
                         prefix + " received event for path " + e.context() + " with kind " + k);
                   if (OVERFLOW.equals(k)) {
-                    final Either<Overflow, Event> result =
-                        Either.left(new Overflow((Path) key.watchable()));
+                    final TypedPath typedPath =
+                        TypedPaths.get((Path) key.watchable(), Entries.DIRECTORY);
+                    final Event result = new Event(typedPath, Kind.Overflow);
                     eventConsumer.accept(result);
                   } else if (k != null) {
                     final Event.Kind kind =
@@ -90,8 +91,7 @@ class NioPathWatcherService implements AutoCloseable {
                     final Path watchKey = (Path) key.watchable();
                     final Path path =
                         e.context() == null ? watchKey : watchKey.resolve((Path) e.context());
-                    final Either<Overflow, Event> result =
-                        Either.right(new Event(TypedPaths.get(path, UNKNOWN), kind));
+                    final Event result = new Event(TypedPaths.get(path, UNKNOWN), kind);
                     eventConsumer.accept(result);
                   }
                 }

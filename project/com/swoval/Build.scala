@@ -470,6 +470,8 @@ object Build {
                 "NioPathWatcher",
                 "Observers",
                 "PathWatcher",
+                "PathWatcherProvider",
+                "PathWatcherProviderImpl",
                 "PathWatchers",
                 "PollingPathWatcher",
                 "RegisterableWatchService",

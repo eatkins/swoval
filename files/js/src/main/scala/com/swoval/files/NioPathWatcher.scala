@@ -10,7 +10,6 @@ import com.swoval.files.FileTreeDataViews.CacheObserver
 import com.swoval.files.FileTreeDataViews.Converter
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.PathWatchers.Event
-import com.swoval.files.PathWatchers.Overflow
 import com.swoval.functional.Consumer
 import com.swoval.functional.Either
 import com.swoval.functional.Filter
@@ -88,14 +87,13 @@ class NioPathWatcher(private val directoryRegistry: DirectoryRegistry,
     }
 
   private val service: NioPathWatcherService = new NioPathWatcherService(
-    new Consumer[Either[Overflow, Event]]() {
-      override def accept(either: Either[Overflow, Event]): Unit = {
+    new Consumer[Event]() {
+      override def accept(event: Event): Unit = {
         if (!closed.get) {
-          if (either.isRight) {
-            val event: Event = either.get
+          if (event.getKind != Overflow) {
             handleEvent(event)
           } else {
-            handleOverflow(Either.leftProjection(either).getValue)
+            handleOverflow(event)
           }
         }
       }
@@ -271,8 +269,8 @@ class NioPathWatcher(private val directoryRegistry: DirectoryRegistry,
     }
   }
 
-  private def handleOverflow(overflow: Overflow): Unit = {
-    val path: Path = overflow.getPath
+  private def handleOverflow(event: Event): Unit = {
+    val path: Path = event.getTypedPath.getPath
     if (Loggers.shouldLog(logger, Level.DEBUG))
       logger.debug(this + " received overflow for " + path)
     val events: List[Event] = new ArrayList[Event]()

@@ -2,149 +2,26 @@
 
 package com.swoval.files
 
-import com.swoval.files.FileTreeDataViews.Converter
-import com.swoval.files.FileTreeViews.Observer
-import com.swoval.functional.Either
 import com.swoval.logging.Logger
-import com.swoval.logging.Loggers
-import com.swoval.runtime.Platform
 import java.io.IOException
-import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import scala.beans.{ BeanProperty, BooleanBeanProperty }
 
 object PathWatchers {
 
-  /**
-   * Create a PathWatcher that will not follow symlinks. The implementation will be platform
-   * dependent.
-   *
-   * @param converter function to convert a [[TypedPath]] to the generic data type `T`.
-   * @param logger the logger for t
-   * @tparam T the generic type of events created by this path watcher
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def noFollowSymlinks[T <: AnyRef](converter: Converter[T], logger: Logger): NoFollowSymlinks[T] =
-    new NoFollowWrapper(PathWatchers.get[T](converter, new DirectoryRegistryImpl(), logger))
+  private val provider: PathWatcherProvider =
+    SwovalProviderImpl.getDefaultProvider.getPathWatcherProvider
 
-  /**
-   * Create a PathWatcher that will not follow symlinks. The implementation will be platform
-   * dependent.
-   *
-   * @param converter function to convert a [[TypedPath]] to the generic data type `T`.
-   * @tparam T the generic type of events created by this path watcher
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def noFollowSymlinks[T <: AnyRef](converter: Converter[T]): NoFollowSymlinks[T] =
-    noFollowSymlinks(converter, Loggers.getLogger)
+  def followSymlinks(logger: Logger): FollowSymlinks[PathWatchers.Event] =
+    provider.followSymlinks(logger)
 
-  /**
-   * Create a PathWatcher that will not follow symlinks and generates events of type [[Event]].
-   * The implementation will be platform dependent.
-   *
-   * @param logger the logger to use
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def noFollowSymlinks(logger: Logger): NoFollowSymlinks[Event] =
-    new NoFollowWrapper(get(new DirectoryRegistryImpl(), logger))
+  def noFollowSymlinks(logger: Logger): NoFollowSymlinks[PathWatchers.Event] =
+    provider.noFollowSymlinks(logger)
 
-  /**
-   * Create a PathWatcher that will not follow symlinks and generates events of type [[Event]].
-   * The implementation will be platform dependent.
-   *
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def noFollowSymlinks(): NoFollowSymlinks[Event] =
-    noFollowSymlinks(Loggers.getLogger)
-
-  /**
-   * Create a PathWatcher that will follow symlinks and generate file events for the symlink when
-   * its target is modifified. The implementation will be platform dependent.
-   *
-   * @param converter function to convert a [[TypedPath]] to the generic data type `T`.
-   * @param logger the logger for t
-   * @tparam T the generic type of events created by this path watcher
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def followSymlinks[T <: AnyRef](converter: Converter[T], logger: Logger): FollowSymlinks[T] =
-    new FollowWrapper(new ConvertedPathWatcher(follow(logger), converter, logger))
-
-  /**
-   * Create a PathWatcher that will follow symlinks and generate file events for the symlink when
-   * its target is modifified. The implementation will be platform dependent.
-   *
-   * @param converter function to convert a [[TypedPath]] to the generic data type `T`.
-   * @tparam T the generic type of events created by this path watcher
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def followSymlinks[T <: AnyRef](converter: Converter[T]): FollowSymlinks[T] =
-    followSymlinks(converter, Loggers.getLogger)
-
-  /**
-   * Create a PathWatcher that will not follow symlinks and generates events of type [[Event]].
-   * The implementation will be platform dependent.
-   *
-   * @param logger the logger
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def followSymlinks(logger: Logger): FollowSymlinks[Event] =
-    new FollowWrapper(follow(logger))
-
-  /**
-   * Create a PathWatcher that will not follow symlinks and generates events of type [[Event]].
-   * The implementation will be platform dependent.
-   *
-   * @return a PathWatcher that does not follow symlinks.
-   *     an io error
-   *     its background threads
-   */
-  def followSymlinks(): FollowSymlinks[Event] =
-    new FollowWrapper(follow(Loggers.getLogger))
-
-  private def follow(logger: Logger): PathWatcher[Event] = {
-    val directoryRegistry: DirectoryRegistry = new DirectoryRegistryImpl()
-    val pathWatcher: PathWatcher[Event] = get(directoryRegistry, logger)
-    new SymlinkFollowingPathWatcherImpl(pathWatcher, directoryRegistry, logger)
-  }
-
-  /**
-   * Create a path watcher that periodically polls the file system to detect changes
-   *
-   * @param followLinks toggles whether or not the targets of symbolic links should be monitored
-   * @param pollInterval minimum duration between when polling ends and the next poll begins
-   * @param timeUnit the time unit for which the pollInterval corresponds
-   * @return the polling path watcher.
-   */
-  def polling(followLinks: Boolean,
-              pollInterval: java.lang.Long,
+  def polling(duration: java.lang.Long,
               timeUnit: TimeUnit,
               logger: Logger): PathWatcher[PathWatchers.Event] =
-    new PollingPathWatcher(followLinks, pollInterval, timeUnit, logger)
-
-  private def get[T <: AnyRef](converter: Converter[T],
-                               registry: DirectoryRegistry,
-                               logger: Logger): PathWatcher[T] =
-    new ConvertedPathWatcher[T](get(registry, logger), converter, logger)
-
-  private def get(registry: DirectoryRegistry, logger: Logger): PathWatcher[Event] =
-    if (Platform.isMac) ApplePathWatchers.get(registry, logger)
-    else PlatformWatcher.make(registry, logger)
-
-  class Overflow(@BeanProperty val path: Path)
+    provider.polling(duration, timeUnit, logger)
 
   object Event {
 
@@ -225,93 +102,6 @@ object PathWatchers {
 
     override def toString(): String =
       "Event(" + typedPath.getPath + ", " + kind + ")"
-
-  }
-
-  private class ConvertedPathWatcher[T](private val pathWatcher: PathWatcher[Event],
-                                        private val converter: Converter[T],
-                                        logger: Logger)
-      extends PathWatcher[T] {
-
-    private val observers: Observers[T] = new Observers(logger)
-
-    private val handle: Int = pathWatcher.addObserver(new Observer[Event]() {
-      override def onError(t: Throwable): Unit = {
-        observers.onError(t)
-      }
-
-      override def onNext(event: Event): Unit = {
-        observe(event)
-      }
-    })
-
-    override def register(path: Path, maxDepth: Int): Either[IOException, Boolean] =
-      pathWatcher.register(path, maxDepth)
-
-    override def unregister(path: Path): Unit = {
-      pathWatcher.unregister(path)
-    }
-
-    override def close(): Unit = {
-      pathWatcher.removeObserver(this.handle)
-      observers.close()
-      pathWatcher.close()
-    }
-
-    def addObserver(observer: Observer[_ >: T]): Int =
-      observers.addObserver(observer)
-
-    override def removeObserver(handle: Int): Unit = {
-      observers.removeObserver(handle)
-    }
-
-    private def observe(event: Event): Unit = {
-      try observers.onNext(converter.apply(event.getTypedPath))
-      catch {
-        case e: IOException => observers.onError(e)
-
-      }
-    }
-
-  }
-
-  private class Wrapper[T <: AnyRef](private val delegate: PathWatcher[T]) extends PathWatcher[T] {
-
-    override def register(path: Path, maxDepth: Int): Either[IOException, Boolean] =
-      delegate.register(path, maxDepth)
-
-    override def unregister(path: Path): Unit = {
-      delegate.unregister(path)
-    }
-
-    override def close(): Unit = {
-      delegate.close()
-    }
-
-    override def addObserver(observer: Observer[_ >: T]): Int =
-      delegate.addObserver(observer)
-
-    override def removeObserver(handle: Int): Unit = {
-      delegate.removeObserver(handle)
-    }
-
-  }
-
-  private class NoFollowWrapper[T <: AnyRef](delegate: PathWatcher[T])
-      extends Wrapper[T](delegate)
-      with NoFollowSymlinks[T] {
-
-    override def toString(): String =
-      "NoFollowSymlinksPathWatcher@" + System.identityHashCode(this)
-
-  }
-
-  private class FollowWrapper[T <: AnyRef](delegate: PathWatcher[T])
-      extends Wrapper[T](delegate)
-      with FollowSymlinks[T] {
-
-    override def toString(): String =
-      "SymlinkFollowingPathWatcher@" + System.identityHashCode(this)
 
   }
 

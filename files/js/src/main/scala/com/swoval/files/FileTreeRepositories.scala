@@ -8,7 +8,8 @@ import java.io.IOException
 
 object FileTreeRepositories {
 
-  private var provider: SwovalProvider = SwovalProviderImpl.getDefaultProvider
+  private var provider: FileTreeRepositoryProvider =
+    SwovalProviderImpl.getDefaultProvider.getFileTreeRepositoryProvider
 
   /**
    * Create a default file tree repository that doesn't store a data value in the cache. The return

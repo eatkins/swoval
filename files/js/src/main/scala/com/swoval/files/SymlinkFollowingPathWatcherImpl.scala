@@ -16,11 +16,12 @@ import java.util.Iterator
 
 class SymlinkFollowingPathWatcherImpl(private val pathWatcher: PathWatcher[PathWatchers.Event],
                                       directoryRegistry: DirectoryRegistry,
-                                      logger: Logger)
+                                      logger: Logger,
+                                      provider: PathWatcherProvider)
     extends FollowSymlinks[Event] {
 
   private val symlinkWatcher: SymlinkWatcher =
-    new SymlinkWatcher(PathWatchers.noFollowSymlinks(logger), logger)
+    new SymlinkWatcher(provider.noFollowSymlinks(logger), logger)
 
   private val observers: Observers[PathWatchers.Event] = new Observers(logger)
 
