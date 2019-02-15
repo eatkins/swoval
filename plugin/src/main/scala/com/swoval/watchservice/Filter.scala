@@ -5,7 +5,7 @@ import java.io.File
 import java.nio.file.Path
 
 import com.swoval.files.FileTreeDataViews.Entry
-import com.swoval.files.TypedPaths
+import com.swoval.files.impl.TypedPaths
 import com.swoval.watchservice.Compat.EntryImpl
 import com.swoval.watchservice.Compat.io._
 import com.swoval.watchservice.Filter._

@@ -12,6 +12,12 @@ import com.swoval.files.PathWatchers.Event.Kind
 import com.swoval.files.PathWatchers.Event.Kind.{ Delete, Modify }
 import com.swoval.files.TestHelpers._
 import com.swoval.files.apple.Flags
+import com.swoval.files.impl.{
+  ApplePathWatcher,
+  DirectoryRegistryImpl,
+  PlatformWatcher,
+  TypedPaths
+}
 import com.swoval.files.test.{ ArrayBlockingQueue, _ }
 import com.swoval.functional.Consumer
 import com.swoval.runtime.Platform

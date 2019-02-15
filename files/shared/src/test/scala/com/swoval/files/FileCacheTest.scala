@@ -7,6 +7,7 @@ import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
 import com.swoval.files.FileTreeDataViews.CacheObserver
 import com.swoval.files.PathWatchers.Event
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.{ ApplePathWatchers, DirectoryRegistry, PlatformWatcher }
 import com.swoval.files.test._
 import com.swoval.files.test.platform.Bool
 import com.swoval.functional.{ Filter, Filters, Either => SEither }

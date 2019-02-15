@@ -8,6 +8,7 @@ import com.swoval.files.FileTreeViewTest.RepositoryOps
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl._
 import com.swoval.files.test._
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass
@@ -29,7 +30,7 @@ object CachedFileTreeViewTest extends TestSuite {
                             AllPass,
                             followLinks)
       .init()
-  class Updates[T <: AnyRef](u: FileTreeViews.Updates[T]) {
+  class Updates[T <: AnyRef](u: CacheUpdates[T]) {
     private[this] var _creations: Seq[Entry[T]] = Nil
     private[this] var _deletions: Seq[Entry[T]] = Nil
     private[this] var _updates: Seq[(Entry[T], Entry[T])] = Nil
@@ -44,7 +45,7 @@ object CachedFileTreeViewTest extends TestSuite {
     def deletions: Seq[Entry[T]] = _deletions
     def updates: Seq[(Entry[T], Entry[T])] = _updates
   }
-  implicit class UpdateOps[T <: AnyRef](val u: FileTreeViews.Updates[T]) extends AnyVal {
+  implicit class UpdateOps[T <: AnyRef](val u: CacheUpdates[T]) extends AnyVal {
     def toUpdates: CachedFileTreeViewTest.Updates[T] = new CachedFileTreeViewTest.Updates(u)
   }
 

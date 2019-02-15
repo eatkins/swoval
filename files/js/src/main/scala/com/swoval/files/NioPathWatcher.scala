@@ -2,28 +2,19 @@
 
 package com.swoval.files
 
-import com.swoval.files.PathWatchers.Event.Kind.Create
-import com.swoval.files.PathWatchers.Event.Kind.Delete
-import com.swoval.files.PathWatchers.Event.Kind.Overflow
-import java.util.Map.Entry
-import com.swoval.files.FileTreeDataViews.CacheObserver
-import com.swoval.files.FileTreeDataViews.Converter
-import com.swoval.files.FileTreeViews.Observer
-import com.swoval.files.PathWatchers.Event
-import com.swoval.functional.Consumer
-import com.swoval.functional.Either
-import com.swoval.functional.Filter
-import com.swoval.logging.Logger
-import com.swoval.logging.Loggers
-import com.swoval.logging.Loggers.Level
 import java.io.IOException
 import java.nio.file.Path
-import java.util.ArrayList
-import java.util.HashSet
-import java.util.Iterator
-import java.util.List
-import java.util.Set
+import java.util.Map.Entry
+import java.util.{ ArrayList, HashSet, Iterator, List, Set }
 import java.util.concurrent.atomic.AtomicBoolean
+
+import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter }
+import com.swoval.files.FileTreeViews.Observer
+import com.swoval.files.PathWatchers.Event
+import com.swoval.files.PathWatchers.Event.Kind.{ Create, Delete, Overflow }
+import com.swoval.functional.{ Consumer, Either, Filter }
+import com.swoval.logging.{ Logger, Loggers }
+import com.swoval.logging.Loggers.Level
 
 class RootDirectories extends LockableMap[Path, CachedDirectory[WatchedDirectory]]
 

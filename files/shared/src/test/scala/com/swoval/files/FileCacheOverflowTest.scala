@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl._
 import com.swoval.files.test._
 import com.swoval.functional.IOFunction
 import com.swoval.logging.Logger

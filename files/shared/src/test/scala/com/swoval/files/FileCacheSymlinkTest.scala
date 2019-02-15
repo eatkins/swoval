@@ -5,7 +5,7 @@ package files
 import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
-import FileTreeDataViews.{ CacheObserver, Converter, Converters, Entry }
+import FileTreeDataViews.{ CacheObserver, Converter, Entry }
 import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.test._
 import com.swoval.runtime.Platform
@@ -19,6 +19,7 @@ import scala.concurrent.duration._
 import scala.util.Failure
 import TestHelpers._
 import EntryOps._
+import com.swoval.files.impl.Converters
 
 trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
   def getRepo(implicit testLogger: TestLogger): FileTreeRepository[Object] =

@@ -199,7 +199,7 @@ Found file: /foo/baz
 The implementation uses the jni to directly make system calls. In the event that the native library
 cannot be loaded, the implementation of FileTreeView can be overridden using the system parameter
 `swoval.directory.lister`. To use a nio based implementation with no jni calls, start the jvm
-with `-Dswoval.directory.lister=com.swoval.files.NioDirectoryLister`.
+with `-Dswoval.directory.lister=com.swoval.files.impl.NioDirectoryLister`.
 
 Note that this library is tested on Mac, Linux and Windows. That is also the order in which most
 of the development work is done. This makes Windows the platform likely to have the most bugs.

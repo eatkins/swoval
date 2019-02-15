@@ -6,6 +6,12 @@ import java.nio.file.Path
 
 import com.swoval.files.PathWatchers.Event
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.{
+  DirectoryRegistryImpl,
+  Executor,
+  PlatformWatcher,
+  RegisterableWatchServices
+}
 import com.swoval.files.test._
 import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext

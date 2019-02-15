@@ -1,6 +1,8 @@
 package com.swoval.files;
 
 import com.swoval.files.FileTreeViews.Observable;
+import com.swoval.files.impl.CachedDirectoryImpl;
+import com.swoval.files.impl.TypedPaths;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filters;
 import java.io.IOException;
@@ -71,17 +73,6 @@ public class FileTreeDataViews {
      * @throws IOException when the value can't be computed
      */
     R apply(final TypedPath typedPath) throws IOException;
-  }
-
-  static class Converters {
-    private static final Object UNIT_VALUE = new Object();
-    static final Converter<Object> UNIT_CONVERTER =
-        new Converter<Object>() {
-          @Override
-          public Object apply(final TypedPath typedPath) {
-            return UNIT_VALUE;
-          }
-        };
   }
 
   /**

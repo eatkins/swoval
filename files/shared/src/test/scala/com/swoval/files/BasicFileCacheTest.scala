@@ -9,6 +9,7 @@ import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.TypedPaths
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
 import com.swoval.runtime.Platform

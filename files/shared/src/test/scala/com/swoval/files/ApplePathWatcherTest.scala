@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 import com.swoval.files.PathWatchers.Event
 import com.swoval.files.TestHelpers._
 import com.swoval.files.apple.Flags
+import com.swoval.files.impl.{ ApplePathWatcher, DirectoryRegistryImpl }
 import com.swoval.files.test._
 import com.swoval.test._
 import utest._

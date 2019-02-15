@@ -1,6 +1,7 @@
 package com.swoval.files;
 
 import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.files.impl.SwovalProviderImpl;
 import com.swoval.logging.Logger;
 import java.io.IOException;
 

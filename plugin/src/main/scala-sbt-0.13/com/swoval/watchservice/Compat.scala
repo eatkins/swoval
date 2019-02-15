@@ -1,13 +1,15 @@
 package com.swoval
 package watchservice
 
-import java.io.{ File, IOException }
+import java.io.{File, IOException}
 import java.nio.file._
 
-import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
-import com.swoval.files.{ FileTreeRepositories, TypedPath, TypedPaths }
+import com.swoval.files.FileTreeDataViews.{Converter, Entry}
+import com.swoval.files.impl.TypedPaths
+import com.swoval.files.{FileTreeRepositories, TypedPath}
 import com.swoval.watchservice.CloseWatchPlugin.autoImport.closeWatchFileCache
 import sbt.Keys._
+
 import scala.util.Try
 
 class FileSource(file: File, f: Filter) extends File(file.toString) with SourcePath {

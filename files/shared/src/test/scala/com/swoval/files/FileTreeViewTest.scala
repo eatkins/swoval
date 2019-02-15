@@ -4,6 +4,7 @@ import java.nio.file.{ Path, Paths }
 import java.util
 
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.{ CachedDirectoryImpl, TypedPaths }
 import com.swoval.files.test._
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass

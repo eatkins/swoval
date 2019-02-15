@@ -1,4 +1,5 @@
 package com.swoval.files
+import com.swoval.files.impl.{ NativeDirectoryLister, SimpleFileTreeView }
 
 object QuickListReflectionTest {
   def main(args: Array[String]): Unit = {
