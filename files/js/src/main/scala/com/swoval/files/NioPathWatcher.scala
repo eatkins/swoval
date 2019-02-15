@@ -126,7 +126,9 @@ class NioPathWatcher(private val directoryRegistry: DirectoryRegistry,
 
   private def remove(path: Path, events: List[Event]): Unit = {
     val root: CachedDirectory[WatchedDirectory] = rootDirectories.remove(path)
-    if (root != null) remove(root, path, events)
+    val dir: CachedDirectory[WatchedDirectory] =
+      if (root != null) root else find(path)
+    if (dir != null) remove(dir, path, events)
   }
 
   private def remove(cachedDirectory: CachedDirectory[WatchedDirectory],
@@ -329,22 +331,25 @@ class NioPathWatcher(private val directoryRegistry: DirectoryRegistry,
       logger.debug(this + " received event " + event)
     val events: List[Event] = new ArrayList[Event]()
     if (!closed.get && rootDirectories.lock()) {
-      try if (directoryRegistry.acceptPrefix(event.getTypedPath.getPath)) {
-        val isDelete: Boolean = event.getKind == Delete
-        val path: Path = event.getTypedPath.getPath
-        val typedPath: TypedPath = TypedPaths.get(path)
-        if (isDelete) remove(path, events)
-        if (typedPath.exists()) {
-          if (typedPath.isDirectory && !typedPath.isSymbolicLink) {
-            try add(typedPath, events)
-            catch {
-              case e: IOException => remove(path, events)
+      try {
+        if (directoryRegistry.acceptPrefix(event.getTypedPath.getPath)) {
+          val isDelete: Boolean = event.getKind == Delete
+          val path: Path = event.getTypedPath.getPath
+          val typedPath: TypedPath = TypedPaths.get(path)
+          if (isDelete) remove(path, events)
+          if (typedPath.exists()) {
+            if (typedPath.isDirectory && !typedPath.isSymbolicLink) {
+              if (Loggers.shouldLog(logger, Level.DEBUG))
+                logger.debug(this + " adding directory for " + typedPath)
+              try add(typedPath, events)
+              catch {
+                case e: IOException => remove(path, events)
 
+              }
             }
-          }
-          events.add(event)
-        } else if (!isDelete) remove(path, events)
-        else events.add(event)
+          } else if (!isDelete) remove(path, events)
+        }
+        events.add(event)
       } finally rootDirectories.unlock()
     }
     if (Loggers.shouldLog(logger, Level.DEBUG)) {

@@ -21,10 +21,10 @@ import TestHelpers._
 import EntryOps._
 
 trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
-  def getRepo(implicit testLogger: TestLogger): FileTreeRepository[TypedPath] =
-    FileTreeRepositories.getDefault(Converters.IDENTITY, testLogger)
-  def getNoFollow(implicit testLogger: TestLogger): FileTreeRepository[TypedPath] =
-    FileTreeRepositories.noFollowSymlinks(Converters.IDENTITY, testLogger)
+  def getRepo(implicit testLogger: TestLogger): FileTreeRepository[Object] =
+    FileTreeRepositories.followSymlinks(Converters.UNIT_CONVERTER, testLogger)
+  def getNoFollow(implicit testLogger: TestLogger): FileTreeRepository[Object] =
+    FileTreeRepositories.noFollowSymlinks(Converters.UNIT_CONVERTER, testLogger)
   val testsImpl = Tests {
     'initial - withTempDirectory { dir =>
       implicit val logger: TestLogger = new CachingLogger
@@ -312,13 +312,12 @@ trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
           val link = dir.resolve("link") linkTo otherDir
           usingAsync(getNoFollow) { c =>
             c.register(dir, Integer.MAX_VALUE)
-            c.addCacheObserver(new CacheObserver[TypedPath] {
-              override def onCreate(newEntry: Entry[TypedPath]): Unit =
+            c.addCacheObserver(new CacheObserver[Object] {
+              override def onCreate(newEntry: Entry[Object]): Unit =
                 if (newEntry.path == link) creationLatch.countDown()
-              override def onDelete(oldEntry: Entry[TypedPath]): Unit =
+              override def onDelete(oldEntry: Entry[Object]): Unit =
                 if (oldEntry.path == link) deletionLatch.countDown()
-              override def onUpdate(oldEntry: Entry[TypedPath],
-                                    newEntry: Entry[TypedPath]): Unit = {}
+              override def onUpdate(oldEntry: Entry[Object], newEntry: Entry[Object]): Unit = {}
               override def onError(exception: IOException): Unit = {}
             })
             link.delete()

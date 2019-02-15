@@ -72,8 +72,10 @@ object FileTreeDataViews {
 
   object Converters {
 
-    val IDENTITY: Converter[TypedPath] = new Converter[TypedPath]() {
-      override def apply(typedPath: TypedPath): TypedPath = typedPath
+    private val UNIT_VALUE: AnyRef = new AnyRef()
+
+    val UNIT_CONVERTER: Converter[AnyRef] = new Converter[AnyRef]() {
+      override def apply(typedPath: TypedPath): AnyRef = UNIT_VALUE
     }
 
   }

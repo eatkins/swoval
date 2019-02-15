@@ -47,9 +47,6 @@ class FileTreeRepositoryImpl[T <: AnyRef](private val directoryTree: FileCacheDi
 
   private val shutdownHookId: Int = ShutdownHooks.addHook(1, closeRunnable)
 
-  def this(directoryTree: FileCacheDirectoryTree[T], watcher: FileCachePathWatcher[T]) =
-    this(directoryTree, watcher, Loggers.getLogger)
-
   /**
  Cleans up the path watcher and clears the directory cache.
    */

@@ -37,7 +37,7 @@ trait FileCacheTest extends TestSuite { self: TestSuite =>
 object FileCacheTest {
   def get[T <: AnyRef](converter: Converter[T], cacheObserver: CacheObserver[T])(
       implicit testLogger: TestLogger): FileTreeRepository[T] = {
-    val res = FileTreeRepositories.getDefault(converter, testLogger)
+    val res = FileTreeRepositories.followSymlinks(converter, testLogger)
     res.addCacheObserver(cacheObserver)
     res
   }

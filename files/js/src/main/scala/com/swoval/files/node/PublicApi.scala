@@ -52,6 +52,7 @@ object FileTreeRepositories {
           }
           override def apply(typedPath: STypedPath): T = function(typedPath)
         },
+        Loggers.getLogger()
       )
     new FileTreeRepository[T](underlying)
   }

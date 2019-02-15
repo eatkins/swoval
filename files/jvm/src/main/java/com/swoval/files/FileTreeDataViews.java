@@ -74,11 +74,12 @@ public class FileTreeDataViews {
   }
 
   static class Converters {
-    static final Converter<TypedPath> IDENTITY =
-        new Converter<TypedPath>() {
+    private static final Object UNIT_VALUE = new Object();
+    static final Converter<Object> UNIT_CONVERTER =
+        new Converter<Object>() {
           @Override
-          public TypedPath apply(final TypedPath typedPath) {
-            return typedPath;
+          public Object apply(final TypedPath typedPath) {
+            return UNIT_VALUE;
           }
         };
   }

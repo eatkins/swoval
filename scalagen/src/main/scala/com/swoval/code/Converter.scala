@@ -80,11 +80,15 @@ object Converter {
         "FileTreeRepositories",
         "FileTreeRepository",
         "FileTreeRepositoryImpl",
+        "FileTreeRepositoryProvider",
+        "FileTreeRepositoryProviderImpl",
         "FileTreeViews",
         "FollowSymlinks",
         "FollowWrapper",
         "NoFollowSymlinks",
         "NoFollowWrapper",
+        "SwovalProvider",
+        "SwovalProviderImpl",
         "UpdatableFileTreeDataView",
         "Wrapper"
       )
@@ -109,10 +113,12 @@ object Converter {
          s"(def (?:get|apply|cached|getDefault|impl|(?:noF|f)ollowSymlinks|(?:Updatable)?)|trait (?:${needAnyRef
            .mkString("|")})|class (?:${needAnyRef
            .mkString("|")}}))[\\[]T".r
+       val anyRegex = "\\[Any\\]".r
        val contraRegex = "^(.*result: List).R".r
        newLines.view
          .filterNot(_.contains("import Entry._"))
          .map(regex.replaceAllIn(_, "$1[T <: AnyRef"))
+         .map(anyRegex.replaceAllIn(_, "[AnyRef]"))
          .map(contraRegex.replaceAllIn(_, "$1[_ >: R"))
      } else if (fileName.contains("Loggers")) {
        newLines.view.filterNot(_.contains("import Level._"))

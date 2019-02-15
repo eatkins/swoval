@@ -3,21 +3,21 @@
 package com.swoval.files
 
 import com.swoval.files.FileTreeDataViews.Converter
+import com.swoval.files.FileTreeRepositories.FollowSymlinks
+import com.swoval.files.FileTreeRepositories.NoFollowSymlinks
 import com.swoval.logging.Logger
 import java.io.IOException
 
-object FileTreeRepositories {
-
-  private var provider: SwovalProvider = SwovalProviderImpl.getDefaultProvider
+trait FileTreeRepositoryProvider {
 
   /**
    * Create a default file tree repository that doesn't store a data value in the cache. The return
    * [[FileTreeRepository]] will follow symlinks. To set a data value or to control whether or
-   * not to follow symlinks, see [[FileTreeRepositories.noFollowSymlinks]] or [[FileTreeRepositories.followSymlinks]]
+   * not to follow symlinks, see [[SwovalProvider.noFollowSymlinks]] or [[SwovalProvider.followSymlinks]]
    *
    * @return a file tree repository.
    */
-  def getDefault(): FileTreeRepository[AnyRef] = provider.getDefault
+  def getDefault(): FileTreeRepository[AnyRef]
 
   /**
    * Create a file tree repository that follows symlinks.
@@ -27,8 +27,7 @@ object FileTreeRepositories {
    * @tparam T the value type of the cache entries
    * @return a file tree repository.
    */
-  def followSymlinks[T <: AnyRef](converter: Converter[T], logger: Logger): FollowSymlinks[T] =
-    provider.followSymlinks(converter, logger)
+  def followSymlinks[T <: AnyRef](converter: Converter[T], logger: Logger): FollowSymlinks[T]
 
   /**
    * Create a file tree repository that does not follow symlinks. Any symlinks in the results will
@@ -40,11 +39,6 @@ object FileTreeRepositories {
    * @tparam T the value type of the cache entries
    * @return a file tree repository.
    */
-  def noFollowSymlinks[T <: AnyRef](converter: Converter[T], logger: Logger): NoFollowSymlinks[T] =
-    provider.noFollowSymlinks(converter, logger)
-
-  trait FollowSymlinks[T <: AnyRef] extends FileTreeRepository[T]
-
-  trait NoFollowSymlinks[T <: AnyRef] extends FileTreeRepository[T]
+  def noFollowSymlinks[T <: AnyRef](converter: Converter[T], logger: Logger): NoFollowSymlinks[T]
 
 }
