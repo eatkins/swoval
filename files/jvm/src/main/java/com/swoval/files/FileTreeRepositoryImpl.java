@@ -1,10 +1,15 @@
 package com.swoval.files;
 
 import com.swoval.files.FileTreeDataViews.CacheObserver;
+import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.FileTreeDataViews.Entry;
+import com.swoval.files.FileTreeRepositories.FollowSymlinks;
+import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
 import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.PathWatchers.Event;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
+import com.swoval.functional.IOFunction;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
 import com.swoval.logging.Loggers.Level;
@@ -13,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
 
 class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -32,6 +38,65 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
       };
   private final int shutdownHookId;
   private final Logger logger;
+
+  static <T> FileTreeRepository<T> get(
+      final boolean followLinks,
+      final Converter<T> converter,
+      final Logger logger,
+      final IOFunction<Logger, PathWatcher<Event>> newPathWatcher)
+      throws InterruptedException, IOException {
+    try {
+      final SymlinkWatcher symlinkWatcher =
+          followLinks ? new SymlinkWatcher(newPathWatcher.apply(logger), logger) : null;
+      final Executor callbackExecutor =
+          Executor.make("FileTreeRepository-callback-executor", logger);
+      final FileCacheDirectoryTree<T> tree =
+          new FileCacheDirectoryTree<>(converter, callbackExecutor, symlinkWatcher, false, logger);
+      final PathWatcher<PathWatchers.Event> pathWatcher = newPathWatcher.apply(logger);
+      pathWatcher.addObserver(fileTreeObserver(tree, logger));
+      final FileCachePathWatcher<T> watcher = new FileCachePathWatcher<>(tree, pathWatcher);
+      return new FileTreeRepositoryImpl<T>(tree, watcher);
+    } catch (final Interrupted e) {
+      throw e.cause;
+    }
+  }
+
+  static final IOFunction<Logger, PathWatcher<Event>> PATH_WATCHER_FACTORY =
+      new IOFunction<Logger, PathWatcher<Event>>() {
+        @Override
+        public PathWatcher<Event> apply(final Logger logger) throws IOException {
+          try {
+            return PathWatchers.noFollowSymlinks(logger);
+          } catch (final InterruptedException e) {
+            throw new Interrupted(e);
+          }
+        }
+      };
+
+  private static class Interrupted extends RuntimeException {
+    final InterruptedException cause;
+
+    Interrupted(final InterruptedException cause) {
+      this.cause = cause;
+    }
+  }
+
+  private static Observer<Event> fileTreeObserver(
+      final FileCacheDirectoryTree<?> tree, final Logger logger) {
+    return new Observer<Event>() {
+      @Override
+      public void onError(final Throwable t) {
+        if (Loggers.shouldLog(logger, Level.ERROR)) {
+          logger.error("Error while monitoring the file system " + t);
+        }
+      }
+
+      @Override
+      public void onNext(final Event event) {
+        tree.handleEvent(event);
+      }
+    };
+  }
 
   FileTreeRepositoryImpl(
       final FileCacheDirectoryTree<T> directoryTree,
@@ -132,8 +197,81 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
     }
 
     @Override
-    public int compareTo(final Callback that) {
+    public int compareTo(@NotNull final Callback that) {
       return this.path.compareTo(that.path);
     }
   }
+
+  private static class Wrapper<T> implements FileTreeRepository<T> {
+    private final FileTreeRepository<T> delegate;
+
+    Wrapper(final FileTreeRepository<T> delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public Either<IOException, Boolean> register(Path path, int maxDepth) {
+      return delegate.register(path, maxDepth);
+    }
+
+    @Override
+    public void unregister(Path path) {
+      delegate.unregister(path);
+    }
+
+    @Override
+    public List<Entry<T>> listEntries(Path path, int maxDepth, Filter<? super Entry<T>> filter)
+        throws IOException {
+      return delegate.listEntries(path, maxDepth, filter);
+    }
+
+    @Override
+    public List<TypedPath> list(Path path, int maxDepth, Filter<? super TypedPath> filter)
+        throws IOException {
+      return delegate.list(path, maxDepth, filter);
+    }
+
+    @Override
+    public void close() {
+      delegate.close();
+    }
+
+    @Override
+    public int addObserver(Observer<? super Entry<T>> observer) {
+      return delegate.addObserver(observer);
+    }
+
+    @Override
+    public void removeObserver(int handle) {
+      delegate.removeObserver(handle);
+    }
+
+    @Override
+    public int addCacheObserver(CacheObserver<T> observer) {
+      return delegate.addCacheObserver(observer);
+    }
+  }
+
+  private static final class NoFollowWrapper<T> extends Wrapper<T> implements NoFollowSymlinks<T> {
+    NoFollowWrapper(final FileTreeRepository<T> delegate) {
+      super(delegate);
+    }
+
+    @Override
+    public String toString() {
+      return "NoFollowSymlinksFileTreeRepository@" + System.identityHashCode(this);
+    }
+  }
+
+  private static final class FollowWrapper<T> extends Wrapper<T> implements FollowSymlinks<T> {
+    FollowWrapper(final FileTreeRepository<T> delegate) {
+      super(delegate);
+    }
+
+    @Override
+    public String toString() {
+      return "SymlinkFollowingFileTreeRepository@" + System.identityHashCode(this);
+    }
+  }
+
 }

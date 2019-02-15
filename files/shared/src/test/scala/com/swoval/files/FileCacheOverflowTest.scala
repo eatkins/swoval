@@ -27,7 +27,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
       converter: FileTreeDataViews.Converter[T],
       cacheObserver: FileTreeDataViews.CacheObserver[T]
   )(implicit testLogger: TestLogger): FileTreeRepository[T] = {
-    val res = FileTreeRepositories.impl(
+    val res = FileTreeRepositoryImpl.get(
       false,
       converter,
       testLogger,
