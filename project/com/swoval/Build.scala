@@ -257,7 +257,7 @@ object Build {
         val original = (sources in conf).value
         val base = baseDirectory.value.toPath
         val root = base.getParent.getParent
-        val shared = base.getParent.resolve("shared-sources")
+        val shared = base.getParent.getParent.resolve("shared-sources")
         val sourceDirectories = (unmanagedSourceDirectories in conf).value.collect {
           case dir if dir.getName != "java" && dir.exists && !dir.toPath.startsWith(shared) =>
             dir.toPath
