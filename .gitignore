@@ -4,7 +4,6 @@
 out
 
 #BEGIN FILESJVM TEST SYMLINKS
-files/jvm/src/test/scala/com/swoval/files/ApplePathWatcherTest.scala
 files/jvm/src/test/scala/com/swoval/files/BasicFileCacheTest.scala
 files/jvm/src/test/scala/com/swoval/files/BoundedWatchService.scala
 files/jvm/src/test/scala/com/swoval/files/DataViewTest.scala
@@ -18,6 +17,7 @@ files/jvm/src/test/scala/com/swoval/files/TestHelpers.scala
 files/jvm/src/test/scala/com/swoval/files/impl/CachedFileTreeViewTest.scala
 files/jvm/src/test/scala/com/swoval/files/impl/NioPathWatcherOverflowTest.scala
 files/jvm/src/test/scala/com/swoval/files/impl/Provider.scala
+files/jvm/src/test/scala/com/swoval/files/impl/apple/ApplePathWatcherTest.scala
 files/jvm/src/test/scala/com/swoval/files/impl/apple/FileEventMonitorTest.scala
 files/jvm/src/test/scala/com/swoval/files/test/FileBytes.scala
 files/jvm/src/test/scala/com/swoval/files/test/TestLogger.scala

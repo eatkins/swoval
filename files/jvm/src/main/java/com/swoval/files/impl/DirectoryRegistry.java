@@ -66,19 +66,6 @@ public interface DirectoryRegistry extends Filter<Path>, AutoCloseable {
   void close();
 }
 
-class DirectoryRegistries {
-  private DirectoryRegistries() {}
-
-  static Filter<TypedPath> toTypedPathFilter(final DirectoryRegistry registry) {
-    return new Filter<TypedPath>() {
-      @Override
-      public boolean accept(final TypedPath typedPath) {
-        return registry.accept(typedPath.getPath());
-      }
-    };
-  }
-}
-
 class DirectoryRegistryImpl implements DirectoryRegistry {
   private final LockableMap<Path, RegisteredDirectory> registeredDirectoriesByPath =
       new LockableMap<>(new ConcurrentHashMap<Path, RegisteredDirectory>());

@@ -6,7 +6,7 @@ import java.io.{ OutputStream, PrintStream }
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{ ArrayBlockingQueue, ConcurrentHashMap, TimeUnit }
 
-import com.swoval.files.impl.apple.FileEventMonitorTest
+import com.swoval.files.impl.apple.{ ApplePathWatcherTest, FileEventMonitorTest }
 import com.swoval.files.impl.{ CachedFileTreeViewTest, NioPathWatcherOverflowTest }
 import utest._
 import utest.framework.{ HTree, Result }

@@ -3,10 +3,9 @@ package com.swoval.files.impl.apple
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
-import com.swoval.files._
-import com.swoval.files.PathWatchers.Event
 import com.swoval.files.TestHelpers._
-import com.swoval.files.impl.{ DirectoryRegistryImpl }
+import com.swoval.files._
+import com.swoval.files.impl.DirectoryRegistries
 import com.swoval.files.test._
 import com.swoval.test._
 import utest._
@@ -22,21 +21,21 @@ object ApplePathWatcherTest extends TestSuite {
       TimeUnit.MILLISECONDS,
       dirFlags,
       (_: String) => {},
-      new DirectoryRegistryImpl,
+      DirectoryRegistries.get(),
       testLogger
     )
     watcher.addObserver(callback)
     watcher
   }
   val tests = testOn(MacOS) {
-    val events = new ArrayBlockingQueue[Event](10)
+    val events = new ArrayBlockingQueue[PathWatchers.Event](10)
     val dirFlags = new Flags.Create().setNoDefer()
     "directories" - {
       'onCreate - {
         implicit val logger: TestLogger = new CachingLogger
         withTempDirectory { dir =>
           assert(dir.exists)
-          val callback = (e: Event) => events.add(e)
+          val callback = (e: PathWatchers.Event) => events.add(e)
 
           usingAsync(defaultWatcher(callback)) { w =>
             w.register(dir)
@@ -47,7 +46,7 @@ object ApplePathWatcherTest extends TestSuite {
       }
       'onModify - withTempDirectory { dir =>
         implicit val logger: TestLogger = new CachingLogger
-        val callback = (e: Event) => events.add(e)
+        val callback = (e: PathWatchers.Event) => events.add(e)
 
         usingAsync(defaultWatcher(callback)) { w =>
           val f = dir.resolve(Paths.get("foo")).createFile()
@@ -60,7 +59,7 @@ object ApplePathWatcherTest extends TestSuite {
       }
       'onDelete - withTempDirectory { dir =>
         implicit val logger: TestLogger = new CachingLogger
-        val callback = (e: Event) => events.add(e)
+        val callback = (e: PathWatchers.Event) => events.add(e)
 
         usingAsync(defaultWatcher(callback)) { w =>
           val f = dir.resolve(Paths.get("foo")).createFile()
@@ -73,7 +72,8 @@ object ApplePathWatcherTest extends TestSuite {
         'onCreate - withTempDirectory { dir =>
           implicit val logger: TestLogger = new CachingLogger
           withTempDirectory(dir) { subdir =>
-            val callback = (e: Event) => if (e.getTypedPath.getPath != dir) events.add(e)
+            val callback =
+              (e: PathWatchers.Event) => if (e.getTypedPath.getPath != dir) events.add(e)
 
             usingAsync(defaultWatcher(callback)) { w =>
               w.register(dir)
