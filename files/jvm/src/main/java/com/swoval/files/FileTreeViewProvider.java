@@ -1,7 +1,7 @@
 package com.swoval.files;
 
-public interface FileTreeViewProvider {
-  FileTreeViews.FollowSymlinks followSymlinks();
+import com.swoval.files.api.FileTreeView;
 
-  FileTreeViews.NoFollowSymlinks noFollowSymlinks();
+public interface FileTreeViewProvider {
+  FileTreeView<TypedPath> get(boolean followSymlinks);
 }

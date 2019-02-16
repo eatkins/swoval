@@ -1,11 +1,11 @@
-package com.swoval.files;
+package com.swoval.files.api;
 
 import com.swoval.functional.Filter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-public interface FileTreeView extends AutoCloseable {
+public interface FileTreeView<T> extends AutoCloseable {
   /**
    * List all of the files for the {@code path}, returning only those files that are accepted by the
    * provided filter.
@@ -16,6 +16,6 @@ public interface FileTreeView extends AutoCloseable {
    * @return a List of {@link java.nio.file.Path} instances accepted by the filter.
    * @throws IOException if the path cannot be listed.
    */
-  List<TypedPath> list(final Path path, final int maxDepth, final Filter<? super TypedPath> filter)
+  List<T> list(final Path path, final int maxDepth, final Filter<? super T> filter)
       throws IOException;
 }

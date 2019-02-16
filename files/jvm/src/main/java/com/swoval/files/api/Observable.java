@@ -1,5 +1,10 @@
-package com.swoval.files;
+package com.swoval.files.api;
 
+/**
+ * Represents an event emitter for some generic event type, `T`.
+ *
+ * @param <T> the type of events.
+ */
 public interface Observable<T> {
 
   /**

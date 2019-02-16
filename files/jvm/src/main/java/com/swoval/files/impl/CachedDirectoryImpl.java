@@ -6,7 +6,7 @@ import static com.swoval.functional.Filters.AllPass;
 import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeRepository;
-import com.swoval.files.FileTreeView;
+import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
 import com.swoval.files.TypedPath;
 import com.swoval.functional.Either;

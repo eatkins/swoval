@@ -4,9 +4,9 @@ import static com.swoval.functional.Either.getOrElse;
 import static com.swoval.functional.Either.leftProjection;
 import static java.util.Map.Entry;
 
-import com.swoval.files.Observable;
-import com.swoval.files.Observer;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.api.Observable;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;

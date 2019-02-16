@@ -1,5 +1,6 @@
 package com.swoval.files;
 
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.impl.SwovalProviderImpl;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -7,9 +8,8 @@ import java.util.concurrent.TimeUnit;
 // Ignore the errors in javadoc in intellij. It is getting confused by having the java and
 // js implementations.
 /**
- * Provides factory methods to create instances of {@link com.swoval.files.PathWatcher}. It also
- * defines the {@link com.swoval.files.PathWatchers.Event} class for which the {@link
- * com.swoval.files.PathWatcher} will emit events.
+ * Provides factory methods to create instances of {@link PathWatcher}. It also defines the {@link
+ * com.swoval.files.PathWatchers.Event} class for which the {@link PathWatcher} will emit events.
  */
 public class PathWatchers {
   private PathWatchers() {}

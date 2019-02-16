@@ -1,6 +1,6 @@
 package com.swoval.runtime;
 
-import com.swoval.files.FileTreeView;
+import com.swoval.files.api.FileTreeView;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;

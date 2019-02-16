@@ -1,7 +1,9 @@
 package com.swoval.files;
 
+import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.FollowSymlinks;
 import com.swoval.files.PathWatchers.NoFollowSymlinks;
+import com.swoval.files.api.PathWatcher;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +41,6 @@ public interface PathWatcherProvider {
    * @return the polling path watcher.
    * @throws InterruptedException if the polling thread cannot be started.
    */
-  PathWatcher<PathWatchers.Event> polling(final long pollInterval, final TimeUnit timeUnit)
+  PathWatcher<Event> polling(final long pollInterval, final TimeUnit timeUnit)
       throws InterruptedException;
 }

@@ -1,27 +1,23 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.DirectoryDataView;
-import com.swoval.files.DirectoryView;
 import com.swoval.files.FileTreeDataViews.Entry;
-import com.swoval.files.FileTreeView;
 import com.swoval.files.TypedPath;
+import com.swoval.files.api.FileTreeView;
 import com.swoval.functional.Filter;
 import java.nio.file.Path;
 import java.util.List;
 
-interface CachedDirectory<T>
-    extends UpdatableFileTreeDataView<T>, DirectoryDataView<T>, AutoCloseable {
+interface CachedDirectory<T> extends UpdatableFileTreeDataView<T>, AutoCloseable {
 
   /**
    * List the children of the path specified by {@link CachedDirectory#getPath()}, excluding the
    * {@link Entry entry} for the path itself. When the maxDepth parameter is <code>-1
    * </code>, return just the entry for the path itself.
    *
-   * @param maxDepth the maximum depth of children (see {@link DirectoryView#getMaxDepth()})
+   * @param maxDepth the maximum depth of children
    * @param filter only include entries matching this filter
    * @return a list containing all of the entries included by the filter up to the max depth.
    */
-  @Override
   List<Entry<T>> listEntries(final int maxDepth, final Filter<? super Entry<T>> filter);
 
   /**
@@ -35,7 +31,6 @@ interface CachedDirectory<T>
    *     not a subdirectory of this CachedDirectory or if it is a subdirectory, but the
    *     CachedDirectory was created without the recursive flag.
    */
-  @Override
   List<Entry<T>> listEntries(
       final Path path, final int maxDepth, final Filter<? super Entry<T>> filter);
 
@@ -48,7 +43,6 @@ interface CachedDirectory<T>
    * @param filter include only paths accepted by the filter
    * @return a List of {@link java.nio.file.Path} instances accepted by the filter.
    */
-  @Override
   List<TypedPath> list(final int maxDepth, final Filter<? super TypedPath> filter);
 
   /**
@@ -61,7 +55,6 @@ interface CachedDirectory<T>
    * @param filter include only paths accepted by the filter
    * @return a List of {@link java.nio.file.Path} instances accepted by the filter.
    */
-  @Override
   List<TypedPath> list(final Path path, final int maxDepth, final Filter<? super TypedPath> filter);
 
   /**

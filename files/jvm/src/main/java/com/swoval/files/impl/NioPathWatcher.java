@@ -8,10 +8,10 @@ import static java.util.Map.Entry;
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
-import com.swoval.files.FileTreeView;
+import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
-import com.swoval.files.Observer;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.functional.Consumer;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class RootDirectories extends LockableMap<Path, CachedDirectory<WatchedDirectory>> {}
 /** Provides a PathWatcher that is backed by a {@link java.nio.file.WatchService}. */
 class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
-  private final FileTreeView fileTreeView = FileTreeViews.noFollowSymlinks();
+  private final FileTreeView<TypedPath> fileTreeView = FileTreeViews.noFollowSymlinks();
   private final AtomicBoolean closed = new AtomicBoolean(false);
   private final Observers<Event> observers;
   private final RootDirectories rootDirectories = new RootDirectories();
@@ -158,7 +158,8 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
       final Path path,
       final List<Event> events) {
     final List<FileTreeDataViews.Entry<WatchedDirectory>> toCancel = cachedDirectory.remove(path);
-    if (path == null || path == cachedDirectory.getPath()) toCancel.add(cachedDirectory.getEntry());
+    if (path == null || path == cachedDirectory.getEntry().getTypedPath().getPath())
+      toCancel.add(cachedDirectory.getEntry());
     final Iterator<FileTreeDataViews.Entry<WatchedDirectory>> it = toCancel.iterator();
     while (it.hasNext()) {
       final FileTreeDataViews.Entry<WatchedDirectory> entry = it.next();
@@ -287,7 +288,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
         final CachedDirectory<WatchedDirectory> dir = find(absolutePath);
         if (dir != null) {
           remove(dir, path, null);
-          rootDirectories.remove(dir.getPath());
+          rootDirectories.remove(dir.getEntry().getTypedPath().getPath());
         }
       } finally {
         rootDirectories.unlock();

@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks
 import com.swoval.files.PathWatchers.FollowSymlinks
 import com.swoval.files.TestHelpers._
+import com.swoval.files.api.{ Observer, PathWatcher }
 import com.swoval.files.impl.{
   DirectoryRegistryImpl,
   PlatformWatcher,

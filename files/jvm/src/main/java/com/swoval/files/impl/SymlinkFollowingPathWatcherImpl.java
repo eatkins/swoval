@@ -2,10 +2,10 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.FileTreeView;
+import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
-import com.swoval.files.Observer;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatcherProvider;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 
 class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
-  private static final FileTreeView fileTreeView = FileTreeViews.noFollowSymlinks();
+  private static final FileTreeView<TypedPath> fileTreeView = FileTreeViews.noFollowSymlinks();
   private final SymlinkWatcher symlinkWatcher;
   private final PathWatcher<Event> pathWatcher;
   private final Observers<Event> observers;

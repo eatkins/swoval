@@ -1,4 +1,4 @@
-package com.swoval.files;
+package com.swoval.files.api;
 
 /**
  * Generic Observer for an {@link Observable}.

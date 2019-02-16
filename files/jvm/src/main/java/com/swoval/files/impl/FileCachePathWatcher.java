@@ -3,7 +3,7 @@ package com.swoval.files.impl;
 import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.FileTreeDataViews.Entry;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import java.io.IOException;
 import java.nio.file.Path;

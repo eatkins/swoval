@@ -1,6 +1,7 @@
 package com.swoval.files;
 
 import com.swoval.files.FileTreeDataViews.Entry;
+import com.swoval.files.api.FileTreeView;
 import com.swoval.functional.Filter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,7 +12,7 @@ import java.util.List;
  *
  * @param <T> the data value for each path
  */
-public interface FileTreeDataView<T> extends FileTreeView, AutoCloseable {
+public interface FileTreeDataView<T> extends FileTreeView<Entry<T>>, AutoCloseable {
   /**
    * List all of the files for the {@code path</code> that are accepted by the <code>filter}.
    *
@@ -24,20 +25,6 @@ public interface FileTreeDataView<T> extends FileTreeView, AutoCloseable {
    *     CachedDirectory was created without the recursive flag.
    * @throws IOException if the path cannot be listed.
    */
-  List<Entry<T>> listEntries(
-      final Path path, final int maxDepth, final Filter<? super Entry<T>> filter)
-      throws IOException;
-
-  /**
-   * List all of the files for the {@code path}, returning only those files that are accepted by the
-   * provided filter.
-   *
-   * @param path the root path to list
-   * @param maxDepth the maximum depth of subdirectories to query
-   * @param filter include only paths accepted by the filter
-   * @return a List of {@link TypedPath} instances accepted by the filter.
-   * @throws IOException if the path cannot be listed.
-   */
-  List<TypedPath> list(final Path path, final int maxDepth, final Filter<? super TypedPath> filter)
+  List<Entry<T>> list(final Path path, final int maxDepth, final Filter<? super Entry<T>> filter)
       throws IOException;
 }

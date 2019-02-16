@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.swoval.files.TestHelpers._
 import com.swoval.files._
+import com.swoval.files.api.PathWatcher
 import com.swoval.files.impl.DirectoryRegistries
 import com.swoval.files.test._
 import com.swoval.test._

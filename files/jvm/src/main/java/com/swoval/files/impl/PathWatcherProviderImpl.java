@@ -1,7 +1,7 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.Observer;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatcherProvider;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.FollowSymlinks;

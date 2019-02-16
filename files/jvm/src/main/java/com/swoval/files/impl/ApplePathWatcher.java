@@ -4,8 +4,8 @@ import static com.swoval.files.PathWatchers.Event.Kind.Create;
 import static com.swoval.files.PathWatchers.Event.Kind.Delete;
 import static com.swoval.files.PathWatchers.Event.Kind.Modify;
 
-import com.swoval.files.Observer;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.AppleFileEventStreams;

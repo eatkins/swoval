@@ -4,6 +4,7 @@ import java.nio.file.{ Path, Paths }
 import java.util
 
 import com.swoval.files.TestHelpers._
+import com.swoval.files.api.FileTreeView
 import com.swoval.files.impl.TypedPaths
 import com.swoval.files.test._
 import com.swoval.functional.Filter

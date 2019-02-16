@@ -15,6 +15,10 @@ public class SwovalProviderImpl {
     return impl;
   }
 
+  public static SwovalProvider getRelativeProvider() {
+    return impl;
+  }
+
   private static SwovalProvider load() {
     final SwovalProvider userDefined = SwovalProviderFactory.loadProvider();
     return userDefined != null ? userDefined : new Impl(Loggers.getLogger());
@@ -22,11 +26,23 @@ public class SwovalProviderImpl {
 
   private static class Impl implements SwovalProvider {
     final FileTreeRepositoryProvider fileTreeRepositoryProvider;
+    final FileTreeViewProvider fileTreeViewProvider;
     final PathWatcherProvider pathWatcherProvider;
 
+    Impl(
+        final FileTreeRepositoryProvider fileTreeRepositoryProvider,
+        final FileTreeViewProvider fileTreeViewProvider,
+        final PathWatcherProvider pathWatcherProvider) {
+      this.fileTreeRepositoryProvider = fileTreeRepositoryProvider;
+      this.fileTreeViewProvider = fileTreeViewProvider;
+      this.pathWatcherProvider = pathWatcherProvider;
+    }
+
     Impl(final Logger logger) {
-      fileTreeRepositoryProvider = new FileTreeRepositoryProviderImpl(logger);
-      pathWatcherProvider = new PathWatcherProviderImpl();
+      this(
+          new FileTreeRepositoryProviderImpl(logger),
+          new FileTreeViewProviderImpl(),
+          new PathWatcherProviderImpl());
     }
 
     @Override
@@ -36,7 +52,7 @@ public class SwovalProviderImpl {
 
     @Override
     public FileTreeViewProvider getFileTreeViewProvider() {
-      return new com.swoval.files.impl.FileTreeViewProvider();
+      return fileTreeViewProvider;
     }
 
     @Override

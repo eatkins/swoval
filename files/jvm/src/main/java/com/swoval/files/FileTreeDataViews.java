@@ -1,39 +1,14 @@
 package com.swoval.files;
 
+import com.swoval.files.api.Observable;
 import com.swoval.files.impl.CachedDirectoryImpl;
-import com.swoval.files.impl.TypedPaths;
 import com.swoval.functional.Either;
-import com.swoval.functional.Filters;
 import java.io.IOException;
-import java.nio.file.Path;
 
 /**
  * Provides functional interfaces for processing and managing instances of {@link FileTreeDataView}.
  */
 public class FileTreeDataViews {
-  private FileTreeDataViews() {}
-
-  /**
-   * Make a new {@link DirectoryView} that caches the file tree but has no data value associated
-   * with each value.
-   *
-   * @param path the path to monitor
-   * @param converter computes the data value for each path found in the directory
-   * @param depth sets how the limit for how deep to traverse the children of this directory
-   * @param followLinks sets whether or not to treat symbolic links whose targets as directories or
-   *     files
-   * @param <T> the data type for this view
-   * @return a directory whose entries just contain the path itself.
-   * @throws IOException when an error is encountered traversing the directory.
-   */
-  public static <T> DirectoryDataView<T> cached(
-      final Path path, final Converter<T> converter, final int depth, final boolean followLinks)
-      throws IOException {
-
-    return new CachedDirectoryImpl<>(
-            TypedPaths.get(path), converter, depth, Filters.AllPass, followLinks)
-        .init();
-  }
 
   /**
    * Container class for {@link CachedDirectoryImpl} entries. Contains both the path to which the

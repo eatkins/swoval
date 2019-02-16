@@ -1,4 +1,4 @@
-package com.swoval.files;
+package com.swoval.files.api;
 
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.functional.Either;

@@ -2,15 +2,15 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.DirectoryDataView;
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
-import com.swoval.files.Observer;
-import com.swoval.files.PathWatcher;
+import com.swoval.files.FileTreeViews;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -131,8 +131,15 @@ class PollingPathWatcher implements PathWatcher<Event> {
 
   private List<FileTreeDataViews.Entry<Long>> getEntries(final Path path, final int maxDepth) {
     try {
-      final DirectoryDataView<Long> view =
-          FileTreeDataViews.cached(path, converter, maxDepth, followLinks);
+      final CachedDirectory<Long> view =
+          new CachedDirectoryImpl<>(
+                  TypedPaths.get(path, Entries.UNKNOWN),
+                  converter,
+                  maxDepth,
+                  AllPass,
+                  followLinks,
+                  FileTreeViews.followSymlinks())
+              .init();
       final List<FileTreeDataViews.Entry<Long>> newEntries = view.listEntries(maxDepth, AllPass);
       final List<FileTreeDataViews.Entry<Long>> pathEntry = view.listEntries(-1, AllPass);
       if (pathEntry.size() == 1) newEntries.add(pathEntry.get(0));

@@ -137,7 +137,7 @@ Usage:
 public class PathWatcherExample {
   static void main(final String[] args) {
     try {
-      final com.swoval.files.PathWatcher<com.swoval.files.PathWatchers.Event> watcher =
+      final com.swoval.files.api.PathWatcher<com.swoval.files.PathWatchers.Event> watcher =
           com.swoval.files.PathWatchers.get(true);
       try {
         watcher.register(java.nio.file.Paths.get("/tmp/"), Integer.MAX_VALUE);
