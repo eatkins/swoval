@@ -4,7 +4,7 @@ import java.nio.file.{ Path, Paths }
 import java.util
 
 import com.swoval.files.TestHelpers._
-import com.swoval.files.impl.{ CachedDirectoryImpl, TypedPaths }
+import com.swoval.files.impl.TypedPaths
 import com.swoval.files.test._
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass
@@ -15,7 +15,7 @@ import utest._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-object FileTreeViewTest {
+object RelativeFileTreeViewTest {
   implicit class RepositoryOps[T <: AnyRef](val d: DirectoryView) {
     def ls(path: Path, recursive: Boolean, filter: Filter[_ >: TypedPath]): Seq[Path] =
       d.list(path, if (recursive) Integer.MAX_VALUE else 0, filter).asScala.map(_.getPath)
@@ -25,8 +25,9 @@ object FileTreeViewTest {
       d.list(if (recursive) Integer.MAX_VALUE else 0, filter).asScala.map(_.getPath)
   }
 }
-import com.swoval.files.FileTreeViewTest._
-class FileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView) extends TestSuite {
+import com.swoval.files.RelativeFileTreeViewTest._
+class RelativeFileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView)
+    extends TestSuite {
   def newFileTreeView(path: Path): DirectoryView = newFileTreeView(path, Integer.MAX_VALUE, false)
   def newFileTreeView(path: Path, maxDepth: Int): DirectoryView =
     newFileTreeView(path, maxDepth, true)
@@ -220,9 +221,9 @@ class FileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView) e
     }
   }
 }
-//object DirectoryFileTreeViewTest extends FileTreeViewTest(FileTreeViews.cached)
-object DefaultFileTreeViewTest
-    extends FileTreeViewTest((path, depth, follow: Boolean) => {
+//object DirectoryFileTreeViewTest extends RelativeFileTreeViewTest(FileTreeViews.cached)
+object DefaultRelativeFileTreeViewTest$
+    extends RelativeFileTreeViewTest((path, depth, follow: Boolean) => {
       new DirectoryView {
         private val view =
           if (follow) FileTreeViews.followSymlinks() else FileTreeViews.noFollowSymlinks()

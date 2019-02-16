@@ -11,7 +11,7 @@
 
 #define CALLBACK_SIG "(Ljava/lang/Object;)V"
 #define PATH_CALLBACK_SIG "(Ljava/lang/Object;)V"
-#define EVENT_SIG "com/swoval/files/apple/FileEvent"
+#define EVENT_SIG "com/swoval/files/impl/apple/FileEvent"
 #define EVENT_INIT_SIG "(Ljava/lang/String;I)V"
 
 extern "C" {

@@ -14,7 +14,7 @@ import scala.concurrent.Future
 import TestHelpers._
 
 object DataViewTest extends TestSuite {
-  import FileTreeViewTest.RepositoryOps
+  import RelativeFileTreeViewTest.RepositoryOps
   def directory: Future[Unit] = withTempFileSync { file =>
     val parent = file.getParent
     val dir = FileTreeDataViews.cached[Integer](parent, (p: TypedPath) => {

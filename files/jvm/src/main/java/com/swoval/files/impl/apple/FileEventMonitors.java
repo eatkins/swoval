@@ -178,9 +178,11 @@ class FileEventMonitorImpl implements FileEventMonitor {
 
   private class WrappedConsumer<T> implements Consumer<T> {
     private final Consumer<T> consumer;
+    private final Logger logger;
 
     WrappedConsumer(final Consumer<T> consumer, final Logger logger) {
       this.consumer = consumer;
+      this.logger = logger;
     }
 
     @Override
