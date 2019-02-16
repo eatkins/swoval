@@ -18,7 +18,7 @@ interface CachedDirectory<T> extends UpdatableFileTreeDataView<T>, AutoCloseable
    * @param filter only include entries matching this filter
    * @return a list containing all of the entries included by the filter up to the max depth.
    */
-  List<Entry<T>> listEntries(final int maxDepth, final Filter<? super Entry<T>> filter);
+  List<Entry<T>> list(final int maxDepth, final Filter<? super Entry<T>> filter);
 
   /**
    * List all of the files for the {@code path</code> that are accepted by the <code>filter}.
@@ -31,8 +31,7 @@ interface CachedDirectory<T> extends UpdatableFileTreeDataView<T>, AutoCloseable
    *     not a subdirectory of this CachedDirectory or if it is a subdirectory, but the
    *     CachedDirectory was created without the recursive flag.
    */
-  List<Entry<T>> listEntries(
-      final Path path, final int maxDepth, final Filter<? super Entry<T>> filter);
+  List<Entry<T>> list(final Path path, final int maxDepth, final Filter<? super Entry<T>> filter);
 
   /**
    * List all of the files in the root directory, returning only those files that are accepted by

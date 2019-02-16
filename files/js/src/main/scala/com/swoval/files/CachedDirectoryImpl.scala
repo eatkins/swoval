@@ -128,7 +128,7 @@ class CachedDirectoryImpl[T <: AnyRef](typedPath: TypedPath,
       Collections.emptyList()
     }
 
-  override def listEntries(path: Path,
+  override def list(path: Path,
                            maxDepth: Int,
                            filter: Filter[_ >: Entry[T]]): List[Entry[T]] =
     if (this.subdirectories.lock()) {
@@ -156,8 +156,8 @@ class CachedDirectoryImpl[T <: AnyRef](typedPath: TypedPath,
       Collections.emptyList()
     }
 
-  override def listEntries(maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]] =
-    listEntries(getPath, maxDepth, filter)
+  override def list(maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]] =
+    list(getPath, maxDepth, filter)
 
   override def getEntry(): Entry[T] = _cacheEntry.get
 
@@ -262,7 +262,7 @@ class CachedDirectoryImpl[T <: AnyRef](typedPath: TypedPath,
       if (previous != null) {
         oldEntries.put(previous.getPath, previous.getEntry)
         val entryIterator: Iterator[Entry[T]] =
-          previous.listEntries(java.lang.Integer.MAX_VALUE, AllPass).iterator()
+          previous.list(java.lang.Integer.MAX_VALUE, AllPass).iterator()
         while (entryIterator.hasNext) {
           val entry: Entry[T] = entryIterator.next()
           oldEntries.put(entry.getTypedPath.getPath, entry)
@@ -271,7 +271,7 @@ class CachedDirectoryImpl[T <: AnyRef](typedPath: TypedPath,
       }
       newEntries.put(dir.getPath, dir.getEntry)
       val it: Iterator[Entry[T]] =
-        dir.listEntries(java.lang.Integer.MAX_VALUE, AllPass).iterator()
+        dir.list(java.lang.Integer.MAX_VALUE, AllPass).iterator()
       while (it.hasNext) {
         val entry: Entry[T] = it.next()
         newEntries.put(entry.getTypedPath.getPath, entry)
@@ -367,9 +367,9 @@ class CachedDirectoryImpl[T <: AnyRef](typedPath: TypedPath,
           }
         }
       } else if (typedPath.isDirectory && rescanOnDirectoryUpdate) {
-        val oldEntries: List[Entry[T]] = listEntries(getMaxDepth, AllPass)
+        val oldEntries: List[Entry[T]] = list(getMaxDepth, AllPass)
         init()
-        val newEntries: List[Entry[T]] = listEntries(getMaxDepth, AllPass)
+        val newEntries: List[Entry[T]] = list(getMaxDepth, AllPass)
         MapOps.diffDirectoryEntries(oldEntries, newEntries, result)
       } else {
         val oldEntry: Entry[T] = getEntry
@@ -467,7 +467,7 @@ class CachedDirectoryImpl[T <: AnyRef](typedPath: TypedPath,
               currentDir.subdirectories.remove(p)
             if (dir != null) {
               val removeIt: Iterator[Entry[T]] = dir
-                .listEntries(java.lang.Integer.MAX_VALUE, AllPass)
+                .list(java.lang.Integer.MAX_VALUE, AllPass)
                 .iterator()
               while (removeIt.hasNext) result.add(Entries.setExists(removeIt.next(), false))
               result.add(Entries.setExists(dir.getEntry, false))

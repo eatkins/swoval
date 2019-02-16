@@ -267,7 +267,7 @@ object CachedFileTreeViewTest extends TestSuite {
       val updatedLastModified = 2000
       f.setLastModifiedTime(updatedLastModified)
       f.lastModified ==> updatedLastModified
-      val cachedFile = dir.listEntries(f, Integer.MAX_VALUE, AllPass).get(0)
+      val cachedFile = dir.list(f, Integer.MAX_VALUE, AllPass).get(0)
       cachedFile.getValue().get().lastModified ==> lastModified
     }
     def newFields: Future[Unit] = withTempFileSync { f =>
@@ -276,16 +276,16 @@ object CachedFileTreeViewTest extends TestSuite {
       val dir = newDirectory(f.getParent, FileBytes(_: TypedPath))
       def filter(bytes: Seq[Byte]): Filter[Entry[FileBytes]] =
         (e: Entry[FileBytes]) => e.getValue.get().bytes == bytes
-      val cachedFile = dir.listEntries(f, Integer.MAX_VALUE, filter(initialBytes)).get(0)
+      val cachedFile = dir.list(f, Integer.MAX_VALUE, filter(initialBytes)).get(0)
       cachedFile.getValue.get().bytes ==> initialBytes
       f.write("bar")
       val newBytes = "bar".getBytes
       cachedFile.getValue().get().bytes ==> initialBytes
       f.getBytes ==> newBytes
       dir.update(TestTypedPaths.get(f, TestEntries.FILE))
-      val newCachedFile = dir.listEntries(f, Integer.MAX_VALUE, filter(newBytes)).get(0)
+      val newCachedFile = dir.list(f, Integer.MAX_VALUE, filter(newBytes)).get(0)
       newCachedFile.getValue().get().bytes.toSeq ==> newBytes.toSeq
-      dir.listEntries(f, Integer.MAX_VALUE, filter(initialBytes)).asScala.toSeq === Seq
+      dir.list(f, Integer.MAX_VALUE, filter(initialBytes)).asScala.toSeq === Seq
         .empty[Path]
     }
   }

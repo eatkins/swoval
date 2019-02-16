@@ -238,7 +238,7 @@ class FileCacheDirectoryTree[T <: AnyRef](private val converter: Converter[T],
                           Create,
                           null)
               val it: Iterator[FileTreeDataViews.Entry[T]] = cachedDirectory
-                .listEntries(cachedDirectory.getMaxDepth, AllPass)
+                .list(cachedDirectory.getMaxDepth, AllPass)
                 .iterator()
               while (it.hasNext) {
                 val entry: FileTreeDataViews.Entry[T] = it.next()
@@ -295,7 +295,7 @@ class FileCacheDirectoryTree[T <: AnyRef](private val converter: Converter[T],
       if (path.startsWith(dir.getPath)) {
         val updates: List[FileTreeDataViews.Entry[T]] =
           if (path == dir.getPath)
-            dir.listEntries(java.lang.Integer.MAX_VALUE, AllPass)
+            dir.list(java.lang.Integer.MAX_VALUE, AllPass)
           else new ArrayList[FileTreeDataViews.Entry[T]]()
         updates.addAll(dir.remove(path))
         val it: Iterator[Path] =
@@ -463,7 +463,7 @@ class FileCacheDirectoryTree[T <: AnyRef](private val converter: Converter[T],
   override def addCacheObserver(observer: CacheObserver[T]): Int =
     observers.addCacheObserver(observer)
 
-  override def listEntries(path: Path,
+  override def list(path: Path,
                            maxDepth: Int,
                            filter: Filter[_ >: Entry[T]]): List[Entry[T]] =
     if (directories.lock()) {
@@ -479,7 +479,7 @@ class FileCacheDirectoryTree[T <: AnyRef](private val converter: Converter[T],
             result
           } else {
             val depth: Int = directoryRegistry.maxDepthFor(path)
-            dir.listEntries(path, if (depth < maxDepth) depth else maxDepth, filter)
+            dir.list(path, if (depth < maxDepth) depth else maxDepth, filter)
           }
         }
       } finally directories.unlock()

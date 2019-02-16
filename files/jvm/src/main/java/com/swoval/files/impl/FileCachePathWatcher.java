@@ -27,7 +27,7 @@ class FileCachePathWatcher<T> implements AutoCloseable {
       if (dir.getEntry().getTypedPath().isSymbolicLink()) {
         symlinkWatcher.addSymlink(absolutePath, maxDepth);
       }
-      final Iterator<Entry<T>> it = dir.listEntries(dir.getMaxDepth(), AllPass).iterator();
+      final Iterator<Entry<T>> it = dir.list(dir.getMaxDepth(), AllPass).iterator();
       while (it.hasNext()) {
         final Entry<T> entry = it.next();
         if (entry.getTypedPath().isSymbolicLink()) {

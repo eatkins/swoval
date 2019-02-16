@@ -22,7 +22,7 @@ trait CachedDirectory[T <: AnyRef]
    * @param filter only include entries matching this filter
    * @return a list containing all of the entries included by the filter up to the max depth.
    */
-  override def listEntries(maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
+  override def list(maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
 
   /**
    * List all of the files for the {@code path</code> that are accepted by the <code>filter}.
@@ -35,7 +35,7 @@ trait CachedDirectory[T <: AnyRef]
    *     not a subdirectory of this CachedDirectory or if it is a subdirectory, but the
    *     CachedDirectory was created without the recursive flag.
    */
-  override def listEntries(path: Path, maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
+  override def list(path: Path, maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
 
   /**
    * List all of the files in the root directory, returning only those files that are accepted by

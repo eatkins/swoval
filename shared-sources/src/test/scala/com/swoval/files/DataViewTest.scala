@@ -34,7 +34,7 @@ object DataViewTest extends TestSuite {
     }, 0, true)
     directory.getEntry.getValue.getOrElse(2) ==> 1
     directory
-      .listEntries(Integer.MAX_VALUE, AllPass)
+      .list(Integer.MAX_VALUE, AllPass)
       .asScala
       .map(e => e.getTypedPath.getPath -> e.getValue.getOrElse(3))
       .toSeq === Seq(subdir -> 3)
@@ -47,7 +47,7 @@ object DataViewTest extends TestSuite {
     }, Integer.MAX_VALUE, true)
     dir.getEntry.getValue.getOrElse(2) ==> 1
     dir
-      .listEntries(parent, Integer.MAX_VALUE, AllPass)
+      .list(parent, Integer.MAX_VALUE, AllPass)
       .asScala
       .map(e => e.getTypedPath.getPath -> e.getValue.getOrElse(3))
       .toSeq === Seq(file -> 3)

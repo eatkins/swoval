@@ -140,8 +140,8 @@ class PollingPathWatcher implements PathWatcher<Event> {
                   followLinks,
                   FileTreeViews.followSymlinks())
               .init();
-      final List<FileTreeDataViews.Entry<Long>> newEntries = view.listEntries(maxDepth, AllPass);
-      final List<FileTreeDataViews.Entry<Long>> pathEntry = view.listEntries(-1, AllPass);
+      final List<FileTreeDataViews.Entry<Long>> newEntries = view.list(maxDepth, AllPass);
+      final List<FileTreeDataViews.Entry<Long>> pathEntry = view.list(-1, AllPass);
       if (pathEntry.size() == 1) newEntries.add(pathEntry.get(0));
       return newEntries;
     } catch (final NotDirectoryException e) {

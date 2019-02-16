@@ -77,11 +77,11 @@ class FileTreeRepositoryImpl[T <: AnyRef](private val directoryTree: FileCacheDi
     directoryTree.removeObserver(handle)
   }
 
-  override def listEntries(
+  override def list(
       path: Path,
       maxDepth: Int,
       filter: Filter[_ >: FileTreeDataViews.Entry[T]]): List[FileTreeDataViews.Entry[T]] =
-    directoryTree.listEntries(path, maxDepth, filter)
+    directoryTree.list(path, maxDepth, filter)
 
   override def register(path: Path, maxDepth: Int): Either[IOException, Boolean] =
     try {

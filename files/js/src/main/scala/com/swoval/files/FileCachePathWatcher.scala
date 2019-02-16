@@ -24,7 +24,7 @@ class FileCachePathWatcher[T <: AnyRef](private val tree: FileCacheDirectoryTree
         symlinkWatcher.addSymlink(absolutePath, maxDepth)
       }
       val it: Iterator[Entry[T]] =
-        dir.listEntries(dir.getMaxDepth, AllPass).iterator()
+        dir.list(dir.getMaxDepth, AllPass).iterator()
       while (it.hasNext) {
         val entry: FileTreeDataViews.Entry[T] = it.next()
         if (entry.getTypedPath.isSymbolicLink) {

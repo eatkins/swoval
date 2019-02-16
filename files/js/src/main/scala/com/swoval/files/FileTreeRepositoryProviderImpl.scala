@@ -73,10 +73,10 @@ object FileTreeRepositoryProviderImpl {
       delegate.unregister(path)
     }
 
-    override def listEntries(path: Path,
+    override def list(path: Path,
                              maxDepth: Int,
                              filter: Filter[_ >: Entry[T]]): List[Entry[T]] =
-      delegate.listEntries(path, maxDepth, filter)
+      delegate.list(path, maxDepth, filter)
 
     override def list(path: Path, maxDepth: Int, filter: Filter[_ >: TypedPath]): List[TypedPath] =
       delegate.list(path, maxDepth, filter)

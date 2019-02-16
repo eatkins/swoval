@@ -263,7 +263,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
                   Create,
                   null);
               final Iterator<Entry<T>> it =
-                  cachedDirectory.listEntries(cachedDirectory.getMaxDepth(), AllPass).iterator();
+                  cachedDirectory.list(cachedDirectory.getMaxDepth(), AllPass).iterator();
               while (it.hasNext()) {
                 final Entry<T> entry = it.next();
                 addCallback(callbacks, symlinks, entry, null, entry, Create, null);
@@ -314,7 +314,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
       if (path.startsWith(dir.getPath())) {
         final List<Entry<T>> updates =
             path.equals(dir.getPath())
-                ? dir.listEntries(Integer.MAX_VALUE, AllPass)
+                ? dir.list(Integer.MAX_VALUE, AllPass)
                 : new ArrayList<Entry<T>>();
         updates.addAll(dir.remove(path));
         final Iterator<Path> it = directoryRegistry.registered().keySet().iterator();
@@ -488,7 +488,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
   }
 
   @Override
-  public List<Entry<T>> listEntries(
+  public List<Entry<T>> list(
       final Path path, final int maxDepth, final Filter<? super Entry<T>> filter) {
     if (directories.lock()) {
       try {
@@ -502,7 +502,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
             return result;
           } else {
             final int depth = directoryRegistry.maxDepthFor(path);
-            return dir.listEntries(path, depth < maxDepth ? depth : maxDepth, filter);
+            return dir.list(path, depth < maxDepth ? depth : maxDepth, filter);
           }
         }
       } finally {

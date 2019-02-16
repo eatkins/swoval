@@ -156,7 +156,7 @@ class FileTreeRepository[T <: AnyRef] protected[node] (
    *     not a subdirectory of this CachedDirectory or if it is a subdirectory, but the
    *     CachedDirectory was created without the recursive flag.
    */
-  def listEntries(path: String,
+  def list(path: String,
                   maxDepth: UndefOr[Int],
                   filter: UndefOr[js.Function1[FileTreeDataViews.Entry[T], Boolean]])
     : js.Array[FileTreeDataViews.Entry[T]] = {
@@ -173,7 +173,7 @@ class FileTreeRepository[T <: AnyRef] protected[node] (
         override def accept(entry: SFileTreeDataViews.Entry[T]): Boolean = f(entry)
       }
     underlying
-      .listEntries(Paths.get(path), maxDepth.toOption.getOrElse(Integer.MAX_VALUE), jsFilter)
+      .list(Paths.get(path), maxDepth.toOption.getOrElse(Integer.MAX_VALUE), jsFilter)
       .asScala
       .view
       .map(_.toJS)

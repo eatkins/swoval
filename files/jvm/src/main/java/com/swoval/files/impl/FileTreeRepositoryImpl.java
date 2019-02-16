@@ -83,9 +83,9 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   }
 
   @Override
-  public List<Entry<T>> listEntries(
+  public List<Entry<T>> list(
       final Path path, final int maxDepth, final Filter<? super Entry<T>> filter) {
-    return directoryTree.listEntries(path, maxDepth, filter);
+    return directoryTree.list(path, maxDepth, filter);
   }
 
   @Override

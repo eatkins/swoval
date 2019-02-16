@@ -86,7 +86,7 @@ class FileTreeRepositoryExample {
             path, java.nio.file.attribute.FileTime.fromMillis(3000));
         Thread.sleep(200); // Sleep long enough to ensure the callback fires
         for (final com.swoval.files.FileTreeDataViews.Entry<Long> entry :
-            cache.listEntries(
+            cache.list(
                 path.getParent(), Integer.MAX_VALUE, com.swoval.functional.Filters.AllPass)) {
           if (entry.getPath().equals(path)) {
             System.out.println("Listed an entry with last modified time " + entry.getValue());

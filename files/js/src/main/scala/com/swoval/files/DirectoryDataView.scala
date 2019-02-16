@@ -26,7 +26,7 @@ trait DirectoryDataView[T <: AnyRef] extends FileTreeDataView[T] with DirectoryV
    *     not a subdirectory of this CachedDirectory or if it is a subdirectory, but the
    *     CachedDirectory was created without the recursive flag.
    */
-  def listEntries(maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
+  def list(maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
 
   /**
    * List all of the files for the {@code path}, returning only those files that are accepted by the
@@ -49,7 +49,7 @@ trait DirectoryDataView[T <: AnyRef] extends FileTreeDataView[T] with DirectoryV
    *     not a subdirectory of this CachedDirectory or if it is a subdirectory, but the
    *     CachedDirectory was created without the recursive flag.
    */
-  def listEntries(path: Path, maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
+  def list(path: Path, maxDepth: Int, filter: Filter[_ >: Entry[T]]): List[Entry[T]]
 
   /**
    * List all of the files for the {@code path}, returning only those files that are accepted by the

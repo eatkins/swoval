@@ -49,11 +49,11 @@ object FileCacheTest {
 
   implicit class FileCacheOps[T <: AnyRef](val fileCache: FileTreeRepository[T]) extends AnyVal {
     def ls(dir: Path): Seq[Entry[T]] =
-      fileCache.listEntries(dir, Int.MaxValue, Filters.AllPass).asScala
+      fileCache.list(dir, Int.MaxValue, Filters.AllPass).asScala
     def ls(dir: Path, recursive: Boolean): Seq[Entry[T]] =
-      fileCache.listEntries(dir, if (recursive) Int.MaxValue else 0, Filters.AllPass).asScala
+      fileCache.list(dir, if (recursive) Int.MaxValue else 0, Filters.AllPass).asScala
     def ls[R >: Entry[T]](dir: Path, recursive: Boolean, filter: Filter[R]): Seq[Entry[T]] =
-      fileCache.listEntries(dir, if (recursive) Int.MaxValue else 0, filter).asScala
+      fileCache.list(dir, if (recursive) Int.MaxValue else 0, filter).asScala
 
     def reg(dir: Path, recursive: Boolean = true): SEither[IOException, Bool] = {
       val res = fileCache.register(dir, recursive)

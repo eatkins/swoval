@@ -160,7 +160,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   }
 
   @Override
-  public List<Entry<T>> listEntries(
+  public List<Entry<T>> list(
       final Path path, final int maxDepth, final Filter<? super Entry<T>> filter) {
     if (this.subdirectories.lock()) {
       try {
@@ -199,8 +199,8 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   }
 
   @Override
-  public List<Entry<T>> listEntries(final int maxDepth, final Filter<? super Entry<T>> filter) {
-    return listEntries(getPath(), maxDepth, filter);
+  public List<Entry<T>> list(final int maxDepth, final Filter<? super Entry<T>> filter) {
+    return list(getPath(), maxDepth, filter);
   }
 
   @Override
@@ -318,7 +318,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
       if (previous != null) {
         oldEntries.put(previous.getPath(), previous.getEntry());
         final Iterator<Entry<T>> entryIterator =
-            previous.listEntries(Integer.MAX_VALUE, AllPass).iterator();
+            previous.list(Integer.MAX_VALUE, AllPass).iterator();
         while (entryIterator.hasNext()) {
           final Entry<T> entry = entryIterator.next();
           oldEntries.put(entry.getTypedPath().getPath(), entry);
@@ -326,7 +326,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
         previous.close();
       }
       newEntries.put(dir.getPath(), dir.getEntry());
-      final Iterator<Entry<T>> it = dir.listEntries(Integer.MAX_VALUE, AllPass).iterator();
+      final Iterator<Entry<T>> it = dir.list(Integer.MAX_VALUE, AllPass).iterator();
       while (it.hasNext()) {
         final Entry<T> entry = it.next();
         newEntries.put(entry.getTypedPath().getPath(), entry);
@@ -428,9 +428,9 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
             }
           }
         } else if (typedPath.isDirectory() && rescanOnDirectoryUpdate) {
-          final List<Entry<T>> oldEntries = listEntries(getMaxDepth(), AllPass);
+          final List<Entry<T>> oldEntries = list(getMaxDepth(), AllPass);
           init();
-          final List<Entry<T>> newEntries = listEntries(getMaxDepth(), AllPass);
+          final List<Entry<T>> newEntries = list(getMaxDepth(), AllPass);
           MapOps.diffDirectoryEntries(oldEntries, newEntries, result);
         } else {
           final Entry<T> oldEntry = getEntry();
@@ -529,8 +529,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
             }
             final CachedDirectoryImpl<T> dir = currentDir.subdirectories.remove(p);
             if (dir != null) {
-              final Iterator<Entry<T>> removeIt =
-                  dir.listEntries(Integer.MAX_VALUE, AllPass).iterator();
+              final Iterator<Entry<T>> removeIt = dir.list(Integer.MAX_VALUE, AllPass).iterator();
               while (removeIt.hasNext()) {
                 result.add(Entries.setExists(removeIt.next(), false));
               }
