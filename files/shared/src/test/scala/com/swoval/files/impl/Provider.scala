@@ -8,13 +8,7 @@ import com.swoval.files.test.TestLogger
 
 class Provider(implicit testLogger: TestLogger) extends SwovalProvider {
   override def getFileTreeRepositoryProvider: FileTreeRepositoryProvider =
-    new FileTreeRepositoryProvider {
-      override def getDefault: FileTreeRepository[AnyRef] = ???
-      override def followSymlinks[T](
-          converter: FileTreeDataViews.Converter[T]): FileTreeRepositories.FollowSymlinks[T] = ???
-      override def noFollowSymlinks[T](
-          converter: FileTreeDataViews.Converter[T]): FileTreeRepositories.NoFollowSymlinks[T] = ???
-    }
+    Provider.fileTreeRepository(testLogger)
   override def getFileTreeViewProvider: files.FileTreeViewProvider =
     new files.FileTreeViewProvider {
       override def followSymlinks(): _root_.com.swoval.files.FileTreeViews.FollowSymlinks = ???
@@ -29,4 +23,8 @@ class Provider(implicit testLogger: TestLogger) extends SwovalProvider {
       new PathWatcherProviderImpl.NoFollowWrapper(
         new PollingPathWatcher(true, pollInterval, timeUnit, testLogger))
   }
+}
+object Provider {
+  def fileTreeRepository(logger: TestLogger): FileTreeRepositoryProvider =
+    new FileTreeRepositoryProviderImpl(logger)
 }

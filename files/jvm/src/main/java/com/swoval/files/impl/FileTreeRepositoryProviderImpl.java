@@ -9,12 +9,11 @@ import com.swoval.files.FileTreeRepository;
 import com.swoval.files.FileTreeRepositoryProvider;
 import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatcher;
-import com.swoval.files.PathWatchers;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
+import com.swoval.files.impl.functional.IOFunction;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
-import com.swoval.files.impl.functional.IOFunction;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
 import com.swoval.logging.Loggers.Level;
@@ -23,6 +22,11 @@ import java.nio.file.Path;
 import java.util.List;
 
 class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
+  private final Logger logger;
+
+  FileTreeRepositoryProviderImpl(final Logger logger) {
+    this.logger = logger;
+  }
 
   @Override
   public FileTreeRepository<Object> getDefault() throws InterruptedException, IOException {
@@ -32,13 +36,13 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
   @Override
   public <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException {
-    return new FollowWrapper<>(get(true, converter, Loggers.getLogger(), PATH_WATCHER_FACTORY));
+    return new FollowWrapper<>(get(true, converter, logger, PATH_WATCHER_FACTORY));
   }
 
   @Override
   public <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException {
-    return new NoFollowWrapper<>(get(false, converter, Loggers.getLogger(), PATH_WATCHER_FACTORY));
+    return new NoFollowWrapper<>(get(false, converter, logger, PATH_WATCHER_FACTORY));
   }
 
   static <T> FileTreeRepository<T> get(

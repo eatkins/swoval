@@ -3,42 +3,38 @@ package com.swoval.files
 import java.io.IOException
 import java.nio.file.Path
 
-import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
-import com.swoval.files.FileTreeDataViews.CacheObserver
-import com.swoval.files.PathWatchers.Event
+import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
 import com.swoval.files.TestHelpers._
-import com.swoval.files.impl.{ ApplePathWatchers, DirectoryRegistry, PlatformWatcher }
+import com.swoval.files.impl.Provider
 import com.swoval.files.test._
 import com.swoval.files.test.platform.Bool
 import com.swoval.functional.{ Filter, Filters, Either => SEither }
-import com.swoval.runtime.Platform
 import utest._
 
 import scala.collection.JavaConverters._
 
 trait FileCacheTest extends TestSuite { self: TestSuite =>
-  val factory: (DirectoryRegistry, TestLogger) => PathWatcher[Event]
   def identity: Converter[Path] = (_: TypedPath).getPath
 
   def simpleCache(f: Entry[Path] => Unit)(
-      implicit testLogger: TestLogger): FileTreeRepository[Path] =
+      implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Path] =
     FileCacheTest.get(identity, getObserver(f))
 
   def lastModifiedCache(f: Entry[LastModified] => Unit)(
-      implicit testLogger: TestLogger): FileTreeRepository[LastModified] =
+      implicit provider: FileTreeRepositoryProvider): FileTreeRepository[LastModified] =
     FileCacheTest.get(LastModified(_: TypedPath), getObserver(f))
 
   def lastModifiedCache(onCreate: Entry[LastModified] => Unit,
                         onUpdate: (Entry[LastModified], Entry[LastModified]) => Unit,
                         onDelete: Entry[LastModified] => Unit)(
-      implicit testLogger: TestLogger): FileTreeRepository[LastModified] =
+      implicit provider: FileTreeRepositoryProvider): FileTreeRepository[LastModified] =
     FileCacheTest.get(LastModified(_: TypedPath), getObserver(onCreate, onUpdate, onDelete))
 }
 
 object FileCacheTest {
   def get[T <: AnyRef](converter: Converter[T], cacheObserver: CacheObserver[T])(
-      implicit testLogger: TestLogger): FileTreeRepository[T] = {
-    val res = FileTreeRepositories.followSymlinks(converter, testLogger)
+      implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
+    val res = provider.followSymlinks(converter)
     res.addCacheObserver(cacheObserver)
     res
   }
@@ -66,11 +62,8 @@ object FileCacheTest {
 }
 
 trait DefaultFileCacheTest { self: FileCacheTest =>
-  val factory = (directoryRegistry: DirectoryRegistry, testLogger: TestLogger) =>
-    if (Platform.isMac) ApplePathWatchers.get(directoryRegistry, testLogger)
-    else PlatformWatcher.make(directoryRegistry, testLogger)
+  implicit def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider =
+    Provider.fileTreeRepository(logger)
 }
 trait NioFileCacheTest { self: FileCacheTest =>
-  val factory = (directoryRegistry: DirectoryRegistry, testLogger: TestLogger) =>
-    PlatformWatcher.make(directoryRegistry, testLogger)
 }

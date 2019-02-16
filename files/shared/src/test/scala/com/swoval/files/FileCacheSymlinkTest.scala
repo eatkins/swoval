@@ -5,27 +5,32 @@ package files
 import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
-import FileTreeDataViews.{ CacheObserver, Converter, Entry }
 import com.swoval.files.FileCacheTest.FileCacheOps
+import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
+import com.swoval.files.TestHelpers.EntryOps._
+import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.{ Converters, Provider }
 import com.swoval.files.test._
-import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
 import utest._
 
 import scala.collection.mutable
-import scala.concurrent.{ Future, TimeoutException }
 import scala.concurrent.duration._
+import scala.concurrent.{ Future, TimeoutException }
 import scala.util.Failure
-import TestHelpers._
-import EntryOps._
-import com.swoval.files.impl.Converters
 
 trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
-  def getRepo(implicit testLogger: TestLogger): FileTreeRepository[Object] =
-    FileTreeRepositories.followSymlinks(Converters.UNIT_CONVERTER, testLogger)
-  def getNoFollow(implicit testLogger: TestLogger): FileTreeRepository[Object] =
-    FileTreeRepositories.noFollowSymlinks(Converters.UNIT_CONVERTER, testLogger)
+  private val sentinel = new Object
+  val objectConverter: Converter[Object] = new Converter[Object] {
+    override def apply(typedPath: TypedPath): Object = sentinel
+  }
+  def getRepo(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Object] =
+    provider.followSymlinks(objectConverter)
+  def getNoFollow(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Object] =
+    provider.noFollowSymlinks(objectConverter)
+  implicit def defaultProvider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
+    Provider.fileTreeRepository(testLogger)
   val testsImpl = Tests {
     'initial - withTempDirectory { dir =>
       implicit val logger: TestLogger = new CachingLogger
@@ -459,12 +464,12 @@ trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
 object FileCacheSymlinkTest extends FileCacheSymlinkTest with DefaultFileCacheTest {
   val tests = testsImpl
 }
-object NioFileCacheSymlinkTest extends FileCacheSymlinkTest with NioFileCacheTest {
-  override val tests =
-    if (Platform.isJVM && Platform.isMac) testsImpl
-    else
-      Tests('ignore - {
-        if (swoval.test.verbose)
-          println("Not running NioFileCacheTest on platform other than the jvm on osx")
-      })
-}
+//object NioFileCacheSymlinkTest extends FileCacheSymlinkTest with NioFileCacheTest {
+//  override val tests =
+//    if (Platform.isJVM && Platform.isMac) testsImpl
+//    else
+//      Tests('ignore - {
+//        if (swoval.test.verbose)
+//          println("Not running NioFileCacheTest on platform other than the jvm on osx")
+//      })
+//}
