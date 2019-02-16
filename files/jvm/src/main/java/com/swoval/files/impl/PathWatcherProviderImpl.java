@@ -6,6 +6,7 @@ import com.swoval.files.PathWatcherProvider;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.FollowSymlinks;
 import com.swoval.files.PathWatchers.NoFollowSymlinks;
+import com.swoval.files.impl.apple.ApplePathWatchers;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;

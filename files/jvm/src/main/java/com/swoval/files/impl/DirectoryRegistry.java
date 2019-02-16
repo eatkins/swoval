@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Tracks which directories the user wishes to monitor. This can be used to determine whether or not
  * a path is part of the subtree specified by the set of paths registered by the user.
  */
-interface DirectoryRegistry extends Filter<Path>, AutoCloseable {
+public interface DirectoryRegistry extends Filter<Path>, AutoCloseable {
 
   /**
    * Add the input directory to the list of registered directories.

@@ -17,7 +17,7 @@ class Lockable {
     this.reentrantLock = reentrantLock;
   }
 
-  boolean lock() {
+  public boolean lock() {
     try {
       return reentrantLock.tryLock(1, TimeUnit.MINUTES);
     } catch (final InterruptedException e) {
@@ -25,7 +25,7 @@ class Lockable {
     }
   }
 
-  void unlock() {
+  public void unlock() {
     reentrantLock.unlock();
   }
 }
@@ -47,7 +47,7 @@ class LockableMap<K, V> extends Lockable {
   }
 
   @SuppressWarnings("EmptyCatchBlock")
-  void clear() {
+  public void clear() {
     if (lock()) {
       try {
         final Iterator<V> values = new ArrayList<>(map.values()).iterator();
@@ -65,7 +65,7 @@ class LockableMap<K, V> extends Lockable {
     }
   }
 
-  Iterator<Entry<K, V>> iterator() {
+  public Iterator<Entry<K, V>> iterator() {
     if (lock()) {
       try {
         return new ArrayList<>(map.entrySet()).iterator();
@@ -77,7 +77,7 @@ class LockableMap<K, V> extends Lockable {
     }
   }
 
-  List<K> keys() {
+  public List<K> keys() {
     if (lock()) {
       try {
         return new ArrayList<>(map.keySet());
@@ -89,7 +89,7 @@ class LockableMap<K, V> extends Lockable {
     }
   }
 
-  List<V> values() {
+  public List<V> values() {
     if (lock()) {
       try {
         return new ArrayList<>(map.values());
@@ -101,7 +101,7 @@ class LockableMap<K, V> extends Lockable {
     }
   }
 
-  V get(final K key) {
+  public V get(final K key) {
     if (lock()) {
       try {
         return map.get(key);
@@ -113,7 +113,7 @@ class LockableMap<K, V> extends Lockable {
     }
   }
 
-  V put(final K key, V value) {
+  public V put(final K key, V value) {
     if (lock()) {
       try {
         return map.put(key, value);
@@ -125,7 +125,7 @@ class LockableMap<K, V> extends Lockable {
     }
   }
 
-  V remove(final K key) {
+  public V remove(final K key) {
     if (lock()) {
       try {
         return map.remove(key);

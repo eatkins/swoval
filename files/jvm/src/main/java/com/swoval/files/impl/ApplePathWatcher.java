@@ -1,4 +1,4 @@
-package com.swoval.files.impl;
+package com.swoval.files.impl.apple;
 
 import static com.swoval.files.PathWatchers.Event.Kind.Create;
 import static com.swoval.files.PathWatchers.Event.Kind.Delete;
@@ -8,13 +8,12 @@ import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
-import com.swoval.files.impl.apple.ClosedFileEventMonitorException;
-import com.swoval.files.impl.apple.FileEvent;
-import com.swoval.files.impl.apple.FileEventMonitor;
-import com.swoval.files.impl.apple.FileEventMonitors;
+import com.swoval.files.impl.AppleFileEventStreams;
+import com.swoval.files.impl.DirectoryRegistry;
+import com.swoval.files.impl.Observers;
+import com.swoval.files.impl.TypedPaths;
 import com.swoval.files.impl.apple.FileEventMonitors.Handle;
 import com.swoval.files.impl.apple.FileEventMonitors.Handles;
-import com.swoval.files.impl.apple.Flags;
 import com.swoval.files.impl.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
@@ -30,14 +29,13 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class AppleFileEventStreams extends LockableMap<Path, ApplePathWatcher.Stream> {}
 /**
  * Implements the PathWatcher for Mac OSX using the <a
  * href="https://developer.apple.com/library/content/documentation/Darwin/Conceptual/FSEvents_ProgGuide/UsingtheFSEventsFramework/UsingtheFSEventsFramework.html"
  * target="_blank">Apple File System Events Api</a>.
  */
-class ApplePathWatcher implements PathWatcher<Event> {
-  static class Stream implements AutoCloseable {
+public class ApplePathWatcher implements PathWatcher<Event> {
+  public static class Stream implements AutoCloseable {
     final Handle handle;
     final FileEventMonitor fileEventMonitor;
 
@@ -283,20 +281,5 @@ class ApplePathWatcher implements PathWatcher<Event> {
       }
     }
     return result;
-  }
-}
-
-class ApplePathWatchers {
-  private ApplePathWatchers() {}
-
-  static PathWatcher<Event> get(final DirectoryRegistry registry, final Logger logger)
-      throws InterruptedException {
-    return new ApplePathWatcher(
-        10,
-        TimeUnit.MILLISECONDS,
-        new Flags.Create().setNoDefer().setFileEvents(),
-        ApplePathWatcher.DefaultOnStreamRemoved,
-        registry,
-        logger);
   }
 }

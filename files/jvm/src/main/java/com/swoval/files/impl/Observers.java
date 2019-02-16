@@ -19,12 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @param <T> the data type for the {@link PathWatcher} to which the observers correspond
  */
-class Observers<T> implements Observer<T>, AutoCloseable {
+public class Observers<T> implements Observer<T>, AutoCloseable {
   private final AtomicInteger counter = new AtomicInteger(0);
   private final Map<Integer, Observer<T>> observers = new LinkedHashMap<>();
   private final Logger logger;
 
-  Observers(final Logger logger) {
+  public Observers(final Logger logger) {
     this.logger = logger;
   }
 
@@ -72,7 +72,7 @@ class Observers<T> implements Observer<T>, AutoCloseable {
    *     Observers#removeObserver(int)} .
    */
   @SuppressWarnings("unchecked")
-  int addObserver(final Observer<? super T> observer) {
+  public int addObserver(final Observer<? super T> observer) {
     final int key = counter.getAndIncrement();
     synchronized (observers) {
       observers.put(key, (Observer<T>) observer);
@@ -86,7 +86,7 @@ class Observers<T> implements Observer<T>, AutoCloseable {
    *
    * @param handle the handle to remove
    */
-  void removeObserver(int handle) {
+  public void removeObserver(int handle) {
     synchronized (observers) {
       observers.remove(handle);
     }

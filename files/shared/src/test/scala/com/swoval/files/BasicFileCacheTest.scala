@@ -9,7 +9,7 @@ import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
-import com.swoval.files.impl.TypedPaths
+import com.swoval.files.impl.{ Provider, TypedPaths }
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
 import com.swoval.runtime.Platform
@@ -25,6 +25,8 @@ import scala.concurrent.duration._
 trait BasicFileCacheTest extends TestSuite with FileCacheTest {
   def ignore[T]: Entry[T] => Unit = (_: Entry[T]) => ()
   def ignoreOld[T](f: Entry[T] => Unit): (Entry[T], Entry[T]) => Unit = (_, e) => f(e)
+  implicit def provider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
+    Provider.fileTreeRepository(testLogger)
   val testsImpl: Tests = Tests {
     'directory - {
       'subdirectories - {

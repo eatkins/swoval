@@ -1,12 +1,12 @@
-package com.swoval.files
+package com.swoval.files.impl.apple
 
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
+import com.swoval.files._
 import com.swoval.files.PathWatchers.Event
 import com.swoval.files.TestHelpers._
-import com.swoval.files.impl.apple.Flags
-import com.swoval.files.impl.{ ApplePathWatcher, DirectoryRegistryImpl }
+import com.swoval.files.impl.{ DirectoryRegistryImpl }
 import com.swoval.files.test._
 import com.swoval.test._
 import utest._
