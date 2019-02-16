@@ -2,6 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
+import com.swoval.files.FileTreeView;
 import com.swoval.files.FileTreeViews;
 import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatcher;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 
 class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
+  private static final FileTreeView fileTreeView = FileTreeViews.noFollowSymlinks();
   private final SymlinkWatcher symlinkWatcher;
   private final PathWatcher<Event> pathWatcher;
   private final Observers<Event> observers;
@@ -64,7 +66,7 @@ class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
 
   private void handleNewDirectory(final Path path, final int maxDepth, final boolean trigger)
       throws IOException {
-    final Iterator<TypedPath> it = FileTreeViews.list(path, maxDepth, AllPass).iterator();
+    final Iterator<TypedPath> it = fileTreeView.list(path, maxDepth, AllPass).iterator();
     while (it.hasNext()) {
       final TypedPath tp = it.next();
       if (tp.isSymbolicLink()) {
@@ -100,7 +102,8 @@ class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
     final Path absolutePath = path.isAbsolute() ? path : path.toAbsolutePath();
     try {
       final Iterator<TypedPath> it =
-          FileTreeViews.list(
+          fileTreeView
+              .list(
                   absolutePath,
                   pathWatcherDirectoryRegistry.maxDepthFor(absolutePath),
                   new Filter<TypedPath>() {

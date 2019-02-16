@@ -1,139 +1,24 @@
 package com.swoval.files;
 
-import com.swoval.files.FileTreeDataViews.Converter;
-import com.swoval.files.impl.CachedDirectoryImpl;
-import com.swoval.files.impl.DirectoryLister;
-import com.swoval.files.impl.DirectoryListers;
-import com.swoval.files.impl.NioDirectoryLister;
-import com.swoval.files.impl.SimpleFileTreeView;
-import com.swoval.files.impl.TypedPaths;
-import com.swoval.functional.Filter;
-import com.swoval.functional.Filters;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
+import com.swoval.files.impl.SwovalProviderImpl;
 
 /**
  * Provides static methods returning instances of the various view interfaces defined throughout
  * this package.
  */
 public class FileTreeViews {
-  static {
-    final DirectoryLister[] listers = DirectoryListers.init();
-    nativeDirectoryLister = listers[0];
-    DirectoryLister nioLister = new NioDirectoryLister();
-    nioDirectoryLister = nioLister;
-    DirectoryLister defaultLister =
-        listers[1] != null ? listers[1] : listers[0] != null ? listers[0] : nioLister;
-    defaultDirectoryLister = defaultLister;
-    defaultFileTreeView = new SimpleFileTreeView(defaultLister, false);
-  }
-
-  private static final DirectoryLister nioDirectoryLister;
-  private static final DirectoryLister nativeDirectoryLister;
-  private static final DirectoryLister defaultDirectoryLister;
-  private static final FileTreeView defaultFileTreeView;
-
-  private static final Converter<Path> PATH_CONVERTER =
-      new Converter<Path>() {
-        @Override
-        public Path apply(final TypedPath typedPath) {
-          return typedPath.getPath();
-        }
-      };
 
   private FileTreeViews() {}
 
-  /**
-   * Make a new {@link DirectoryView} that caches the file tree but has no data value associated
-   * with each value.
-   *
-   * @param path the path to monitor
-   * @param depth sets how the limit for how deep to traverse the children of this directory
-   * @param followLinks sets whether or not to treat symbolic links whose targets as directories or
-   *     files
-   * @return a directory whose entries just contain the path itself.
-   * @throws IOException when an error is encountered traversing the directory.
-   */
-  public static DirectoryView cached(final Path path, final int depth, final boolean followLinks)
-      throws IOException {
-    return new CachedDirectoryImpl<>(
-            TypedPaths.get(path), PATH_CONVERTER, depth, Filters.AllPass, followLinks)
-        .init();
+  private static final FileTreeViewProvider fileTreeViewProvider =
+      SwovalProviderImpl.getDefaultProvider().getFileTreeViewProvider();
+
+  public static FollowSymlinks followSymlinks() {
+    return fileTreeViewProvider.followSymlinks();
   }
 
-  /**
-   * Returns an instance of {@link FileTreeView} that uses only apis available in java.nio.file.
-   * This may be used on platforms for which there is no native implementation of {@link
-   * FileTreeView}.
-   *
-   * @param followLinks toggles whether or not to follow the targets of symbolic links to
-   *     directories.
-   * @return an instance of {@link FileTreeView}.
-   */
-  @SuppressWarnings("unused")
-  public static FileTreeView getNio(final boolean followLinks) {
-    return new SimpleFileTreeView(nioDirectoryLister, followLinks);
-  }
-
-  /**
-   * Returns an instance of {@link FileTreeView} that uses native jni functions to improve
-   * performance compared to the {@link FileTreeView} returned by {@link
-   * FileTreeViews#getNio(boolean)}.
-   *
-   * @param followLinks toggles whether or not to follow the targets of symbolic links to
-   *     directories.
-   * @return an instance of {@link FileTreeView}.
-   */
-  @SuppressWarnings("unused")
-  public static FileTreeView getNative(final boolean followLinks) {
-    return new SimpleFileTreeView(nativeDirectoryLister, followLinks);
-  }
-
-  /**
-   * Returns the default {@link FileTreeView} for the runtime platform. If a native implementation
-   * is present, it will be used. Otherwise, it will fall back to the java.nio.file based
-   * implementation.
-   *
-   * @param followLinks toggles whether or not to follow the targets of symbolic links to
-   *     directories.
-   * @return an instance of {@link FileTreeView}.
-   */
-  public static FileTreeView getDefault(final boolean followLinks) {
-    return new SimpleFileTreeView(defaultDirectoryLister, followLinks, false);
-  }
-
-  /**
-   * Returns the default {@link FileTreeView} for the runtime platform. If a native implementation
-   * is present, it will be used. Otherwise, it will fall back to the java.nio.file based
-   * implementation.
-   *
-   * @param followLinks toggles whether or not to follow the targets of symbolic links to
-   *     directories.
-   * @param ignoreExceptions toggles whether or not to ignore IOExceptions thrown while listing the
-   *     directory. If true, some files that are found may be silently dropped if accessing them
-   *     caused an exception.
-   * @return an instance of {@link FileTreeView}.
-   */
-  static FileTreeView getDefault(final boolean followLinks, final boolean ignoreExceptions) {
-    return new SimpleFileTreeView(defaultDirectoryLister, followLinks, ignoreExceptions);
-  }
-
-  /**
-   * List the contents of a path.
-   *
-   * @param path the path to list. If the path is a directory, return the children of this directory
-   *     up to the maxDepth. If the path is a regular file and the maxDepth is <code>-1</code>, the
-   *     path itself is returned. Otherwise an empty list is returned.
-   * @param maxDepth the maximum depth of children to include in the results
-   * @param filter only include paths accepted by this filter
-   * @return a {@link java.util.List} of {@link TypedPath}
-   * @throws IOException if the Path doesn't exist
-   */
-  public static List<TypedPath> list(
-      final Path path, final int maxDepth, final Filter<? super TypedPath> filter)
-      throws IOException {
-    return defaultFileTreeView.list(path, maxDepth, filter);
+  public static NoFollowSymlinks noFollowSymlinks() {
+    return fileTreeViewProvider.noFollowSymlinks();
   }
 
   /**
@@ -174,4 +59,8 @@ public class FileTreeViews {
      */
     void removeObserver(final int handle);
   }
+
+  public interface FollowSymlinks extends FileTreeView {};
+
+  public interface NoFollowSymlinks extends FileTreeView {};
 }

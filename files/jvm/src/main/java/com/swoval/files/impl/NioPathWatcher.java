@@ -8,6 +8,7 @@ import static java.util.Map.Entry;
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.files.FileTreeView;
 import com.swoval.files.FileTreeViews;
 import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatcher;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class RootDirectories extends LockableMap<Path, CachedDirectory<WatchedDirectory>> {}
 /** Provides a PathWatcher that is backed by a {@link java.nio.file.WatchService}. */
 class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
+  private final FileTreeView fileTreeView = FileTreeViews.noFollowSymlinks();
   private final AtomicBoolean closed = new AtomicBoolean(false);
   private final Observers<Event> observers;
   private final RootDirectories rootDirectories = new RootDirectories();
@@ -46,7 +48,8 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
         events.add(new Event(newEntry.getTypedPath(), Create));
         try {
           final Iterator<TypedPath> it =
-              FileTreeViews.list(
+              fileTreeView
+                  .list(
                       newEntry.getTypedPath().getPath(),
                       0,
                       new Filter<TypedPath>() {
@@ -312,7 +315,8 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
         if (root != null) {
           try {
             final Iterator<TypedPath> it =
-                FileTreeViews.list(
+                fileTreeView
+                    .list(
                         path,
                         0,
                         new Filter<TypedPath>() {

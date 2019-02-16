@@ -76,7 +76,13 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
       final int depth,
       final Filter<? super TypedPath> filter,
       final boolean followLinks) {
-    this(typedPath, converter, depth, filter, followLinks, FileTreeViews.getDefault(followLinks));
+    this(
+        typedPath,
+        converter,
+        depth,
+        filter,
+        followLinks,
+        followLinks ? FileTreeViews.followSymlinks() : FileTreeViews.noFollowSymlinks());
   }
 
   /**
