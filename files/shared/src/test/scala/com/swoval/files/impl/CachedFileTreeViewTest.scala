@@ -1,21 +1,16 @@
-package com.swoval.files
-
+package com.swoval.files.impl
 import java.io.IOException
 import java.nio.file.Path
 
-import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
-import com.swoval.files.FileTreeViewTest.RepositoryOps
-import com.swoval.files.FileTreeViews.Observer
-import com.swoval.files.TestHelpers.EntryOps._
-import com.swoval.files.TestHelpers._
-import com.swoval.files.impl._
-import com.swoval.files.test._
-import com.swoval.functional.Filter
-import com.swoval.functional.Filters.AllPass
-import com.swoval.test._
-import utest._
+import com.swoval.files.test.{
+  FileBytes,
+  LastModified,
+  withTempDirectory,
+  withTempDirectorySync,
+  withTempFileSync
+}
+import utest.{ TestSuite, Tests, assert }
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Future
 

@@ -9,8 +9,7 @@ import com.swoval.functional.Filter;
 import java.nio.file.Path;
 import java.util.List;
 
-interface CachedDirectory<T>
-    extends UpdatableFileTreeDataView<T>, DirectoryDataView<T>, AutoCloseable {
+interface CachedDirectory<T> extends DirectoryDataView<T>, AutoCloseable {
 
   /**
    * List the children of the path specified by {@link CachedDirectory#getPath()}, excluding the

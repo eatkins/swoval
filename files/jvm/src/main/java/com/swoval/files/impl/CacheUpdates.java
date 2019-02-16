@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class CacheUpdates<T> implements CacheObserver<T> {
+class CacheUpdates<T> implements CacheObserver<T> {
 
   private final List<Entry<T>> creations = new ArrayList<>();
   private final List<Entry<T>> deletions = new ArrayList<>();
