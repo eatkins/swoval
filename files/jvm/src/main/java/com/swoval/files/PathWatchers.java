@@ -1,7 +1,6 @@
 package com.swoval.files;
 
 import com.swoval.files.impl.SwovalProviderImpl;
-import com.swoval.logging.Logger;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -18,20 +17,19 @@ public class PathWatchers {
   private static final PathWatcherProvider provider =
       SwovalProviderImpl.getDefaultProvider().getPathWatcherProvider();
 
-  public static FollowSymlinks<PathWatchers.Event> followSymlinks(final Logger logger)
+  public static FollowSymlinks<PathWatchers.Event> followSymlinks()
       throws IOException, InterruptedException {
-    return provider.followSymlinks(logger);
+    return provider.followSymlinks();
   }
 
-  public static NoFollowSymlinks<PathWatchers.Event> noFollowSymlinks(final Logger logger)
+  public static NoFollowSymlinks<PathWatchers.Event> noFollowSymlinks()
       throws IOException, InterruptedException {
-    return provider.noFollowSymlinks(logger);
+    return provider.noFollowSymlinks();
   }
 
   public static PathWatcher<PathWatchers.Event> polling(
-      final long duration, final TimeUnit timeUnit, final Logger logger)
-      throws InterruptedException {
-    return provider.polling(duration, timeUnit, logger);
+      final long duration, final TimeUnit timeUnit) throws InterruptedException {
+    return provider.polling(duration, timeUnit);
   }
 
   /** Container for {@link PathWatcher} events. */

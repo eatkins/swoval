@@ -11,12 +11,7 @@ import com.swoval.files.PathWatchers.Event.Kind.{ Delete, Modify }
 import com.swoval.files.TestHelpers._
 import com.swoval.files.impl.apple.Flags
 import com.swoval.files.impl.functional.Consumer
-import com.swoval.files.impl.{
-  ApplePathWatcher,
-  DirectoryRegistryImpl,
-  PlatformWatcher,
-  TypedPaths
-}
+import com.swoval.files.impl.{ ApplePathWatcher, DirectoryRegistryImpl, TypedPaths }
 import com.swoval.files.test.{ ArrayBlockingQueue, _ }
 import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext
@@ -141,30 +136,31 @@ trait PathWatcherTest extends TestSuite {
           }
         }
       }
-      'redundant - withTempDirectory { dir =>
-        implicit val logger: TestLogger = new CachingLogger
-        if (Platform.isMac && this != PollingPathWatcherTest) {
-          val events = new ArrayBlockingQueue[String](10)
-          val callback: Consumer[String] = (stream: String) => events.add(stream)
-          withTempDirectory(dir) { subdir =>
-            val watcher = new ApplePathWatcher(
-              DEFAULT_LATENCY.toNanos,
-              TimeUnit.NANOSECONDS,
-              fileFlags,
-              callback,
-              new DirectoryRegistryImpl,
-              logger
-            )
-            usingAsync(watcher) { w =>
-              w.register(subdir)
-              w.register(dir)
-              events.poll(DEFAULT_TIMEOUT)(_ ==> subdir.toString)
-            }
-          }
-        } else {
-          Future.successful(())
-        }
-      }
+      // TODO make separate test
+//      'redundant - withTempDirectory { dir =>
+//        implicit val logger: TestLogger = new CachingLogger
+//        if (Platform.isMac && this != PollingPathWatcherTest) {
+//          val events = new ArrayBlockingQueue[String](10)
+//          val callback: Consumer[String] = (stream: String) => events.add(stream)
+//          withTempDirectory(dir) { subdir =>
+//            val watcher = new ApplePathWatcher(
+//              DEFAULT_LATENCY.toNanos,
+//              TimeUnit.NANOSECONDS,
+//              fileFlags,
+//              callback,
+//              new DirectoryRegistryImpl,
+//              logger
+//            )
+//            usingAsync(watcher) { w =>
+//              w.register(subdir)
+//              w.register(dir)
+//              events.poll(DEFAULT_TIMEOUT)(_ ==> subdir.toString)
+//            }
+//          }
+//        } else {
+//          Future.successful(())
+//        }
+//      }
       'unregister - {
         'follow - unregisterTest(true)
         'noFollow - unregisterTest(false)
@@ -513,8 +509,8 @@ object PathWatcherTest extends PathWatcherTest {
   override def defaultWatcher(callback: PathWatchers.Event => _, followLinks: Boolean)(
       implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
     val res =
-      if (followLinks) PathWatchers.followSymlinks(testLogger)
-      else PathWatchers.noFollowSymlinks(testLogger)
+      if (followLinks) PathWatchers.followSymlinks()
+      else PathWatchers.noFollowSymlinks()
     res.addObserver(callback)
     res
   }
@@ -530,13 +526,8 @@ object NioPathWatcherTest extends PathWatcherTest {
             println("Not running NioDirectoryWatcherTest on platform other than osx on the jvm")
         }
       }
+  // TODO provider
 
-  override def defaultWatcher(callback: PathWatchers.Event => _, followLinks: Boolean)(
-      implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
-    val res = PlatformWatcher.make(new DirectoryRegistryImpl(), testLogger)
-    res.addObserver(callback)
-    res
-  }
 }
 
 object PollingPathWatcherTest extends PathWatcherTest {
@@ -545,7 +536,7 @@ object PollingPathWatcherTest extends PathWatcherTest {
   override def defaultWatcher(callback: PathWatchers.Event => _, followLinks: Boolean)(
       implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
     val res: PathWatcher[PathWatchers.Event] =
-      PathWatchers.polling(100, TimeUnit.MILLISECONDS, testLogger)
+      PathWatchers.polling(100, TimeUnit.MILLISECONDS)
     res.addObserver(callback)
     res
   }

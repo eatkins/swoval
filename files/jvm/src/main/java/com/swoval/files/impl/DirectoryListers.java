@@ -3,19 +3,20 @@ package com.swoval.files.impl;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public class DirectoryListers {
+class DirectoryListers {
   private DirectoryListers() {}
 
+  static final DirectoryLister INSTANCE = init();
+
   @SuppressWarnings({"unchecked", "EmptyCatchBlock"})
-  public static DirectoryLister[] init() {
+  public static DirectoryLister init() {
     final String className = System.getProperty("swoval.directory.lister");
-    DirectoryLister directoryLister = null;
     if (className != null) {
       try {
         Constructor<DirectoryLister> cons =
             ((Class<DirectoryLister>) Class.forName(className)).getDeclaredConstructor();
         cons.setAccessible(true);
-        directoryLister = cons.newInstance();
+        return cons.newInstance();
       } catch (ClassNotFoundException
           | NoSuchMethodException
           | ClassCastException
@@ -24,12 +25,10 @@ public class DirectoryListers {
           | InvocationTargetException e) {
       }
     }
-    NativeDirectoryLister nativeDirectoryLister;
     try {
-      nativeDirectoryLister = new NativeDirectoryLister();
+      return new NativeDirectoryLister();
     } catch (final UnsatisfiedLinkError | RuntimeException e) {
-      nativeDirectoryLister = null;
+      return new NioDirectoryLister();
     }
-    return new DirectoryLister[] {nativeDirectoryLister, directoryLister};
   }
 }

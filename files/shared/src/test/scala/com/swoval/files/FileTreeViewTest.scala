@@ -220,11 +220,12 @@ class FileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView) e
     }
   }
 }
-object DirectoryFileTreeViewTest extends FileTreeViewTest(FileTreeViews.cached)
+//object DirectoryFileTreeViewTest extends FileTreeViewTest(FileTreeViews.cached)
 object DefaultFileTreeViewTest
     extends FileTreeViewTest((path, depth, follow: Boolean) => {
       new DirectoryView {
-        private val view = FileTreeViews.getDefault(follow, true)
+        private val view =
+          if (follow) FileTreeViews.followSymlinks() else FileTreeViews.noFollowSymlinks()
         override def getPath: Path = path
         override val getTypedPath: TypedPath = TypedPaths.get(path)
         override def list(maxDepth: Int, filter: Filter[_ >: TypedPath]): util.List[TypedPath] = {
@@ -248,12 +249,3 @@ object DefaultFileTreeViewTest
         override def close(): Unit = {}
       }
     })
-object NioFileTreeViewTest
-    extends FileTreeViewTest(
-      (path: Path, depth: Int, followLinks: Boolean) =>
-        new CachedDirectoryImpl[Path](TypedPaths.get(path),
-                                      (tp: TypedPath) => tp.getPath,
-                                      depth,
-                                      AllPass,
-                                      followLinks,
-                                      FileTreeViews.getNio(followLinks)).init())

@@ -113,41 +113,41 @@ object PathWatcherSymlinkTest extends PathWatcherSymlinkTest {
   override def defaultWatcher(callback: Predef.Function[PathWatchers.Event, _])(
       implicit testLogger: TestLogger): FollowSymlinks[PathWatchers.Event] = {
     val provider = SwovalProviderImpl.getDefaultProvider.getPathWatcherProvider
-    val res = provider.followSymlinks(testLogger)
+    val res = provider.followSymlinks()
     res.addObserver(callback)
     res
   }
   override val tests = testsImpl
 }
-object NioPathWatcherSymlinkTest extends PathWatcherSymlinkTest {
-  override def defaultWatcher(callback: Predef.Function[PathWatchers.Event, _])(
-      implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
-    val registry = new DirectoryRegistryImpl
-    val provider: PathWatcherProvider = new PathWatcherProvider {
-      private def newWatcher(logger: Logger) = PlatformWatcher.make(registry, logger)
-      override def noFollowSymlinks(
-          logger: Logger): PathWatchers.NoFollowSymlinks[PathWatchers.Event] =
-        new NoFollowWrapper[PathWatchers.Event](newWatcher(logger))
-      override def followSymlinks(logger: Logger): FollowSymlinks[PathWatchers.Event] = ???
-      override def polling(pollInterval: Long,
-                           timeUnit: TimeUnit,
-                           logger: Logger): PathWatcher[PathWatchers.Event] = ???
-    }
-    val res = new SymlinkFollowingPathWatcherImpl(provider.noFollowSymlinks(testLogger),
-                                                  registry,
-                                                  testLogger,
-                                                  provider)
-    res.addObserver(callback)
-    res
-  }
-  override val tests = if (Platform.isMac && Platform.isJVM) {
-    testsImpl
-  } else {
-    Tests {
-      'ignore - {
-        if (swoval.test.verbose)
-          println("Not running NioPathWatcherSymlinkTest on platform other than osx on the jvm")
-      }
-    }
-  }
-}
+//object NioPathWatcherSymlinkTest extends PathWatcherSymlinkTest {
+//  override def defaultWatcher(callback: Predef.Function[PathWatchers.Event, _])(
+//      implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
+//    val registry = new DirectoryRegistryImpl
+//    val provider: PathWatcherProvider = new PathWatcherProvider {
+//      private def newWatcher(logger: Logger) = PlatformWatcher.make(registry, logger)
+//      override def noFollowSymlinks(
+//          logger: Logger): PathWatchers.NoFollowSymlinks[PathWatchers.Event] =
+//        new NoFollowWrapper[PathWatchers.Event](newWatcher(logger))
+//      override def followSymlinks(logger: Logger): FollowSymlinks[PathWatchers.Event] = ???
+//      override def polling(pollInterval: Long,
+//                           timeUnit: TimeUnit,
+//                           logger: Logger): PathWatcher[PathWatchers.Event] = ???
+//    }
+//    val res = new SymlinkFollowingPathWatcherImpl(provider.noFollowSymlinks(testLogger),
+//                                                  registry,
+//                                                  testLogger,
+//                                                  provider)
+//    res.addObserver(callback)
+//    res
+//  }
+//  override val tests = if (Platform.isMac && Platform.isJVM) {
+//    testsImpl
+//  } else {
+//    Tests {
+//      'ignore - {
+//        if (swoval.test.verbose)
+//          println("Not running NioPathWatcherSymlinkTest on platform other than osx on the jvm")
+//      }
+//    }
+//  }
+//}

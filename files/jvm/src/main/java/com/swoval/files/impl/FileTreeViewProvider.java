@@ -13,13 +13,9 @@ public class FileTreeViewProvider implements com.swoval.files.FileTreeViewProvid
   private static final FileTreeViews.NoFollowSymlinks noFollowSymlinks;
 
   static {
-    final DirectoryLister[] listers = DirectoryListers.init();
-    DirectoryLister defaultLister =
-        listers[1] != null
-            ? listers[1]
-            : listers[0] != null ? listers[0] : new NioDirectoryLister();
-    followSymlinks = new FollowWrapper(new SimpleFileTreeView(defaultLister, true));
-    noFollowSymlinks = new NoFollowWrapper(new SimpleFileTreeView(defaultLister, false));
+    final DirectoryLister lister = DirectoryListers.INSTANCE;
+    followSymlinks = new FollowWrapper(new SimpleFileTreeView(lister, true));
+    noFollowSymlinks = new NoFollowWrapper(new SimpleFileTreeView(lister, false));
   }
 
   @Override

@@ -68,7 +68,7 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
         @Override
         public PathWatcher<Event> apply(final Logger logger) throws IOException {
           try {
-            return PathWatchers.noFollowSymlinks(logger);
+            return PathWatcherProviderImpl.get(new DirectoryRegistryImpl(), logger);
           } catch (final InterruptedException e) {
             throw new Interrupted(e);
           }

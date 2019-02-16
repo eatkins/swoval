@@ -34,7 +34,7 @@ class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
     this.pathWatcher = pathWatcher;
     this.pathWatcherDirectoryRegistry = directoryRegistry;
     this.observers = new Observers<>(logger);
-    this.symlinkWatcher = new SymlinkWatcher(provider.noFollowSymlinks(logger), logger);
+    this.symlinkWatcher = new SymlinkWatcher(provider.noFollowSymlinks(), logger);
     pathWatcher.addObserver(
         new Observer<Event>() {
           @Override

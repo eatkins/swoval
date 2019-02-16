@@ -205,8 +205,8 @@ class ApplePathWatcher implements PathWatcher<Event> {
    *
    * @param latency specified in fractional seconds
    * @param flags Native flags
-   * @param onStreamRemoved {@link Consumer} to run when a redundant stream is
-   *     removed from the underlying native file events implementation
+   * @param onStreamRemoved {@link Consumer} to run when a redundant stream is removed from the
+   *     underlying native file events implementation
    * @throws InterruptedException if the native file events implementation is interrupted during
    *     initialization
    */

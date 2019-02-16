@@ -1,24 +1,18 @@
-package com
-package swoval
-package files
+package com.swoval.files.impl
 
 import java.nio.file.Path
 
+import com.swoval
+import com.swoval.files.BoundedWatchService
 import com.swoval.files.PathWatchers.Event
-import com.swoval.files.TestHelpers._
-import com.swoval.files.impl.{
-  DirectoryRegistryImpl,
-  Executor,
-  PlatformWatcher,
-  RegisterableWatchServices
-}
 import com.swoval.files.test._
 import com.swoval.runtime.Platform
-import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
 import utest._
+import com.swoval.files.TestHelpers._
 
 import scala.collection.mutable
+import com.swoval.test.Implicits.executionContext
 
 object NioPathWatcherOverflowTest extends TestSuite {
   val tests = if (Platform.isJVM || !Platform.isMac) Tests {
