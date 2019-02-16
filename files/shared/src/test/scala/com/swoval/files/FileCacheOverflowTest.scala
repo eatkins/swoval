@@ -30,7 +30,8 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
     res.addCacheObserver(cacheObserver)
     res
   }
-  implicit def defaultProvider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
+  override implicit def defaultProvider(
+      implicit testLogger: TestLogger): FileTreeRepositoryProvider =
     Provider.fileTreeRepository(testLogger)
   private val name = getClass.getSimpleName
 
@@ -197,11 +198,11 @@ object FileCacheOverflowTest extends FileCacheOverflowTest with DefaultFileCache
   private implicit class SyncOps[T <: AnyRef](val t: T) extends AnyVal {
     def sync[R](f: T => R): R = t.synchronized(f(t))
   }
-  override def getBounded[T <: AnyRef](converter: FileTreeDataViews.Converter[T],
-                                       cacheObserver: FileTreeDataViews.CacheObserver[T])(
-      implicit logger: TestLogger): FileTreeRepository[T] =
-    if (Platform.isMac) FileCacheTest.get(converter, cacheObserver)
-    else super.getBounded(converter, cacheObserver)
+//  override def getBounded[T <: AnyRef](converter: FileTreeDataViews.Converter[T],
+//                                       cacheObserver: FileTreeDataViews.CacheObserver[T])(
+//      implicit logger: TestLogger): FileTreeRepository[T] =
+//    if (Platform.isMac) FileCacheTest.get(converter, cacheObserver)
+//    else super.getBounded(converter, cacheObserver)
   val tests = testsImpl
 }
 object NioFileCacheOverflowTest extends FileCacheOverflowTest with NioFileCacheTest {

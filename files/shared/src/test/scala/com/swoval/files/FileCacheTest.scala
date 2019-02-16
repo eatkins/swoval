@@ -14,6 +14,8 @@ import utest._
 import scala.collection.JavaConverters._
 
 trait FileCacheTest extends TestSuite { self: TestSuite =>
+  def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider =
+    Provider.fileTreeRepository(logger)
   def identity: Converter[Path] = (_: TypedPath).getPath
 
   def simpleCache(f: Entry[Path] => Unit)(
@@ -62,8 +64,6 @@ object FileCacheTest {
 }
 
 trait DefaultFileCacheTest { self: FileCacheTest =>
-  implicit def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider =
-    Provider.fileTreeRepository(logger)
 }
 trait NioFileCacheTest { self: FileCacheTest =>
 }

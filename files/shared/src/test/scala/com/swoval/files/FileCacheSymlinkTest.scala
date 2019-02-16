@@ -29,8 +29,9 @@ trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
     provider.followSymlinks(objectConverter)
   def getNoFollow(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Object] =
     provider.noFollowSymlinks(objectConverter)
-  implicit def defaultProvider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
-    Provider.fileTreeRepository(testLogger)
+  override implicit def defaultProvider(
+      implicit testLogger: TestLogger): FileTreeRepositoryProvider =
+    super.defaultProvider(testLogger)
   val testsImpl = Tests {
     'initial - withTempDirectory { dir =>
       implicit val logger: TestLogger = new CachingLogger

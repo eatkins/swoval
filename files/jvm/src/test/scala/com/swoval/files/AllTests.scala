@@ -56,17 +56,17 @@ object AllTests {
       (t.tests, t.getClass.getCanonicalName)
     val tests = Seq(
       test(BasicFileCacheTest),
-      test(NioBasicFileCacheTest),
+      //test(NioBasicFileCacheTest),
       test(FileCacheSymlinkTest),
       //test(NioFileCacheSymlinkTest),
       test(FileCacheOverflowTest),
-      test(NioFileCacheOverflowTest),
+      //test(NioFileCacheOverflowTest),
       test(FileEventMonitorTest),
       test(DataViewTest),
       test(CachedFileTreeViewTest),
       test(PathTest),
-      test(impl.NioPathWatcherOverflowTest),
-      test(NioPathWatcherTest),
+      //test(impl.NioPathWatcherOverflowTest),
+      //test(NioPathWatcherTest),
       //test(DirectoryFileTreeViewTest),
       test(ApplePathWatcherTest)
     )
