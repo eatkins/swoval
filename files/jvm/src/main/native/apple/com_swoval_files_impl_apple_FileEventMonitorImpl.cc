@@ -6,7 +6,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <thread>
-#include "com_swoval_files_implapple_FileEventMonitorImpl.h"
+#include "com_swoval_files_impl_apple_FileEventMonitorImpl.h"
 #include "swoval_apple_file_system.hpp"
 
 #define CALLBACK_SIG "(Ljava/lang/Object;)V"
@@ -61,16 +61,16 @@ static Lock jni_stop_stream(std::unique_ptr<Strings> strings, JNIHandle *h, Lock
     return std::move(lock);
 }
 
-JNIEXPORT void JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_stopLoop(JNIEnv *env,
-                                                                                 jclass clazz,
-                                                                                 jlong handle) {
+JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_stopLoop(JNIEnv *env,
+                                                                                     jclass clazz,
+                                                                                     jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     h->close();
 }
 
-JNIEXPORT void JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_close(JNIEnv *env,
-                                                                              jclass clazz,
-                                                                              jlong handle) {
+JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_close(JNIEnv *env,
+                                                                                  jclass clazz,
+                                                                                  jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     assert(h->stopped);
     env->DeleteGlobalRef(h->data->callback);
@@ -82,16 +82,16 @@ JNIEXPORT void JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_clos
     delete h;
 }
 
-JNIEXPORT void JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_loop(JNIEnv *env,
-                                                                             jclass clazz,
-                                                                             jlong handle) {
+JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_loop(JNIEnv *env,
+                                                                                 jclass clazz,
+                                                                                 jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     loop(h);
     if (env->ExceptionCheck())
         return;
 }
 
-JNIEXPORT jlong JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_init(
+JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_init(
     JNIEnv *env, jclass thread, jobject callback, jobject pathCallback) {
     service_handle *handle   = new service_handle();
     jclass callbackClass     = env->GetObjectClass(callback);
@@ -108,13 +108,13 @@ JNIEXPORT jlong JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_ini
     return reinterpret_cast<jlong>(new JNIHandle(handle, jni_callback, jni_stop_stream));
 }
 
-JNIEXPORT jint JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_createStream(
+JNIEXPORT jint JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_createStream(
     JNIEnv *env, jclass clazz, jstring path, jdouble latency, jint flags, jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     return h->startStream(env->GetStringUTFChars(path, 0), latency, flags);
 }
 
-JNIEXPORT void JNICALL Java_com_swoval_files_implapple_FileEventMonitorImpl_stopStream(
+JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_stopStream(
     JNIEnv *env, jclass clazz, jlong handle, jint stream_handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     if (h)
