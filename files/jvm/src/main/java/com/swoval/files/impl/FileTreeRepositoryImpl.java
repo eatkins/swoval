@@ -4,7 +4,6 @@ import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.api.Observer;
-import com.swoval.files.TypedPath;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import com.swoval.logging.Logger;
@@ -107,11 +106,6 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   public void unregister(final Path path) {
     final Path absolutePath = path.isAbsolute() ? path : path.toAbsolutePath();
     watcher.unregister(absolutePath);
-  }
-
-  @Override
-  public List<TypedPath> list(Path path, int maxDepth, Filter<? super TypedPath> filter) {
-    return directoryTree.list(path, maxDepth, filter);
   }
 
   @Override

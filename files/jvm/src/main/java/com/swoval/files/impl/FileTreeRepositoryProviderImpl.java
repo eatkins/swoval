@@ -129,13 +129,6 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
     }
 
     @Override
-    public List<TypedPath> list(
-        final Path path, final int maxDepth, final Filter<? super TypedPath> filter)
-        throws IOException {
-      return delegate.list(path, maxDepth, filter);
-    }
-
-    @Override
     public void close() {
       delegate.close();
     }

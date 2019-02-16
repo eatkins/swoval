@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,7 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   private final AtomicReference<Entry<T>> _cacheEntry;
   private final int depth;
-  private final FileTreeView fileTreeView;
+  private final FileTreeView<TypedPath> fileTreeView;
   private final boolean followLinks;
   private final Converter<T> converter;
   private final Filter<? super TypedPath> pathFilter;
@@ -61,7 +62,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
       final int depth,
       final Filter<? super TypedPath> filter,
       final boolean followLinks,
-      final FileTreeView fileTreeView) {
+      final FileTreeView<TypedPath> fileTreeView) {
     this.converter = converter;
     this.depth = depth;
     this._cacheEntry = new AtomicReference<>(Entries.get(typedPath, converter, typedPath));
@@ -98,65 +99,9 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
     return result;
   }
 
+  @Override
   public int getMaxDepth() {
     return depth;
-  }
-
-  @Override
-  public Path getPath() {
-    return getTypedPath().getPath();
-  }
-
-  @Override
-  public TypedPath getTypedPath() {
-    return getEntry().getTypedPath();
-  }
-
-  @Override
-  public List<TypedPath> list(int maxDepth, Filter<? super TypedPath> filter) {
-    return list(getPath(), maxDepth, filter);
-  }
-
-  @Override
-  public List<TypedPath> list(
-      final Path path, final int maxDepth, final Filter<? super TypedPath> filter) {
-    if (this.subdirectories.lock()) {
-      try {
-        final Either<Entry<T>, CachedDirectoryImpl<T>> findResult = find(path);
-        if (findResult != null) {
-          if (findResult.isRight()) {
-            final List<TypedPath> result = new ArrayList<>();
-            findResult
-                .get()
-                .<TypedPath>listImpl(
-                    maxDepth,
-                    filter,
-                    result,
-                    new ListTransformer<T, TypedPath>() {
-                      @Override
-                      public TypedPath apply(final Entry<T> entry) {
-                        return TypedPaths.getDelegate(
-                            entry.getTypedPath().getPath(), entry.getTypedPath());
-                      }
-                    });
-            return result;
-          } else {
-            final Entry<T> entry = leftProjection(findResult).getValue();
-            final List<TypedPath> result = new ArrayList<>();
-            if (entry != null && filter.accept(entry.getTypedPath()) && maxDepth == -1)
-              result.add(
-                  TypedPaths.getDelegate(entry.getTypedPath().getPath(), entry.getTypedPath()));
-            return result;
-          }
-        } else {
-          return Collections.emptyList();
-        }
-      } finally {
-        this.subdirectories.unlock();
-      }
-    } else {
-      return Collections.emptyList();
-    }
   }
 
   @Override
@@ -199,7 +144,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   }
 
   @Override
-  public List<Entry<T>> list(final int maxDepth, final Filter<? super Entry<T>> filter) {
+  public List<Entry<T>> list(int maxDepth, Filter<? super Entry<T>> filter) {
     return list(getPath(), maxDepth, filter);
   }
 
@@ -265,6 +210,13 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
     }
   }
 
+  private Path getPath() {
+    return getEntry().getTypedPath().getPath();
+  }
+
+  private TypedPath getTypedPath() {
+    return getEntry().getTypedPath();
+  }
   /**
    * Remove a path from the directory.
    *
@@ -316,7 +268,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
       final CachedDirectoryImpl<T> previous =
           currentDir.subdirectories.put(path.getFileName(), dir);
       if (previous != null) {
-        oldEntries.put(previous.getPath(), previous.getEntry());
+        oldEntries.put(previous.getEntry().getTypedPath().getPath(), previous.getEntry());
         final Iterator<Entry<T>> entryIterator =
             previous.list(Integer.MAX_VALUE, AllPass).iterator();
         while (entryIterator.hasNext()) {
@@ -325,8 +277,8 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
         }
         previous.close();
       }
-      newEntries.put(dir.getPath(), dir.getEntry());
-      final Iterator<Entry<T>> it = dir.list(Integer.MAX_VALUE, AllPass).iterator();
+      newEntries.put(dir.getEntry().getTypedPath().getPath(), dir.getEntry());
+      final Iterator<Entry<T>> it = dir.list(Paths.get(""), Integer.MAX_VALUE, AllPass).iterator();
       while (it.hasNext()) {
         final Entry<T> entry = it.next();
         newEntries.put(entry.getTypedPath().getPath(), entry);
