@@ -61,16 +61,15 @@ static Lock jni_stop_stream(std::unique_ptr<Strings> strings, JNIHandle *h, Lock
     return std::move(lock);
 }
 
-JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_stopLoop(JNIEnv *env,
-                                                                                     jclass clazz,
-                                                                                     jlong handle) {
+JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_stopLoop(
+    JNIEnv *env, jclass clazz, jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     h->close();
 }
 
 JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_close(JNIEnv *env,
-                                                                                  jclass clazz,
-                                                                                  jlong handle) {
+                                                                                   jclass clazz,
+                                                                                   jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     assert(h->stopped);
     env->DeleteGlobalRef(h->data->callback);
@@ -83,8 +82,8 @@ JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_clo
 }
 
 JNIEXPORT void JNICALL Java_com_swoval_files_impl_apple_FileEventMonitorImpl_loop(JNIEnv *env,
-                                                                                 jclass clazz,
-                                                                                 jlong handle) {
+                                                                                  jclass clazz,
+                                                                                  jlong handle) {
     auto *h = reinterpret_cast<JNIHandle *>(handle);
     loop(h);
     if (env->ExceptionCheck())

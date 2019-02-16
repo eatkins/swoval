@@ -20,7 +20,7 @@ BOOL WINAPI DllMainCRTStartup(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvRes
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_errno(JNIEnv *, jobject,
-                                                                             jlong handlep) {
+                                                                              jlong handlep) {
     Handle *handle = (Handle *)handlep;
     int err        = handle->err;
     switch (err) {
@@ -47,8 +47,8 @@ JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_errno(JN
  * Signature: (I)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_strerror(JNIEnv *env,
-                                                                                   jobject,
-                                                                                   jint err) {
+                                                                                    jobject,
+                                                                                    jint err) {
     char buf[256];
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err,
                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, (sizeof(buf) / sizeof(char)),
@@ -62,8 +62,8 @@ JNIEXPORT jstring JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_strer
  * Signature: (Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_openDir(JNIEnv *env,
-                                                                                jobject,
-                                                                                jstring dir) {
+                                                                                 jobject,
+                                                                                 jstring dir) {
     Handle *handle = (Handle *)HeapAlloc(GetProcessHeap(), 0, sizeof(Handle));
     handle->first  = true;
     handle->handle = FindFirstFileEx(env->GetStringUTFChars(dir, 0), FindExInfoBasic, &handle->ffd,
@@ -78,7 +78,7 @@ JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_openDir
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_closeDir(JNIEnv *, jobject,
-                                                                                jlong handle) {
+                                                                                 jlong handle) {
     FindClose(((Handle *)handle)->handle);
     HeapFree(GetProcessHeap(), 0, (LPVOID)handle);
 }
@@ -89,7 +89,7 @@ JNIEXPORT void JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_closeDir
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_nextFile(JNIEnv *, jobject,
-                                                                                 jlong h) {
+                                                                                  jlong h) {
     Handle *handle = (Handle *)h;
     if (handle->first) {
         handle->first = false;
@@ -108,7 +108,7 @@ JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_nextFil
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_getType(JNIEnv *, jobject,
-                                                                               jlong handle) {
+                                                                                jlong handle) {
     DWORD attrs = ((WIN32_FIND_DATA *)handle)->dwFileAttributes;
     if (attrs & FILE_ATTRIBUTE_REPARSE_POINT) {
         return com_swoval_files_impl_NativeDirectoryLister_UNKNOWN;
@@ -125,8 +125,8 @@ JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_getType(
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_getName(JNIEnv *env,
-                                                                                  jobject,
-                                                                                  jlong handle) {
+                                                                                   jobject,
+                                                                                   jlong handle) {
     return env->NewStringUTF(((WIN32_FIND_DATA *)handle)->cFileName);
 }
 }

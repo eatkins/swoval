@@ -90,7 +90,7 @@ $(BUILD_DIR)/x86_64/darwin/$(QUICKLIST_SOURCE).o: posix/$(QUICKLIST_SOURCE).cc
 	$(CC) -c $< $(CCFLAGS) -framework Carbon -o $@
 
 $(BUILD_DIR)/x86_64/darwin/com_swoval_files_impl_apple_FileEventMonitorImpl.o: $(NPMDIR)/swoval_apple_file_system.hpp
-$(BUILD_DIR)/x86_64/darwin/com_swoval_files_impl_apple_FileEventMonitorImpl.o: apple/com_swoval_files_implapple_FileEventMonitorImpl.cc
+$(BUILD_DIR)/x86_64/darwin/com_swoval_files_impl_apple_FileEventMonitorImpl.o: apple/com_swoval_files_impl_apple_FileEventMonitorImpl.cc
 	mkdir -p $(BUILD_DIR)/x86_64/darwin; \
 	$(CC) -c $< $(CCFLAGS) -framework Carbon -o $@
 

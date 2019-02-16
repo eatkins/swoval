@@ -18,8 +18,8 @@ extern "C" {
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_errno(JNIEnv *env,
-                                                                             jobject quicklister,
-                                                                             jlong handle) {
+                                                                              jobject quicklister,
+                                                                              jlong handle) {
     Handle *h = (Handle *)handle;
     switch (h->err) {
     case EACCES:
@@ -48,8 +48,8 @@ JNIEXPORT jstring JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_strer
  * Signature: (Ljava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_openDir(JNIEnv *env,
-                                                                                jobject lister,
-                                                                                jstring dir) {
+                                                                                 jobject lister,
+                                                                                 jstring dir) {
     Handle *handle = (Handle *)malloc(sizeof(Handle));
     handle->dp     = nullptr;
     handle->err    = 0;
@@ -66,8 +66,8 @@ JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_openDir
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_closeDir(JNIEnv *env,
-                                                                                jobject lister,
-                                                                                jlong handlep) {
+                                                                                 jobject lister,
+                                                                                 jlong handlep) {
     Handle *handle = (Handle *)handlep;
     (void)closedir(handle->dp);
     free(handle);
@@ -79,8 +79,8 @@ JNIEXPORT void JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_closeDir
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_nextFile(JNIEnv *env,
-                                                                                 jobject unused,
-                                                                                 jlong handlep) {
+                                                                                  jobject unused,
+                                                                                  jlong handlep) {
     Handle *handle = (Handle *)handlep;
     errno          = 0;
     jlong result   = (jlong)readdir(handle->dp);
@@ -95,7 +95,7 @@ JNIEXPORT jlong JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_nextFil
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_getType(JNIEnv *, jobject,
-                                                                               jlong handle) {
+                                                                                jlong handle) {
     switch (((struct dirent *)handle)->d_type) {
     case DT_DIR:
         return com_swoval_files_impl_NativeDirectoryLister_DIRECTORY;
@@ -114,8 +114,8 @@ JNIEXPORT jint JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_getType(
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_swoval_files_impl_NativeDirectoryLister_getName(JNIEnv *env,
-                                                                                  jobject,
-                                                                                  jlong handle) {
+                                                                                   jobject,
+                                                                                   jlong handle) {
     return env->NewStringUTF(((struct dirent *)handle)->d_name);
 }
 }
