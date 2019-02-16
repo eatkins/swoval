@@ -1,4 +1,4 @@
-package com.swoval.functional;
+package com.swoval.files.impl.functional;
 
 /**
  * Represents an operation that takes an input and returns no result.

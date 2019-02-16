@@ -1,12 +1,11 @@
-package com.swoval.files.apple
+package com.swoval.files.impl.apple
 
 import java.util.concurrent.TimeUnit
 
-import com.swoval.files.test.{ CountDownLatch, _ }
-import com.swoval.files.TestHelpers._
+import com.swoval.files.test.{ CountDownLatch, withTempDirectory }
 import com.swoval.test._
-import utest._
 import utest.framework.ExecutionContext.RunNow
+import utest._
 
 object FileEventMonitorTest extends TestSuite {
 

@@ -8,14 +8,14 @@ import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
-import com.swoval.files.apple.ClosedFileEventMonitorException;
-import com.swoval.files.apple.FileEvent;
-import com.swoval.files.apple.FileEventMonitor;
-import com.swoval.files.apple.FileEventMonitors;
-import com.swoval.files.apple.FileEventMonitors.Handle;
-import com.swoval.files.apple.FileEventMonitors.Handles;
-import com.swoval.files.apple.Flags;
-import com.swoval.functional.Consumer;
+import com.swoval.files.impl.apple.ClosedFileEventMonitorException;
+import com.swoval.files.impl.apple.FileEvent;
+import com.swoval.files.impl.apple.FileEventMonitor;
+import com.swoval.files.impl.apple.FileEventMonitors;
+import com.swoval.files.impl.apple.FileEventMonitors.Handle;
+import com.swoval.files.impl.apple.FileEventMonitors.Handles;
+import com.swoval.files.impl.apple.Flags;
+import com.swoval.files.impl.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -95,7 +95,7 @@ class ApplePathWatcher implements PathWatcher<Event> {
    * Registers with additional flags
    *
    * @param path The directory to watch for file events
-   * @param flags The flags {@link com.swoval.files.apple.Flags.Create} to set for the directory
+   * @param flags The flags {@link Flags.Create} to set for the directory
    * @param maxDepth The maximum number of subdirectory levels to visit
    * @return an {@link com.swoval.functional.Either} containing the result of the registration or an
    *     IOException if registration fails. This method should be idempotent and return true the
@@ -205,7 +205,7 @@ class ApplePathWatcher implements PathWatcher<Event> {
    *
    * @param latency specified in fractional seconds
    * @param flags Native flags
-   * @param onStreamRemoved {@link com.swoval.functional.Consumer} to run when a redundant stream is
+   * @param onStreamRemoved {@link Consumer} to run when a redundant stream is
    *     removed from the underlying native file events implementation
    * @throws InterruptedException if the native file events implementation is interrupted during
    *     initialization

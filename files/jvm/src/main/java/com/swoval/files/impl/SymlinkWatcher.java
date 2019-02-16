@@ -11,6 +11,7 @@ import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.SymlinkWatcher.RegisteredPath;
+import com.swoval.files.impl.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -36,7 +37,7 @@ class RegisteredPaths extends LockableMap<Path, RegisteredPath> {
 /**
  * Monitors symlink targets. The {@link SymlinkWatcher} maintains a mapping of symlink targets to
  * symlink. When the symlink target is modified, the watcher will detect the update and invoke a
- * provided {@link com.swoval.functional.Consumer} for the symlink.
+ * provided {@link Consumer} for the symlink.
  */
 class SymlinkWatcher implements Observable<Event>, AutoCloseable {
   private final AtomicBoolean isClosed = new AtomicBoolean(false);

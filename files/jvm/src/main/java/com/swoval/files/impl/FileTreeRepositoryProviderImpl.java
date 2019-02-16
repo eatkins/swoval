@@ -14,7 +14,7 @@ import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
-import com.swoval.functional.IOFunction;
+import com.swoval.files.impl.functional.IOFunction;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
 import com.swoval.logging.Loggers.Level;
@@ -26,19 +26,19 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
 
   @Override
   public FileTreeRepository<Object> getDefault() throws InterruptedException, IOException {
-    return followSymlinks(Converters.UNIT_CONVERTER, Loggers.getLogger());
+    return followSymlinks(Converters.UNIT_CONVERTER);
   }
 
   @Override
-  public <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter, final Logger logger)
+  public <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException {
-    return new FollowWrapper<>(get(true, converter, logger, PATH_WATCHER_FACTORY));
+    return new FollowWrapper<>(get(true, converter, Loggers.getLogger(), PATH_WATCHER_FACTORY));
   }
 
   @Override
-  public <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter, final Logger logger)
+  public <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException {
-    return new NoFollowWrapper<>(get(false, converter, logger, PATH_WATCHER_FACTORY));
+    return new NoFollowWrapper<>(get(false, converter, Loggers.getLogger(), PATH_WATCHER_FACTORY));
   }
 
   static <T> FileTreeRepository<T> get(
@@ -63,7 +63,7 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
     }
   }
 
-  static final IOFunction<Logger, PathWatcher<Event>> PATH_WATCHER_FACTORY =
+  private static final IOFunction<Logger, PathWatcher<Event>> PATH_WATCHER_FACTORY =
       new IOFunction<Logger, PathWatcher<Event>>() {
         @Override
         public PathWatcher<Event> apply(final Logger logger) throws IOException {

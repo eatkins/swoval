@@ -1,4 +1,4 @@
-package com.swoval.functional;
+package com.swoval.files.impl.functional;
 
 import java.io.IOException;
 

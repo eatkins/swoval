@@ -1,4 +1,4 @@
-package com.swoval.files.apple;
+package com.swoval.files.impl.apple;
 
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;

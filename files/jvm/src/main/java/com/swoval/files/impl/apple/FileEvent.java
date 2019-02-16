@@ -1,9 +1,9 @@
-package com.swoval.files.apple;
+package com.swoval.files.impl.apple;
 
-import static com.swoval.files.apple.Flags.Event.ItemCreated;
-import static com.swoval.files.apple.Flags.Event.ItemInodeMetaMod;
-import static com.swoval.files.apple.Flags.Event.ItemModified;
-import static com.swoval.files.apple.Flags.Event.ItemRemoved;
+import static com.swoval.files.impl.apple.Flags.Event.ItemCreated;
+import static com.swoval.files.impl.apple.Flags.Event.ItemInodeMetaMod;
+import static com.swoval.files.impl.apple.Flags.Event.ItemModified;
+import static com.swoval.files.impl.apple.Flags.Event.ItemRemoved;
 
 /**
  * Simple wrapper around the event provided by the apple file system event callback.

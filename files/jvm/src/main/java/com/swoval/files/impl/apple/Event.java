@@ -1,4 +1,4 @@
-package com.swoval.files.apple;
+package com.swoval.files.impl.apple;
 
 /**
  * Provides information about an event provided by the apple file events api. All of the public

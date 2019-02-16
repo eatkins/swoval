@@ -1,10 +1,10 @@
-package com.swoval.files.apple;
+package com.swoval.files.impl.apple;
 
 import com.swoval.concurrent.ThreadFactory;
-import com.swoval.files.apple.FileEventMonitors.Handle;
-import com.swoval.files.apple.FileEventMonitors.Handles;
-import com.swoval.files.apple.Flags.Create;
-import com.swoval.functional.Consumer;
+import com.swoval.files.impl.apple.FileEventMonitors.Handle;
+import com.swoval.files.impl.apple.FileEventMonitors.Handles;
+import com.swoval.files.impl.apple.Flags.Create;
+import com.swoval.files.impl.functional.Consumer;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
 import com.swoval.logging.Loggers.Level;

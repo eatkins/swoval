@@ -3,7 +3,6 @@ package com.swoval.files;
 import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
-import com.swoval.logging.Logger;
 import java.io.IOException;
 
 public interface FileTreeRepositoryProvider {
@@ -23,13 +22,12 @@ public interface FileTreeRepositoryProvider {
    * Create a file tree repository that follows symlinks.
    *
    * @param converter converts a path to the cached value type T
-   * @param logger the logger
    * @param <T> the value type of the cache entries
    * @return a file tree repository.
    * @throws InterruptedException if the path watcher can't be started.
    * @throws IOException if an instance of {@link java.nio.file.WatchService} cannot be created.
    */
-  <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter, final Logger logger)
+  <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException;
 
   /**
@@ -38,12 +36,11 @@ public interface FileTreeRepositoryProvider {
    * {@link TypedPath#isSymbolicLink()}.
    *
    * @param converter converts a path to the cached value type T
-   * @param logger the logger
    * @param <T> the value type of the cache entries
    * @return a file tree repository.
    * @throws InterruptedException if the path watcher can't be started.
    * @throws IOException if an instance of {@link java.nio.file.WatchService} cannot be created.
    */
-  <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter, final Logger logger)
+  <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException;
 }

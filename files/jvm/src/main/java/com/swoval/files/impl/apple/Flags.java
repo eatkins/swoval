@@ -1,4 +1,4 @@
-package com.swoval.files.apple;
+package com.swoval.files.impl.apple;
 
 /**
  * The flags for creating a file event stream.
@@ -127,7 +127,7 @@ public class Flags {
     public static final int OwnEvent = 0x00080000;
     public static final int ItemCloned = 0x00400000;
 
-    public static String flags(com.swoval.files.apple.Event flag) {
+    public static String flags(com.swoval.files.impl.apple.Event flag) {
       StringBuilder builder = new StringBuilder();
       builder.append("\n  mustScanSubDirs: " + flag.mustScanSubDirs());
       builder.append("\n  userDropped: " + flag.userDropped());

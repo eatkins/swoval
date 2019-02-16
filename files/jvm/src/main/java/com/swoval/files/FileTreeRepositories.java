@@ -2,7 +2,6 @@ package com.swoval.files;
 
 import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.impl.SwovalProviderImpl;
-import com.swoval.logging.Logger;
 import java.io.IOException;
 
 /** Provides factory methods for generating instances of {@link FileTreeRepository}. */
@@ -36,9 +35,9 @@ public class FileTreeRepositories {
    * @throws InterruptedException if the path watcher can't be started.
    * @throws IOException if an instance of {@link java.nio.file.WatchService} cannot be created.
    */
-  public static <T> FollowSymlinks<T> followSymlinks(
-      final Converter<T> converter, final Logger logger) throws InterruptedException, IOException {
-    return provider.followSymlinks(converter, logger);
+  public static <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
+      throws InterruptedException, IOException {
+    return provider.followSymlinks(converter);
   }
 
   /**
@@ -53,9 +52,9 @@ public class FileTreeRepositories {
    * @throws InterruptedException if the path watcher can't be started.
    * @throws IOException if an instance of {@link java.nio.file.WatchService} cannot be created.
    */
-  public static <T> NoFollowSymlinks<T> noFollowSymlinks(
-      final Converter<T> converter, final Logger logger) throws InterruptedException, IOException {
-    return provider.noFollowSymlinks(converter, logger);
+  public static <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
+      throws InterruptedException, IOException {
+    return provider.noFollowSymlinks(converter);
   }
 
   public interface FollowSymlinks<T> extends FileTreeRepository<T> {}

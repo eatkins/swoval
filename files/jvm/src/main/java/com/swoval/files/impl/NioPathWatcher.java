@@ -14,7 +14,7 @@ import com.swoval.files.FileTreeViews.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
-import com.swoval.functional.Consumer;
+import com.swoval.files.impl.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import com.swoval.logging.Logger;

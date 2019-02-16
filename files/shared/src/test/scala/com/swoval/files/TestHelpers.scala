@@ -6,9 +6,10 @@ import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
 import com.swoval.files.FileTreeViews.Observer
+import com.swoval.files.impl.functional.Consumer
 import com.swoval.files.test.CachingLogger
 import com.swoval.files.test.platform.Bool
-import com.swoval.functional.{ Consumer, Filter }
+import com.swoval.functional.Filter
 import com.swoval.logging.Logger
 import com.swoval.runtime.Platform
 import com.swoval.test._

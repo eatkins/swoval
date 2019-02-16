@@ -12,7 +12,7 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;
-import com.swoval.functional.Consumer;
+import com.swoval.files.impl.functional.Consumer;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
