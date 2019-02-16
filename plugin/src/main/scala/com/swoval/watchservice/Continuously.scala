@@ -7,9 +7,8 @@ import java.util.concurrent.{ ArrayBlockingQueue, BlockingQueue, ExecutorService
 
 import com.swoval.concurrent.ThreadFactory
 import com.swoval.files.FileTreeDataViews.Entry
-import com.swoval.files.FileTreeViews.Observer
-import com.swoval.files._
-import com.swoval.watchservice.CloseWatchPlugin.{ closeWatchGlobalFileRepository, PathWatcherOps }
+import com.swoval.files.{ Observer, _ }
+import com.swoval.watchservice.CloseWatchPlugin.{ PathWatcherOps, closeWatchGlobalFileRepository }
 import com.swoval.watchservice.CloseWatchPlugin.autoImport._
 import sbt.BasicCommandStrings._
 import sbt.BasicCommands._

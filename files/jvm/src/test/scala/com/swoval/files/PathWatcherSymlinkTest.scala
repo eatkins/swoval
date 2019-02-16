@@ -30,7 +30,7 @@ trait PathWatcherSymlinkTest extends TestSuite {
       delegate.register(path, maxDepth)
     override def unregister(path: Path): Unit = delegate.unregister(path)
     override def close(): Unit = delegate.close()
-    override def addObserver(observer: FileTreeViews.Observer[_ >: T]): Int =
+    override def addObserver(observer: Observer[_ >: T]): Int =
       delegate.addObserver(observer)
     override def removeObserver(handle: Int): Unit = delegate.removeObserver(handle)
   }

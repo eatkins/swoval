@@ -4,7 +4,7 @@ import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.FileTreeView;
 import com.swoval.files.FileTreeViews;
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatcherProvider;
 import com.swoval.files.PathWatchers.Event;

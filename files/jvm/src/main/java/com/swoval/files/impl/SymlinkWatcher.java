@@ -4,8 +4,8 @@ import static com.swoval.functional.Either.getOrElse;
 import static com.swoval.functional.Either.leftProjection;
 import static java.util.Map.Entry;
 
-import com.swoval.files.FileTreeViews.Observable;
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observable;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;

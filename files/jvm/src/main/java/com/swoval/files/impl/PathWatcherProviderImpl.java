@@ -1,6 +1,6 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatcherProvider;
 import com.swoval.files.PathWatchers.Event;

@@ -6,7 +6,7 @@ import com.swoval.files.DirectoryDataView;
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;

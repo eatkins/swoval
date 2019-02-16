@@ -5,7 +5,6 @@ import java.io.{ File, FileFilter, IOException }
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
-import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.impl.functional.Consumer
 import com.swoval.files.test.platform.Bool
 import com.swoval.functional.Filter

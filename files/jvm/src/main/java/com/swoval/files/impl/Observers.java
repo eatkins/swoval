@@ -1,7 +1,7 @@
 package com.swoval.files.impl;
 
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;

@@ -1,6 +1,5 @@
 package com.swoval.files;
 
-import com.swoval.files.FileTreeViews.Observable;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.functional.Either;
 import java.io.IOException;

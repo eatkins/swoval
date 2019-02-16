@@ -10,7 +10,7 @@ import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.FileTreeView;
 import com.swoval.files.FileTreeViews;
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;

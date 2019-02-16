@@ -539,7 +539,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         val file = dir.resolve("file")
         usingAsync(simpleCache((e: Entry[Path]) => if (e.entry.path == file) latch.countDown())) {
           c =>
-            val handle = c.addObserver(new FileTreeViews.Observer[Entry[Path]] {
+            val handle = c.addObserver(new Observer[Entry[Path]] {
               override def onNext(entry: Entry[Path]): Unit =
                 if (entry.path == file) secondObserverFired = true
               override def onError(t: Throwable): Unit = {}

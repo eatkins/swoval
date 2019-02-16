@@ -7,7 +7,7 @@ import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.FileTreeRepositoryProvider;
-import com.swoval.files.FileTreeViews.Observer;
+import com.swoval.files.Observer;
 import com.swoval.files.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;

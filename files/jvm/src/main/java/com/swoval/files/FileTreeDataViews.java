@@ -1,6 +1,5 @@
 package com.swoval.files;
 
-import com.swoval.files.FileTreeViews.Observable;
 import com.swoval.files.impl.CachedDirectoryImpl;
 import com.swoval.files.impl.TypedPaths;
 import com.swoval.functional.Either;

@@ -5,8 +5,8 @@ import java.io.IOException
 import java.nio.file.Path
 
 import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
+import com.swoval.files.Observer
 import com.swoval.files.RelativeFileTreeViewTest.RepositoryOps
-import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
 import com.swoval.files.test._
