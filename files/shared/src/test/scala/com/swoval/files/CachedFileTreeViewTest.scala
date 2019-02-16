@@ -24,7 +24,7 @@ object CachedFileTreeViewTest extends TestSuite {
   def newCachedView(path: Path, maxDepth: Int): CachedDirectory[Path] =
     newCachedView(path, maxDepth, followLinks = true)
   def newCachedView(path: Path, maxDepth: Int, followLinks: Boolean): CachedDirectory[Path] =
-    new CachedDirectoryImpl(TypedPaths.get(path),
+    new CachedDirectoryImpl(TestTypedPaths.get(path),
                             (_: TypedPath).getPath,
                             maxDepth,
                             AllPass,
@@ -54,7 +54,8 @@ object CachedFileTreeViewTest extends TestSuite {
       val directory = newCachedView(dir)
       withTempFileSync(dir) { f =>
         directory.ls(f, recursive = false, AllPass) === Seq.empty
-        assert(directory.update(TypedPaths.get(f, Entries.FILE)).toUpdates.creations.nonEmpty)
+        assert(
+          directory.update(TestTypedPaths.get(f, TestEntries.FILE)).toUpdates.creations.nonEmpty)
         directory.ls(f, -1, AllPass) === Seq(f)
       }
     }
@@ -63,7 +64,12 @@ object CachedFileTreeViewTest extends TestSuite {
       withTempDirectory(dir) { subdir =>
         withTempFileSync(subdir) { f =>
           directory.ls(f, recursive = true, AllPass) === Seq.empty
-          assert(directory.update(TypedPaths.get(f, Entries.FILE)).toUpdates.creations.nonEmpty)
+          assert(
+            directory
+              .update(TestTypedPaths.get(f, TestEntries.FILE))
+              .toUpdates
+              .creations
+              .nonEmpty)
           directory.ls(dir, recursive = true, AllPass) === Seq(subdir, f)
         }
       }
@@ -73,12 +79,17 @@ object CachedFileTreeViewTest extends TestSuite {
       withTempDirectory(dir) { subdir =>
         assert(
           directory
-            .update(TypedPaths.get(subdir, Entries.DIRECTORY))
+            .update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY))
             .toUpdates
             .creations
             .nonEmpty)
         withTempFileSync(subdir) { f =>
-          assert(directory.update(TypedPaths.get(f, Entries.FILE)).toUpdates.creations.nonEmpty)
+          assert(
+            directory
+              .update(TestTypedPaths.get(f, TestEntries.FILE))
+              .toUpdates
+              .creations
+              .nonEmpty)
           directory.ls(recursive = true, AllPass) === Set(subdir, f)
         }
       }
@@ -87,7 +98,12 @@ object CachedFileTreeViewTest extends TestSuite {
       val directory = newCachedView(dir)
       withTempDirectory(dir) { subdir =>
         withTempFileSync(subdir) { f =>
-          assert(directory.update(TypedPaths.get(f, Entries.FILE)).toUpdates.creations.nonEmpty)
+          assert(
+            directory
+              .update(TestTypedPaths.get(f, TestEntries.FILE))
+              .toUpdates
+              .creations
+              .nonEmpty)
           directory.ls(recursive = true, AllPass) === Set(f, subdir)
         }
       }
@@ -97,7 +113,7 @@ object CachedFileTreeViewTest extends TestSuite {
         val directory = newCachedView(dir, 0)
         withTempDirectory(dir) { subdir =>
           withTempFileSync(subdir) { file =>
-            directory.update(TypedPaths.get(subdir, Entries.DIRECTORY))
+            directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY))
             directory.ls(recursive = true, AllPass) === Set(subdir)
           }
         }
@@ -108,7 +124,7 @@ object CachedFileTreeViewTest extends TestSuite {
           withTempDirectory(subdir) { nestedSubdir =>
             withTempDirectory(nestedSubdir) { deepNestedSubdir =>
               withTempFileSync(deepNestedSubdir) { file =>
-                directory.update(TypedPaths.get(nestedSubdir, Entries.DIRECTORY))
+                directory.update(TestTypedPaths.get(nestedSubdir, TestEntries.DIRECTORY))
                 directory.ls(recursive = true, AllPass) === Set(subdir,
                                                                 nestedSubdir,
                                                                 deepNestedSubdir)
@@ -125,9 +141,10 @@ object CachedFileTreeViewTest extends TestSuite {
         withTempDirectorySync(dir) { subdir =>
           val directory = newCachedView(dir)
           val file = subdir.resolve("file").createFile()
-          val updates = directory.update(TypedPaths.get(subdir, Entries.DIRECTORY)).toUpdates
-          val typedPath = TypedPaths.get(subdir, Entries.DIRECTORY)
-          val entry: Entry[Path] = Entries.get(typedPath, (_: TypedPath).getPath, typedPath)
+          val updates =
+            directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY)).toUpdates
+          val typedPath = TestTypedPaths.get(subdir, TestEntries.DIRECTORY)
+          val entry: Entry[Path] = TestEntries.get(typedPath, (_: TypedPath).getPath, typedPath)
           updates.updates === Seq(entry -> entry)
           updates.creations === Seq(file)
         }
@@ -136,14 +153,14 @@ object CachedFileTreeViewTest extends TestSuite {
         withTempFileSync(dir) { file =>
           val directory = newCachedView(dir)
           file.delete()
-          val updates = directory.update(TypedPaths.get(file)).toUpdates
+          val updates = directory.update(TestTypedPaths.get(file)).toUpdates
           updates.deletions === Seq(file)
         }
       }
       def concurrentRemove: Future[Unit] = withTempDirectory { dir =>
         val directory = newCachedView(dir)
         withTempDirectorySync(dir) { subdir =>
-          val typedPath = TypedPaths.get(subdir)
+          val typedPath = TestTypedPaths.get(subdir)
           subdir.delete()
           val updates = directory.update(typedPath).toUpdates
           assert(updates.creations.isEmpty)
@@ -157,9 +174,11 @@ object CachedFileTreeViewTest extends TestSuite {
             val directory = newCachedView(dir)
             val nestedSubdir = subdir.resolve("nested").createDirectory()
             val nestedFile = nestedSubdir.resolve("file").createFile()
-            val updates = directory.update(TypedPaths.get(subdir, Entries.DIRECTORY)).toUpdates
-            val typedPath = TypedPaths.get(subdir, Entries.DIRECTORY)
-            val entry: Entry[Path] = Entries.get(typedPath, (_: TypedPath).getPath, typedPath)
+            val updates =
+              directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY)).toUpdates
+            val typedPath = TestTypedPaths.get(subdir, TestEntries.DIRECTORY)
+            val entry: Entry[Path] =
+              TestEntries.get(typedPath, (_: TypedPath).getPath, typedPath)
             updates.updates === Seq(entry -> entry)
             updates.creations === Set(nestedSubdir, nestedFile)
           }
@@ -170,12 +189,13 @@ object CachedFileTreeViewTest extends TestSuite {
             val nestedFile = nestedSubdir.resolve("file").createFile()
             val directory = newCachedView(dir)
             nestedSubdir.deleteRecursive()
-            val updates = directory.update(TypedPaths.get(subdir, Entries.DIRECTORY)).toUpdates
-            val typedPath = TypedPaths.get(subdir, Entries.DIRECTORY)
+            val updates =
+              directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY)).toUpdates
+            val typedPath = TestTypedPaths.get(subdir, TestEntries.DIRECTORY)
             val entry: Entry[Path] =
-              Entries.get(TypedPaths.get(subdir, Entries.DIRECTORY),
-                          (_: TypedPath).getPath,
-                          typedPath)
+              TestEntries.get(TestTypedPaths.get(subdir, TestEntries.DIRECTORY),
+                              (_: TypedPath).getPath,
+                              typedPath)
             updates.updates === Seq(entry -> entry)
             updates.deletions === Set(nestedSubdir, nestedFile)
           }
@@ -187,14 +207,14 @@ object CachedFileTreeViewTest extends TestSuite {
         val subdir: Path = dir.resolve("subdir").resolve("nested").createDirectories()
         val files = 1 to 2 map (i => subdir.resolve(s"file-$i").createFile())
         val found = mutable.Set.empty[Path]
-        val updates = directory.update(TypedPaths.get(files.last, Entries.FILE))
+        val updates = directory.update(TestTypedPaths.get(files.last, TestEntries.FILE))
         updates.observe(CacheObservers.fromObserver(new Observer[Entry[Path]] {
           override def onError(t: Throwable): Unit = {}
           override def onNext(t: Entry[Path]): Unit = found.add(t.getTypedPath.getPath())
         }))
         val expected = (files :+ subdir :+ subdir.getParent).toSet
         found.toSet === expected
-        directory.update(TypedPaths.get(subdir.getParent, Entries.DIRECTORY))
+        directory.update(TestTypedPaths.get(subdir.getParent, TestEntries.DIRECTORY))
         directory.list(Integer.MAX_VALUE, AllPass).asScala.toSeq.map(_.getPath) === expected
       }
     }
@@ -203,9 +223,9 @@ object CachedFileTreeViewTest extends TestSuite {
       withTempDirectory(dir) { subdir =>
         withTempDirectorySync(subdir) { nestedSubdir =>
           directory.ls(recursive = true, AllPass) === Seq.empty[Path]
-          directory.update(TypedPaths.get(subdir, Entries.DIRECTORY))
+          directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY))
           directory.ls(recursive = true, AllPass) === Seq(subdir)
-          directory.update(TypedPaths.get(nestedSubdir, Entries.DIRECTORY))
+          directory.update(TestTypedPaths.get(nestedSubdir, TestEntries.DIRECTORY))
           directory.ls(recursive = true, AllPass) === Seq(subdir)
         }
       }
@@ -236,7 +256,7 @@ object CachedFileTreeViewTest extends TestSuite {
   }
   object subTypes {
     private def newDirectory[T <: AnyRef](path: Path, converter: TypedPath => T) =
-      new CachedDirectoryImpl(TypedPaths.get(path),
+      new CachedDirectoryImpl(TestTypedPaths.get(path),
                               converter,
                               Integer.MAX_VALUE,
                               (_: TypedPath) => true,
@@ -262,7 +282,7 @@ object CachedFileTreeViewTest extends TestSuite {
       val newBytes = "bar".getBytes
       cachedFile.getValue().get().bytes ==> initialBytes
       f.getBytes ==> newBytes
-      dir.update(TypedPaths.get(f, Entries.FILE))
+      dir.update(TestTypedPaths.get(f, TestEntries.FILE))
       val newCachedFile = dir.listEntries(f, Integer.MAX_VALUE, filter(newBytes)).get(0)
       newCachedFile.getValue().get().bytes.toSeq ==> newBytes.toSeq
       dir.listEntries(f, Integer.MAX_VALUE, filter(initialBytes)).asScala.toSeq === Seq
@@ -282,7 +302,7 @@ object CachedFileTreeViewTest extends TestSuite {
           otherDirToDirLink.createDirectory()
           val nestedFile = otherDirToDirLink.resolve("file").createFile()
           val file = dirToOtherDirLink.resolve("dir").resolve("file")
-          directory.update(TypedPaths.get(dir, Entries.DIRECTORY))
+          directory.update(TestTypedPaths.get(dir, TestEntries.DIRECTORY))
           directory.ls(dir, recursive = true, AllPass) === Set(dirToOtherDirLink,
                                                                file.getParent,
                                                                file)
@@ -298,7 +318,7 @@ object CachedFileTreeViewTest extends TestSuite {
           dirToOtherDirLink.delete()
           dirToOtherDirLink.createDirectory()
           val nestedFile = dirToOtherDirLink.resolve("file").createFile()
-          directory.update(TypedPaths.get(dir, Entries.DIRECTORY))
+          directory.update(TestTypedPaths.get(dir, TestEntries.DIRECTORY))
           directory.ls(dir, recursive = true, AllPass) === Set(dirToOtherDirLink, nestedFile)
         }
       }
@@ -315,7 +335,7 @@ object CachedFileTreeViewTest extends TestSuite {
         dirToOtherDirLink.delete()
         dirToOtherDirLink.createDirectory()
         val nestedFile = dirToOtherDirLink.resolve("file").createFile()
-        directory.update(TypedPaths.get(dirToOtherDirLink, Entries.DIRECTORY))
+        directory.update(TestTypedPaths.get(dirToOtherDirLink, TestEntries.DIRECTORY))
         directory.ls(dir, recursive = true, AllPass) === Set(dirToOtherDirLink, nestedFile)
       }
     }

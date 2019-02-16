@@ -10,9 +10,7 @@ import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers._
 import com.swoval.files.impl._
-import com.swoval.files.impl.functional.IOFunction
 import com.swoval.files.test._
-import com.swoval.logging.Logger
 import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
@@ -27,23 +25,13 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
   def getBounded[T <: AnyRef](
       converter: FileTreeDataViews.Converter[T],
       cacheObserver: FileTreeDataViews.CacheObserver[T]
-  )(implicit testLogger: TestLogger): FileTreeRepository[T] = {
-    val res = FileTreeRepositoryProviderImpl.get(
-      false,
-      converter,
-      testLogger,
-      new IOFunction[Logger, PathWatcher[PathWatchers.Event]] {
-        override def apply(l: Logger): PathWatcher[PathWatchers.Event] = {
-          PlatformWatcher.make(
-            new BoundedWatchService(boundedQueueSize, RegisterableWatchServices.get()),
-            new DirectoryRegistryImpl,
-            testLogger)
-        }
-      }
-    )
+  )(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
+    val res = provider.noFollowSymlinks(converter)
     res.addCacheObserver(cacheObserver)
     res
   }
+  implicit def defaultProvider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
+    Provider.fileTreeRepository(testLogger)
   private val name = getClass.getSimpleName
 
   private val boundedQueueSize = System.getProperty("swoval.test.queue.size") match {
@@ -68,7 +56,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
       implicit val logger: TestLogger = new CachingLogger
       val dir = root.resolve("overflow").resolve(name).createDirectories()
       // Windows is slow (at least on my vm)
-      val executor = Executor.make("com.swoval.files.FileCacheTest.addmany.worker-thread", logger)
+      val executor = TestExecutor.make("com.swoval.files.FileCacheTest.addmany.worker-thread")
       val creationLatch = new CountDownLatch(subdirsToAdd * (filesPerSubdir + 1))
       val deletionLatch = new CountDownLatch(subdirsToAdd * (filesPerSubdir + 1))
       val updateLatch = new CountDownLatch(subdirsToAdd)
