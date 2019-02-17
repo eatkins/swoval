@@ -1,8 +1,8 @@
 package com.swoval.files;
 
-import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
+import com.swoval.functional.IOFunction;
 import java.io.IOException;
 
 public interface FileTreeRepositoryProvider {

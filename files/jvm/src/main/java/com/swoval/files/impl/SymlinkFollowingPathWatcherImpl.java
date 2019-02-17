@@ -2,15 +2,15 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
-import com.swoval.files.api.Observer;
-import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatcherProvider;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.PathWatchers.FollowSymlinks;
 import com.swoval.files.TypedPath;
+import com.swoval.files.api.FileTreeView;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;

@@ -1,8 +1,8 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.CacheEntry;
-import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.api.Observer;
+import com.swoval.files.cache.CacheObserver;
+import com.swoval.files.cache.Entry;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
 import com.swoval.logging.Loggers.Level;
@@ -24,7 +24,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onCreate(final CacheEntry<T> newCacheEntry) {
+  public void onCreate(final Entry<T> newCacheEntry) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
@@ -42,7 +42,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onDelete(final CacheEntry<T> oldCacheEntry) {
+  public void onDelete(final Entry<T> oldCacheEntry) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
@@ -60,7 +60,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
+  public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
@@ -94,7 +94,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
    * @return a handle to the added cacheObserver that can be used to halt observation using {@link
    *     com.swoval.files.Observers#removeObserver(int)} .
    */
-  int addObserver(final Observer<? super CacheEntry<T>> observer) {
+  int addObserver(final Observer<? super Entry<T>> observer) {
     final int key = counter.getAndIncrement();
     synchronized (observers) {
       observers.put(key, CacheObservers.fromObserver(observer));
@@ -127,20 +127,20 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
     observers.clear();
   }
 
-  static <T> CacheObserver<T> fromObserver(final Observer<? super CacheEntry<T>> observer) {
+  static <T> CacheObserver<T> fromObserver(final Observer<? super Entry<T>> observer) {
     return new CacheObserver<T>() {
       @Override
-      public void onCreate(final CacheEntry<T> newCacheEntry) {
+      public void onCreate(final Entry<T> newCacheEntry) {
         observer.onNext(newCacheEntry);
       }
 
       @Override
-      public void onDelete(final CacheEntry<T> oldCacheEntry) {
+      public void onDelete(final Entry<T> oldCacheEntry) {
         observer.onNext(oldCacheEntry);
       }
 
       @Override
-      public void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
+      public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
         observer.onNext(newCacheEntry);
       }
 

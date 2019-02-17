@@ -1,7 +1,7 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.CacheEntry;
-import com.swoval.files.FileTreeDataViews.CacheObserver;
+import com.swoval.files.cache.CacheObserver;
+import com.swoval.files.cache.Entry;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,40 +10,40 @@ import java.util.List;
 
 class CacheUpdates<T> implements CacheObserver<T> {
 
-  private final List<CacheEntry<T>> creations = new ArrayList<>();
-  private final List<CacheEntry<T>> deletions = new ArrayList<>();
-  private final List<CacheEntry<T>[]> updates = new ArrayList<>();
+  private final List<Entry<T>> creations = new ArrayList<>();
+  private final List<Entry<T>> deletions = new ArrayList<>();
+  private final List<Entry<T>[]> updates = new ArrayList<>();
 
   void observe(final CacheObserver<T> cacheObserver) {
-    final Iterator<CacheEntry<T>> creationIterator = creations.iterator();
+    final Iterator<Entry<T>> creationIterator = creations.iterator();
     while (creationIterator.hasNext()) {
       cacheObserver.onCreate(creationIterator.next());
     }
-    final Iterator<CacheEntry<T>[]> updateIterator = updates.iterator();
+    final Iterator<Entry<T>[]> updateIterator = updates.iterator();
     while (updateIterator.hasNext()) {
-      final CacheEntry<T>[] entries = updateIterator.next();
+      final Entry<T>[] entries = updateIterator.next();
       cacheObserver.onUpdate(entries[0], entries[1]);
     }
-    final Iterator<CacheEntry<T>> deletionIterator = deletions.iterator();
+    final Iterator<Entry<T>> deletionIterator = deletions.iterator();
     while (deletionIterator.hasNext()) {
       cacheObserver.onDelete(Entries.setExists(deletionIterator.next(), false));
     }
   }
 
   @Override
-  public void onCreate(final CacheEntry<T> newCacheEntry) {
+  public void onCreate(final Entry<T> newCacheEntry) {
     creations.add(newCacheEntry);
   }
 
   @Override
-  public void onDelete(final CacheEntry<T> oldCacheEntry) {
+  public void onDelete(final Entry<T> oldCacheEntry) {
     deletions.add(oldCacheEntry);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
-    updates.add(new CacheEntry[] {oldCacheEntry, newCacheEntry});
+  public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
+    updates.add(new Entry[] {oldCacheEntry, newCacheEntry});
   }
 
   @Override
@@ -51,8 +51,8 @@ class CacheUpdates<T> implements CacheObserver<T> {
 
   @Override
   public String toString() {
-    final List<List<CacheEntry<T>>> updateList = new ArrayList<>();
-    final Iterator<CacheEntry<T>[]> it = updates.iterator();
+    final List<List<Entry<T>>> updateList = new ArrayList<>();
+    final Iterator<Entry<T>[]> it = updates.iterator();
     while (it.hasNext()) updateList.add(Arrays.asList(it.next()));
     return "CacheUpdates("
         + ("creations: " + creations)

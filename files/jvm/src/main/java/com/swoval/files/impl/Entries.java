@@ -2,17 +2,17 @@ package com.swoval.files.impl;
 
 import static com.swoval.files.impl.LinkOption.NOFOLLOW_LINKS;
 
-import com.swoval.files.CacheEntry;
-import com.swoval.functional.IOFunction;
 import com.swoval.files.TypedPath;
+import com.swoval.files.cache.Entry;
 import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
+import com.swoval.functional.IOFunction;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-/** Provides static constants and methods related to {@link CacheEntry}. */
+/** Provides static constants and methods related to {@link Entry}. */
 final class Entries {
   static final int DIRECTORY = 1;
   static final int FILE = 2;
@@ -22,7 +22,7 @@ final class Entries {
 
   private Entries() {}
 
-  static <T> CacheEntry<T> get(
+  static <T> Entry<T> get(
       final TypedPath typedPath,
       final IOFunction<TypedPath, T> converter,
       final TypedPath converterPath) {
@@ -33,7 +33,7 @@ final class Entries {
     }
   }
 
-  static <T> CacheEntry<T> setExists(final CacheEntry<T> cacheEntry, final boolean exists) {
+  static <T> Entry<T> setExists(final Entry<T> cacheEntry, final boolean exists) {
     final TypedPath typedPath = cacheEntry.getTypedPath();
     final int kind =
         (exists ? 0 : NONEXISTENT)
@@ -48,7 +48,7 @@ final class Entries {
     }
   }
 
-  static <T> CacheEntry<T> resolve(final Path path, final CacheEntry<T> cacheEntry) {
+  static <T> Entry<T> resolve(final Path path, final Entry<T> cacheEntry) {
     final Either<IOException, T> value = cacheEntry.getValue();
     final int kind = getKind(cacheEntry);
     final TypedPath typedPath =
@@ -75,14 +75,14 @@ final class Entries {
     return getKindFromAttrs(path, attrs);
   }
 
-  private static int getKind(final CacheEntry<?> cacheEntry) {
+  private static int getKind(final Entry<?> cacheEntry) {
     final TypedPath typedPath = cacheEntry.getTypedPath();
     return (typedPath.isSymbolicLink() ? LINK : 0)
         | (typedPath.isDirectory() ? DIRECTORY : 0)
         | (typedPath.isFile() ? FILE : 0);
   }
 
-  private abstract static class CacheEntryImpl<T> implements CacheEntry<T> {
+  private abstract static class CacheEntryImpl<T> implements Entry<T> {
     private final TypedPath typedPath;
 
     CacheEntryImpl(final TypedPath typedPath) {
@@ -97,13 +97,13 @@ final class Entries {
 
     @Override
     public boolean equals(final Object other) {
-      return other instanceof CacheEntry<?>
-          && ((CacheEntry<?>) other).getTypedPath().getPath().equals(getTypedPath().getPath())
-          && getValue().equals(((CacheEntry<?>) other).getValue());
+      return other instanceof Entry<?>
+          && ((Entry<?>) other).getTypedPath().getPath().equals(getTypedPath().getPath())
+          && getValue().equals(((Entry<?>) other).getValue());
     }
 
     @Override
-    public int compareTo(final CacheEntry<T> that) {
+    public int compareTo(final Entry<T> that) {
       return this.getTypedPath().getPath().compareTo(that.getTypedPath().getPath());
     }
 

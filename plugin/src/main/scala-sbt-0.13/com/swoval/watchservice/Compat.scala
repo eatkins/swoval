@@ -5,9 +5,10 @@ import java.io.{File, IOException}
 import java.nio.file._
 
 import com.swoval.files.FileTreeDataViews.Entry
+import com.swoval.files.cache.Entry
 import com.swoval.files.impl.{TypedPaths, functional}
 import com.swoval.files.impl.functional.Either
-import com.swoval.files.{CacheEntry, FileTreeRepositories, TypedPath}
+import com.swoval.files.{FileTreeRepositories, TypedPath}
 import com.swoval.functional.{Converter, IOFunction}
 import com.swoval.watchservice.CloseWatchPlugin.autoImport.closeWatchFileCache
 import sbt.Keys._
@@ -47,7 +48,7 @@ class ExactFileSource(val file: File, id: Filter.ID)
   }
   override lazy val toString: String = s"""ExactFileSource("$file")"""
 }
-class BaseFileSource(val file: File, filter: functional.Filter[CacheEntry[Path]], _id: Filter.ID)
+class BaseFileSource(val file: File, filter: functional.Filter[Entry[Path]], _id: Filter.ID)
     extends FileSource(file, new Filter {
       override def id: Filter.ID = _id
       override def base: Path = file.toPath
@@ -62,9 +63,9 @@ class BaseFileSource(val file: File, filter: functional.Filter[CacheEntry[Path]]
 }
 
 object Compat {
-  case class EntryImpl(getTypedPath: TypedPath) extends CacheEntry[Path] {
+  case class EntryImpl(getTypedPath: TypedPath) extends Entry[Path] {
     override def getValue: Either[IOException, Path] = functional.Either.right(getTypedPath.getPath)
-    override def compareTo(o: CacheEntry[Path]): Int = getTypedPath.getPath.compareTo(o.getTypedPath.getPath)
+    override def compareTo(o: Entry[Path]): Int = getTypedPath.getPath.compareTo(o.getTypedPath.getPath)
   }
   object internal {
     val Act = sbt.Act
@@ -96,7 +97,7 @@ object Compat {
     }
   }
   def makeScopedSource(p: Path,
-                       pathFilter: functional.Filter[CacheEntry[Path]],
+                       pathFilter: functional.Filter[Entry[Path]],
                        id: Def.ScopedKey[_]): WatchSource = {
     new BaseFileSource(p.toFile, pathFilter, id)
   }

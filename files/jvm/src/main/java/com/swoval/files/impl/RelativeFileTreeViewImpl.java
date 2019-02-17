@@ -3,8 +3,8 @@ package com.swoval.files.impl;
 import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.RelativeFileTreeView;
-import com.swoval.files.api.FileTreeView;
 import com.swoval.files.TypedPath;
+import com.swoval.files.api.FileTreeView;
 import com.swoval.functional.Filter;
 import java.io.IOException;
 import java.nio.file.NotDirectoryException;

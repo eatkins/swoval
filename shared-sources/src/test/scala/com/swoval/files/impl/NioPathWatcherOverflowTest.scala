@@ -4,18 +4,18 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 import com.swoval
-import com.swoval.files.{ BoundedWatchService, RegisterableWatchService, RegisterableWatchServices }
 import com.swoval.files.PathWatchers.Event
-import com.swoval.files.test._
-import com.swoval.runtime.Platform
-import com.swoval.test._
-import utest._
 import com.swoval.files.TestHelpers._
 import com.swoval.files.impl.apple.MacOSXWatchService
+import com.swoval.files.test._
+import com.swoval.files.{ BoundedWatchService, RegisterableWatchService, RegisterableWatchServices }
 import com.swoval.logging.Logger
+import com.swoval.runtime.Platform
+import com.swoval.test.Implicits.executionContext
+import com.swoval.test._
+import utest._
 
 import scala.collection.mutable
-import com.swoval.test.Implicits.executionContext
 
 object NioPathWatcherOverflowTest extends TestSuite {
   def getBounded(size: Int, logger: Logger): RegisterableWatchService =

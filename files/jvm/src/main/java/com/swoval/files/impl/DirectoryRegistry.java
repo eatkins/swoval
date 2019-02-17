@@ -2,7 +2,6 @@ package com.swoval.files.impl;
 
 import static java.util.Map.Entry;
 
-import com.swoval.files.TypedPath;
 import com.swoval.functional.Filter;
 import java.nio.file.Path;
 import java.util.Collections;

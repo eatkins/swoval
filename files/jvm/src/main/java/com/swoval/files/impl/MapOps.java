@@ -2,8 +2,7 @@ package com.swoval.files.impl;
 
 import static java.util.Map.Entry;
 
-import com.swoval.files.CacheEntry;
-import com.swoval.files.FileTreeDataViews.CacheObserver;
+import com.swoval.files.cache.CacheObserver;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,35 +19,35 @@ class MapOps {
   private MapOps() {}
 
   static <T> void diffDirectoryEntries(
-      final List<CacheEntry<T>> oldEntries,
-      final List<CacheEntry<T>> newEntries,
+      final List<com.swoval.files.cache.Entry<T>> oldEntries,
+      final List<com.swoval.files.cache.Entry<T>> newEntries,
       final CacheObserver<T> cacheObserver) {
-    final Map<Path, CacheEntry<T>> oldMap = new HashMap<>();
-    final Iterator<CacheEntry<T>> oldIterator = oldEntries.iterator();
+    final Map<Path, com.swoval.files.cache.Entry<T>> oldMap = new HashMap<>();
+    final Iterator<com.swoval.files.cache.Entry<T>> oldIterator = oldEntries.iterator();
     while (oldIterator.hasNext()) {
-      final CacheEntry<T> cacheEntry = oldIterator.next();
+      final com.swoval.files.cache.Entry<T> cacheEntry = oldIterator.next();
       oldMap.put(cacheEntry.getTypedPath().getPath(), cacheEntry);
     }
-    final Map<Path, CacheEntry<T>> newMap = new HashMap<>();
-    final Iterator<CacheEntry<T>> newIterator = newEntries.iterator();
+    final Map<Path, com.swoval.files.cache.Entry<T>> newMap = new HashMap<>();
+    final Iterator<com.swoval.files.cache.Entry<T>> newIterator = newEntries.iterator();
     while (newIterator.hasNext()) {
-      final CacheEntry<T> cacheEntry = newIterator.next();
+      final com.swoval.files.cache.Entry<T> cacheEntry = newIterator.next();
       newMap.put(cacheEntry.getTypedPath().getPath(), cacheEntry);
     }
     diffDirectoryEntries(oldMap, newMap, cacheObserver);
   }
 
   static <K, V> void diffDirectoryEntries(
-      final Map<K, CacheEntry<V>> oldMap,
-      final Map<K, CacheEntry<V>> newMap,
+      final Map<K, com.swoval.files.cache.Entry<V>> oldMap,
+      final Map<K, com.swoval.files.cache.Entry<V>> newMap,
       final CacheObserver<V> cacheObserver) {
-    final Iterator<Entry<K, CacheEntry<V>>> newIterator =
+    final Iterator<java.util.Map.Entry<K, com.swoval.files.cache.Entry<V>>> newIterator =
         new ArrayList<>(newMap.entrySet()).iterator();
-    final Iterator<Entry<K, CacheEntry<V>>> oldIterator =
+    final Iterator<Entry<K, com.swoval.files.cache.Entry<V>>> oldIterator =
         new ArrayList<>(oldMap.entrySet()).iterator();
     while (newIterator.hasNext()) {
-      final Entry<K, CacheEntry<V>> entry = newIterator.next();
-      final CacheEntry<V> oldValue = oldMap.get(entry.getKey());
+      final Entry<K, com.swoval.files.cache.Entry<V>> entry = newIterator.next();
+      final com.swoval.files.cache.Entry<V> oldValue = oldMap.get(entry.getKey());
       if (oldValue != null) {
         cacheObserver.onUpdate(oldValue, entry.getValue());
       } else {
@@ -56,7 +55,7 @@ class MapOps {
       }
     }
     while (oldIterator.hasNext()) {
-      final Entry<K, CacheEntry<V>> entry = oldIterator.next();
+      final Entry<K, com.swoval.files.cache.Entry<V>> entry = oldIterator.next();
       if (!newMap.containsKey(entry.getKey())) {
         cacheObserver.onDelete(entry.getValue());
       }

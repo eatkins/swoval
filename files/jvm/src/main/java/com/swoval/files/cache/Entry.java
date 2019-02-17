@@ -1,5 +1,6 @@
-package com.swoval.files;
+package com.swoval.files.cache;
 
+import com.swoval.files.TypedPath;
 import com.swoval.files.impl.CachedDirectoryImpl;
 import com.swoval.functional.Either;
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.io.IOException;
  *
  * @param <T> The value wrapped in the CacheEntry
  */
-public interface CacheEntry<T> extends Comparable<CacheEntry<T>> {
+public interface Entry<T> extends Comparable<Entry<T>> {
 
   /**
    * Returns the {@link TypedPath} associated with this entry.

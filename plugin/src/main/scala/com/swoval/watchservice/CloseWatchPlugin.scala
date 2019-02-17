@@ -7,6 +7,7 @@ import java.nio.file.Path
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files._
 import com.swoval.files.api.PathWatcher
+import com.swoval.files.cache.{ CacheEntry, Entry }
 import com.swoval.functional.IOFunction
 import sbt.Keys._
 import sbt._
@@ -102,8 +103,8 @@ object CloseWatchPlugin extends AutoPlugin {
 
     val baseSources: Seq[Compat.WatchSource] =
       if (sourcesInBase.value && config != ConfigKey(Test.name)) {
-        val pathFilter = new functional.Filter[CacheEntry[Path]] {
-          override def accept(cacheEntry: CacheEntry[Path]): Boolean = {
+        val pathFilter = new functional.Filter[Entry[Path]] {
+          override def accept(cacheEntry: Entry[Path]): Boolean = {
             val path = cacheEntry.getTypedPath.getPath
             val f = path.toFile
             path.getParent == baseDir && include.accept(f) && !exclude.accept(f)
@@ -204,8 +205,8 @@ object CloseWatchPlugin extends AutoPlugin {
         case None    => ef
       }
       def filter(dir: File): SourceFilter = {
-        val pathFilter = new functional.Filter[CacheEntry[Path]] {
-          override def accept(cacheEntry: CacheEntry[Path]): Boolean = {
+        val pathFilter = new functional.Filter[Entry[Path]] {
+          override def accept(cacheEntry: Entry[Path]): Boolean = {
             val f = cacheEntry.getTypedPath.getPath.toFile
             include.accept(f) && !exclude.accept(f)
           }

@@ -7,7 +7,8 @@ import java.util.concurrent.{ ArrayBlockingQueue, BlockingQueue, ExecutorService
 
 import com.swoval.concurrent.ThreadFactory
 import com.swoval.files.api.Observer
-import com.swoval.files.{ CacheEntry, Observer, _ }
+import com.swoval.files.Observer
+import com.swoval.files.cache.Entry
 import com.swoval.watchservice.CloseWatchPlugin.{ PathWatcherOps, closeWatchGlobalFileRepository }
 import com.swoval.watchservice.CloseWatchPlugin.autoImport._
 import sbt.BasicCommandStrings._
@@ -65,8 +66,8 @@ object Continuously {
       }
     }
 
-    private[this] val onChange: Observer[CacheEntry[Path]] = new Observer[CacheEntry[Path]] {
-      override def onNext(cacheEntry: CacheEntry[Path]): Unit = {
+    private[this] val onChange: Observer[Entry[Path]] = new Observer[Entry[Path]] {
+      override def onNext(cacheEntry: Entry[Path]): Unit = {
         if (sources.exists(s => s.filter.accept(cacheEntry.getTypedPath.getPath))) {
           offer(Triggered(cacheEntry.getTypedPath.getPath))
         } else {

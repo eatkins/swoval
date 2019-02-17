@@ -1,7 +1,7 @@
 package com.swoval.files.impl.apple;
 
-import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.impl.DirectoryRegistry;
 import com.swoval.logging.Logger;
 import java.util.concurrent.TimeUnit;

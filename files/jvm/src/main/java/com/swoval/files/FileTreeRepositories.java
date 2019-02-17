@@ -1,7 +1,7 @@
 package com.swoval.files;
 
-import com.swoval.functional.IOFunction;
 import com.swoval.files.impl.SwovalProviderImpl;
+import com.swoval.functional.IOFunction;
 import java.io.IOException;
 
 /** Provides factory methods for generating instances of {@link FileTreeRepository}. */

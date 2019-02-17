@@ -10,9 +10,8 @@ import com.swoval.files.PathWatchers.Event.Kind
 import com.swoval.files.PathWatchers.Event.Kind.{ Delete, Modify }
 import com.swoval.files.TestHelpers._
 import com.swoval.files.api.PathWatcher
+import com.swoval.files.impl.TypedPaths
 import com.swoval.files.impl.apple.Flags
-import com.swoval.files.impl.functional.Consumer
-import com.swoval.files.impl.{ DirectoryRegistryImpl, TypedPaths }
 import com.swoval.files.test.{ ArrayBlockingQueue, _ }
 import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext

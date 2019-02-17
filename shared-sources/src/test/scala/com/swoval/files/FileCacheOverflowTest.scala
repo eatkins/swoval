@@ -7,8 +7,8 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 import com.swoval.files.FileCacheTest.FileCacheOps
-import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers._
+import com.swoval.files.cache.{ CacheObserver, Entry }
 import com.swoval.files.impl._
 import com.swoval.files.test._
 import com.swoval.functional.IOFunction
@@ -25,7 +25,7 @@ import scala.util.{ Failure, Success, Try }
 trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
   def getBounded[T <: AnyRef](
       converter: IOFunction[TypedPath, T],
-      cacheObserver: FileTreeDataViews.CacheObserver[T]
+      cacheObserver: CacheObserver[T]
   )(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
     val res = provider.noFollowSymlinks(converter)
     res.addCacheObserver(cacheObserver)
@@ -86,12 +86,12 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
       val updatedFiles = mutable.Set.empty[Path]
       val deletedFiles = mutable.Set.empty[Path]
       val observer = getObserver[Path](
-        (e: CacheEntry[Path]) =>
+        (e: Entry[Path]) =>
           pendingCreations.remove(e.path).foreach { l =>
             l.countDown()
             foundFiles.add(e.path)
         },
-        (_: CacheEntry[Path], e: CacheEntry[Path]) => {
+        (_: Entry[Path], e: Entry[Path]) => {
           if (Try(e.path.lastModified) == Success(3000)) {
             pendingUpdates.remove(e.path).foreach { l =>
               l.countDown()
@@ -100,7 +100,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
             }
           }
         },
-        (e: CacheEntry[Path]) =>
+        (e: Entry[Path]) =>
           pendingDeletions.remove(e.path).foreach { l =>
             l.countDown()
             deletedFiles.add(e.path)

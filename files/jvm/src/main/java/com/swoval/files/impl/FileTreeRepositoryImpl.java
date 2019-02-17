@@ -1,9 +1,9 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.CacheEntry;
-import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.api.Observer;
+import com.swoval.files.cache.CacheObserver;
+import com.swoval.files.cache.Entry;
 import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
@@ -52,22 +52,21 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   }
 
   @Override
-  public int addObserver(final Observer<? super CacheEntry<T>> observer) {
+  public int addObserver(final Observer<? super Entry<T>> observer) {
     return addCacheObserver(
         new CacheObserver<T>() {
           @Override
-          public void onCreate(final CacheEntry<T> newCacheEntry) {
+          public void onCreate(final Entry<T> newCacheEntry) {
             observer.onNext(newCacheEntry);
           }
 
           @Override
-          public void onDelete(final CacheEntry<T> oldCacheEntry) {
+          public void onDelete(final Entry<T> oldCacheEntry) {
             observer.onNext(oldCacheEntry);
           }
 
           @Override
-          public void onUpdate(
-              final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
+          public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
             observer.onNext(newCacheEntry);
           }
 
@@ -84,8 +83,8 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   }
 
   @Override
-  public List<CacheEntry<T>> list(
-      final Path path, final int maxDepth, final Filter<? super CacheEntry<T>> filter) {
+  public List<Entry<T>> list(
+      final Path path, final int maxDepth, final Filter<? super Entry<T>> filter) {
     return directoryTree.list(path, maxDepth, filter);
   }
 

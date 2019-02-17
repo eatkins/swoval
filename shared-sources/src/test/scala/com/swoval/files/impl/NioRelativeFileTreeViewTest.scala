@@ -3,7 +3,7 @@ import java.nio.file.Path
 import java.util
 
 import com.swoval.files.api.FileTreeView
-import com.swoval.files.{ FileTreeViews, RelativeFileTreeView, RelativeFileTreeViewTest, TypedPath }
+import com.swoval.files.{ FileTreeViews, RelativeFileTreeViewTest, TypedPath }
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass
 

@@ -4,10 +4,11 @@ package impl
 import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
-import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
+import com.swoval.files.RelativeFileTreeViewTest._
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
-import com.swoval.files.api.{ FileTreeView, Observer }
+import com.swoval.files.api.Observer
+import com.swoval.files.cache.{ CacheObserver, Entry }
 import com.swoval.files.test._
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass
@@ -17,7 +18,6 @@ import utest._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Future
-import RelativeFileTreeViewTest._
 object CachedFileTreeViewTest extends TestSuite {
   val empty = Paths.get("")
   def newCachedView(path: Path): UpdatableFileTreeView[Path] =
@@ -27,19 +27,19 @@ object CachedFileTreeViewTest extends TestSuite {
   def newCachedView(path: Path, maxDepth: Int, followLinks: Boolean): UpdatableFileTreeView[Path] =
     new CachedDirectoryImpl(path, (_: TypedPath).getPath, maxDepth, AllPass, followLinks).init()
   class Updates[T <: AnyRef](u: CacheUpdates[T]) {
-    private[this] var _creations: Seq[CacheEntry[T]] = Nil
-    private[this] var _deletions: Seq[CacheEntry[T]] = Nil
-    private[this] var _updates: Seq[(CacheEntry[T], CacheEntry[T])] = Nil
+    private[this] var _creations: Seq[Entry[T]] = Nil
+    private[this] var _deletions: Seq[Entry[T]] = Nil
+    private[this] var _updates: Seq[(Entry[T], Entry[T])] = Nil
     u.observe(new CacheObserver[T] {
-      override def onCreate(newEntry: CacheEntry[T]): Unit = _creations :+= newEntry
-      override def onDelete(oldEntry: CacheEntry[T]): Unit = _deletions :+= oldEntry
-      override def onUpdate(oldEntry: CacheEntry[T], newEntry: CacheEntry[T]): Unit =
+      override def onCreate(newEntry: Entry[T]): Unit = _creations :+= newEntry
+      override def onDelete(oldEntry: Entry[T]): Unit = _deletions :+= oldEntry
+      override def onUpdate(oldEntry: Entry[T], newEntry: Entry[T]): Unit =
         _updates :+= (oldEntry, newEntry)
       override def onError(exception: IOException): Unit = {}
     })
-    def creations: Seq[CacheEntry[T]] = _creations
-    def deletions: Seq[CacheEntry[T]] = _deletions
-    def updates: Seq[(CacheEntry[T], CacheEntry[T])] = _updates
+    def creations: Seq[Entry[T]] = _creations
+    def deletions: Seq[Entry[T]] = _deletions
+    def updates: Seq[(Entry[T], Entry[T])] = _updates
   }
   implicit class UpdateOps[T <: AnyRef](val u: CacheUpdates[T]) extends AnyVal {
     def toUpdates: CachedFileTreeViewTest.Updates[T] = new CachedFileTreeViewTest.Updates(u)
@@ -140,7 +140,7 @@ object CachedFileTreeViewTest extends TestSuite {
           val updates =
             directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY)).toUpdates
           val typedPath = TestTypedPaths.get(subdir, TestEntries.DIRECTORY)
-          val entry: CacheEntry[Path] =
+          val entry: Entry[Path] =
             TestEntries.get(typedPath, (_: TypedPath).getPath, typedPath)
           updates.updates === Seq(entry -> entry)
           updates.creations === Seq(file)
@@ -174,7 +174,7 @@ object CachedFileTreeViewTest extends TestSuite {
             val updates =
               directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY)).toUpdates
             val typedPath = TestTypedPaths.get(subdir, TestEntries.DIRECTORY)
-            val entry: CacheEntry[Path] =
+            val entry: Entry[Path] =
               TestEntries.get(typedPath, (_: TypedPath).getPath, typedPath)
             updates.updates === Seq(entry -> entry)
             updates.creations === Set(nestedSubdir, nestedFile)
@@ -189,7 +189,7 @@ object CachedFileTreeViewTest extends TestSuite {
             val updates =
               directory.update(TestTypedPaths.get(subdir, TestEntries.DIRECTORY)).toUpdates
             val typedPath = TestTypedPaths.get(subdir, TestEntries.DIRECTORY)
-            val entry: CacheEntry[Path] =
+            val entry: Entry[Path] =
               TestEntries.get(TestTypedPaths.get(subdir, TestEntries.DIRECTORY),
                               (_: TypedPath).getPath,
                               typedPath)
@@ -205,9 +205,9 @@ object CachedFileTreeViewTest extends TestSuite {
         val files = 1 to 2 map (i => subdir.resolve(s"file-$i").createFile())
         val found = mutable.Set.empty[Path]
         val updates = directory.update(TestTypedPaths.get(files.last, TestEntries.FILE))
-        val observer = CacheObservers.fromObserver(new Observer[CacheEntry[Path]] {
+        val observer = CacheObservers.fromObserver(new Observer[Entry[Path]] {
           override def onError(t: Throwable): Unit = {}
-          override def onNext(t: CacheEntry[Path]): Unit = found.add(t.getTypedPath.getPath())
+          override def onNext(t: Entry[Path]): Unit = found.add(t.getTypedPath.getPath())
         })
         updates.observe(observer)
         val expected = (files :+ subdir :+ subdir.getParent).toSet
@@ -269,8 +269,8 @@ object CachedFileTreeViewTest extends TestSuite {
       f.write("foo")
       val initialBytes = "foo".getBytes.toIndexedSeq
       val dir = newDirectory(f.getParent, FileBytes(_: TypedPath))
-      def filter(bytes: Seq[Byte]): Filter[CacheEntry[FileBytes]] =
-        (e: CacheEntry[FileBytes]) => e.getValue.get().bytes == bytes
+      def filter(bytes: Seq[Byte]): Filter[Entry[FileBytes]] =
+        (e: Entry[FileBytes]) => e.getValue.get().bytes == bytes
       val cachedFile = dir.list(f, Integer.MAX_VALUE, filter(initialBytes)).get(0)
       cachedFile.getValue.get().bytes ==> initialBytes
       f.write("bar")

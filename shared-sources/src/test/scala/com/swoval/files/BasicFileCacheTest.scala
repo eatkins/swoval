@@ -6,10 +6,10 @@ import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileCacheTest.FileCacheOps
-import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
 import com.swoval.files.api.Observer
+import com.swoval.files.cache.{ CacheObserver, Entry }
 import com.swoval.files.impl.{ Provider, TypedPaths }
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
@@ -24,14 +24,14 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 trait BasicFileCacheTest extends TestSuite with FileCacheTest {
-  def ignore[T]: CacheEntry[T] => Unit = (_: CacheEntry[T]) => ()
-  def ignoreOld[T](f: CacheEntry[T] => Unit): (CacheEntry[T], CacheEntry[T]) => Unit =
+  def ignore[T]: Entry[T] => Unit = (_: Entry[T]) => ()
+  def ignoreOld[T](f: Entry[T] => Unit): (Entry[T], Entry[T]) => Unit =
     (_, e) => f(e)
   import scala.language.implicitConversions
-  class RichEntries(entries: mutable.Buffer[CacheEntry[Path]]) {
+  class RichEntries(entries: mutable.Buffer[Entry[Path]]) {
     def toTypedPaths: Seq[TypedPath] = entries.toIndexedSeq.map(_.getTypedPath)
   }
-  implicit def entryOps(entries: java.util.List[CacheEntry[Path]]): RichEntries =
+  implicit def entryOps(entries: java.util.List[Entry[Path]]): RichEntries =
     new RichEntries(entries.asScala)
   implicit def provider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
     new Provider().getFileTreeRepositoryProvider
@@ -42,7 +42,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           implicit val logger: TestLogger = new CachingLogger
           val events = new ArrayBlockingQueue[Path](2)
           val eventSet = mutable.Set.empty[Path]
-          usingAsync(simpleCache((cacheEntry: CacheEntry[Path]) =>
+          usingAsync(simpleCache((cacheEntry: Entry[Path]) =>
             if (cacheEntry.path != dir && eventSet.add(cacheEntry.path))
               events.add(cacheEntry.path))) { c =>
             c.register(dir)
@@ -77,7 +77,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
               implicit val logger: TestLogger = new CachingLogger
               val latch = new CountDownLatch(1)
               val file = dir.resolve("file")
-              usingAsync(simpleCache((e: CacheEntry[Path]) => {
+              usingAsync(simpleCache((e: Entry[Path]) => {
                 if (e.path == file) latch.countDown()
               })) { c =>
                 c.reg(dir)
@@ -90,14 +90,15 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             'directories - withTempDirectory { dir =>
               implicit val logger: TestLogger = new CachingLogger
               val latch = new CountDownLatch(1)
-              usingAsync(simpleCache((e: CacheEntry[Path]) =>
-                if (e.path.getParent == dir) latch.countDown())) { c =>
-                c.reg(dir)
-                withTempDirectory(dir) { subdir =>
-                  latch.waitFor(DEFAULT_TIMEOUT) {
-                    c.ls(dir) === Seq(subdir)
+              usingAsync(
+                simpleCache((e: Entry[Path]) => if (e.path.getParent == dir) latch.countDown())) {
+                c =>
+                  c.reg(dir)
+                  withTempDirectory(dir) { subdir =>
+                    latch.waitFor(DEFAULT_TIMEOUT) {
+                      c.ls(dir) === Seq(subdir)
+                    }
                   }
-                }
               }
             }
           }
@@ -107,7 +108,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           val latch = new CountDownLatch(1)
           val initial = dir createTempFile "move"
           val moved = Paths.get(s"${initial.toString}.moved")
-          val onChange = (e: CacheEntry[Path]) => if (e.path == moved) latch.countDown()
+          val onChange = (e: Entry[Path]) => if (e.path == moved) latch.countDown()
           val onUpdate = ignoreOld[Path](ignore)
           val onError = (_: IOException) => {}
           val observer = getObserver(onChange, onUpdate, onChange, onError)
@@ -128,7 +129,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         withTempDirectory(dir) { subdir =>
           val latch = new CountDownLatch(1)
           val file = subdir.resolve("file")
-          usingAsync(simpleCache((e: CacheEntry[Path]) => if (e.path == subdir) latch.countDown())) {
+          usingAsync(simpleCache((e: Entry[Path]) => if (e.path == subdir) latch.countDown())) {
             c =>
               c.reg(dir, recursive = false)
               file.createFile()
@@ -200,7 +201,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
                 withTempDirectory(nestedSubdir) { nestedNestedSubdir =>
                   val file = nestedSubdir.resolve("file")
                   val latch = new CountDownLatch(1)
-                  usingAsync(simpleCache((e: CacheEntry[Path]) => {
+                  usingAsync(simpleCache((e: Entry[Path]) => {
                     if (e.path == file) latch.countDown()
                   })) { c =>
                     c.register(dir, 0)
@@ -319,7 +320,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         val latch = new CountDownLatch(1)
         val file = dir.resolve("file")
         val callback =
-          (e: CacheEntry[Path]) => if (e.path.getFileName.toString == "file") latch.countDown()
+          (e: Entry[Path]) => if (e.path.getFileName.toString == "file") latch.countDown()
         usingAsync(simpleCache(callback)) { w =>
           w.register(baseDir.relativize(dir))
           file.createFile()
@@ -333,17 +334,16 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         withTempDirectory(dir) { subdir =>
           val latch = new CountDownLatch(1)
           val file = subdir.resolve("file")
-          usingAsync(simpleCache((e: CacheEntry[Path]) => if (e.path == file) latch.countDown())) {
-            c =>
-              c.reg(subdir, false)
-              c.ls(subdir) === Set.empty[Path]
-              c.register(dir, false)
+          usingAsync(simpleCache((e: Entry[Path]) => if (e.path == file) latch.countDown())) { c =>
+            c.reg(subdir, false)
+            c.ls(subdir) === Set.empty[Path]
+            c.register(dir, false)
+            c.ls(dir) === Set(subdir)
+            file.createFile()
+            latch.waitFor(DEFAULT_TIMEOUT) {
               c.ls(dir) === Set(subdir)
-              file.createFile()
-              latch.waitFor(DEFAULT_TIMEOUT) {
-                c.ls(dir) === Set(subdir)
-                c.ls(subdir) === Set(file)
-              }
+              c.ls(subdir) === Set(file)
+            }
           }
         }
       }
@@ -355,13 +355,13 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         usingAsync(
           FileCacheTest.get[LastModified](
             LastModified(_: TypedPath),
-            new FileTreeDataViews.CacheObserver[LastModified] {
-              override def onCreate(newEntry: CacheEntry[LastModified]): Unit = {}
+            new CacheObserver[LastModified] {
+              override def onCreate(newEntry: Entry[LastModified]): Unit = {}
 
-              override def onDelete(oldEntry: CacheEntry[LastModified]): Unit = {}
+              override def onDelete(oldEntry: Entry[LastModified]): Unit = {}
 
-              override def onUpdate(oldEntry: CacheEntry[LastModified],
-                                    newEntry: CacheEntry[LastModified]): Unit =
+              override def onUpdate(oldEntry: Entry[LastModified],
+                                    newEntry: Entry[LastModified]): Unit =
                 if (oldEntry.value.lastModified != newEntry.value.lastModified)
                   latch.countDown()
 
@@ -369,7 +369,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             }
           )) { c =>
           c.reg(file.getParent, recursive = false)
-          val cachedFile: CacheEntry[LastModified] =
+          val cachedFile: Entry[LastModified] =
             c.ls(file.getParent, recursive = false) match {
               case s if s.size == 1 && s.head.path == file => s.head
               case p                                       => throw new IllegalStateException(p.toString)
@@ -380,7 +380,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           file.setLastModifiedTime(updatedLastModified)
           latch.waitFor(DEFAULT_TIMEOUT) {
 
-            val newCachedFile: CacheEntry[LastModified] =
+            val newCachedFile: Entry[LastModified] =
               c.ls(file.getParent, recursive = false) match {
                 case Seq(f) if f.path == file => f
                 case p                        => throw new IllegalStateException(p.toString)
@@ -395,7 +395,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
       'exists - withTempFile { file =>
         implicit val logger: TestLogger = new CachingLogger
         val latch = new CountDownLatch(1)
-        usingAsync(simpleCache((e: CacheEntry[Path]) => {
+        usingAsync(simpleCache((e: Entry[Path]) => {
           if (e.path.lastModified == 3000) latch.countDown()
         })) { c =>
           c.reg(file)
@@ -410,7 +410,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         val _ = "DEBUG PLEASE"
         val file = dir.resolve("file")
         val latch = new CountDownLatch(1)
-        usingAsync(simpleCache((e: CacheEntry[Path]) => {
+        usingAsync(simpleCache((e: Entry[Path]) => {
           if (e.path == file) latch.countDown()
         })) { c =>
           c.reg(file)
@@ -427,15 +427,15 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           val deletionLatch = new CountDownLatch(2)
           val newFileLatch = new CountDownLatch(1)
           val newFile = dir.resolve("new-file")
-          val observer = new FileTreeDataViews.CacheObserver[Path] {
-            override def onCreate(newEntry: CacheEntry[Path]): Unit = {
+          val observer = new CacheObserver[Path] {
+            override def onCreate(newEntry: Entry[Path]): Unit = {
               if (newEntry.path == newFile) newFileLatch.countDown()
             }
 
-            override def onDelete(oldEntry: CacheEntry[Path]): Unit =
+            override def onDelete(oldEntry: Entry[Path]): Unit =
               if (oldEntry.path == dir || oldEntry.path == file) deletionLatch.countDown()
 
-            override def onUpdate(oldEntry: CacheEntry[Path], newEntry: CacheEntry[Path]): Unit = {}
+            override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {}
 
             override def onError(exception: IOException): Unit = {}
           }
@@ -514,12 +514,11 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         val deletionLatch = new CountDownLatch(1)
         usingAsync(
           lastModifiedCache(
-            (e: CacheEntry[LastModified]) => if (e.path == file) creationLatch.countDown(),
-            (_: CacheEntry[LastModified], newEntry: CacheEntry[LastModified]) =>
+            (e: Entry[LastModified]) => if (e.path == file) creationLatch.countDown(),
+            (_: Entry[LastModified], newEntry: Entry[LastModified]) =>
               if (newEntry.getValue.isRight && newEntry.getValue.get.lastModified == 3000)
                 updateLatch.countDown(),
-            (oldEntry: CacheEntry[LastModified]) =>
-              if (oldEntry.path == file) deletionLatch.countDown()
+            (oldEntry: Entry[LastModified]) => if (oldEntry.path == file) deletionLatch.countDown()
           )) { c =>
           c.reg(dir)
           file.createFile()
@@ -546,20 +545,20 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         val latch = new CountDownLatch(1)
         var secondObserverFired = false
         val file = dir.resolve("file")
-        usingAsync(
-          simpleCache((e: CacheEntry[Path]) => if (e.entry.path == file) latch.countDown())) { c =>
-          val handle = c.addObserver(new Observer[CacheEntry[Path]] {
-            override def onNext(entry: CacheEntry[Path]): Unit =
-              if (entry.path == file) secondObserverFired = true
-            override def onError(t: Throwable): Unit = {}
-          })
-          c.reg(dir)
-          c.removeObserver(handle)
-          file.createFile()
-          latch.waitFor(DEFAULT_TIMEOUT) {
-            assert(!secondObserverFired)
-            c.ls(dir) === Seq(file)
-          }
+        usingAsync(simpleCache((e: Entry[Path]) => if (e.entry.path == file) latch.countDown())) {
+          c =>
+            val handle = c.addObserver(new Observer[Entry[Path]] {
+              override def onNext(entry: Entry[Path]): Unit =
+                if (entry.path == file) secondObserverFired = true
+              override def onError(t: Throwable): Unit = {}
+            })
+            c.reg(dir)
+            c.removeObserver(handle)
+            file.createFile()
+            latch.waitFor(DEFAULT_TIMEOUT) {
+              assert(!secondObserverFired)
+              c.ls(dir) === Seq(file)
+            }
         }
       }
     }
@@ -579,7 +578,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         usingAsync(
           lastModifiedCache(
             ignore,
-            ignoreOld { newEntry: CacheEntry[LastModified] =>
+            ignoreOld { newEntry: Entry[LastModified] =>
               if (newEntry.value.lastModified == 3000) latch.countDown()
             },
             ignore
@@ -607,7 +606,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             val secondLatch = new CountDownLatch(1)
             usingAsync(lastModifiedCache(
               ignore,
-              ignoreOld { newEntry: CacheEntry[LastModified] =>
+              ignoreOld { newEntry: Entry[LastModified] =>
                 newEntry.value.lastModified match {
                   case 3000 => latch.countDown()
                   case 4000 => secondLatch.countDown()
@@ -658,7 +657,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
       val n = 20
       var count = n
       val latch = new CountDownLatch(1)
-      val callback = (e: CacheEntry[_]) => {
+      val callback = (e: Entry[_]) => {
         if (e.path == subdir && subdir.exists()) {
           if (count == 0) {
             file.createFile(true)

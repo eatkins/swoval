@@ -1,9 +1,9 @@
 package com.swoval.files.impl;
 
+import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.RegisterableWatchService;
 import com.swoval.files.RegisterableWatchServices;
 import com.swoval.files.api.PathWatcher;
-import com.swoval.files.PathWatchers.Event;
 import com.swoval.logging.Logger;
 import java.io.IOException;
 

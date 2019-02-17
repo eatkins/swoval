@@ -4,8 +4,8 @@ import java.util.concurrent.TimeUnit
 
 import com.swoval.files.test.{ CountDownLatch, withTempDirectory }
 import com.swoval.test._
-import utest.framework.ExecutionContext.RunNow
 import utest._
+import utest.framework.ExecutionContext.RunNow
 
 object FileEventMonitorTest extends TestSuite {
 

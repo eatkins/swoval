@@ -6,9 +6,9 @@ import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileCacheTest.FileCacheOps
-import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
+import com.swoval.files.cache.{ CacheObserver, Entry }
 import com.swoval.files.test._
 import com.swoval.functional.IOFunction
 import com.swoval.test.Implicits.executionContext
@@ -36,13 +36,12 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
       withTempFile { file =>
         val latch = new CountDownLatch(1)
         val link = dir.resolve("link") linkTo file
-        usingAsync(simpleCache((e: CacheEntry[Path]) => if (e.path == link) latch.countDown())) {
-          c =>
-            c.reg(dir)
-            file write "foo"
-            latch.waitFor(DEFAULT_TIMEOUT) {
-              file.read ==> "foo"
-            }
+        usingAsync(simpleCache((e: Entry[Path]) => if (e.path == link) latch.countDown())) { c =>
+          c.reg(dir)
+          file write "foo"
+          latch.waitFor(DEFAULT_TIMEOUT) {
+            file.read ==> "foo"
+          }
         }
       }
     }
@@ -51,14 +50,13 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
       withTempFile { file =>
         val latch = new CountDownLatch(1)
         val link = dir.resolve("link") linkTo file
-        usingAsync(simpleCache((e: CacheEntry[Path]) => if (e.path == link) latch.countDown())) {
-          c =>
-            c.reg(link)
-            file write "foo"
+        usingAsync(simpleCache((e: Entry[Path]) => if (e.path == link) latch.countDown())) { c =>
+          c.reg(link)
+          file write "foo"
 
-            latch.waitFor(DEFAULT_TIMEOUT) {
-              file.read ==> "foo"
-            }
+          latch.waitFor(DEFAULT_TIMEOUT) {
+            file.read ==> "foo"
+          }
         }
       }
     }
@@ -70,7 +68,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val file = otherDir.resolve("file").createFile()
           val link = dir.resolve("link") linkTo otherDir
           val latch = new CountDownLatch(1)
-          usingAsync(simpleCache((e: CacheEntry[Path]) =>
+          usingAsync(simpleCache((e: Entry[Path]) =>
             if (e.path == link.resolve("file")) latch.countDown())) { c =>
             c.reg(dir)
             file write "foo"
@@ -88,8 +86,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val link = dir.resolve("link") linkTo otherDir
           val linkedFile = link.resolve(otherDir.relativize(file))
           val latch = new CountDownLatch(1)
-          usingAsync(
-            simpleCache((e: CacheEntry[Path]) => if (e.path == linkedFile) latch.countDown())) {
+          usingAsync(simpleCache((e: Entry[Path]) => if (e.path == linkedFile) latch.countDown())) {
             c =>
               c.reg(dir)
               file write "foo"
@@ -105,7 +102,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val link = otherDir.resolve("link") linkTo dir
           val file = dir.resolve("file").createFile()
           val latch = new CountDownLatch(1)
-          usingAsync(lastModifiedCache((e: CacheEntry[LastModified]) =>
+          usingAsync(lastModifiedCache((e: Entry[LastModified]) =>
             if (e.value.lastModified == 3000) latch.countDown())) {
             c: FileTreeRepository[LastModified] =>
               c.register(link, Integer.MAX_VALUE)
@@ -121,7 +118,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           withTempDirectory { otherDir =>
             dir.resolve("other") linkTo otherDir
             otherDir.resolve("dir") linkTo dir
-            using(simpleCache((_: CacheEntry[Path]) => {})) { c =>
+            using(simpleCache((_: Entry[Path]) => {})) { c =>
               c.register(dir, Integer.MAX_VALUE)
               c.ls(dir) == Set(dir.resolve("other"), dir.resolve("other").resolve("dir"))
             }
@@ -136,7 +133,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
                 otherDir.resolve("dir") linkTo dir
                 val latch = new CountDownLatch(1)
                 val loopLink = dir.resolve("other")
-                usingAsync(simpleCache((e: CacheEntry[Path]) =>
+                usingAsync(simpleCache((e: Entry[Path]) =>
                   if (e.path == loopLink.resolve("dir")) latch.countDown())) { c =>
                   c.reg(dir)
                   loopLink linkTo otherDir
@@ -156,8 +153,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
                 val latch = new CountDownLatch(1)
                 val loopLink = otherDir.resolve("dir")
                 val loop = dir.resolve("other").resolve("dir")
-                usingAsync(
-                  simpleCache((e: CacheEntry[Path]) => if (e.path == loop) latch.countDown())) {
+                usingAsync(simpleCache((e: Entry[Path]) => if (e.path == loop) latch.countDown())) {
                   c =>
                     c.reg(dir)
                     loopLink linkTo dir
@@ -181,7 +177,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val link = dir.resolve("link") linkTo file
           val foo = otherDir.resolve("foo")
           val dirLink = dir.resolve("dir-link")
-          usingAsync(simpleCache((e: CacheEntry[Path]) => {
+          usingAsync(simpleCache((e: Entry[Path]) => {
             if (e.getTypedPath.getPath.endsWith("dir-link")) linkLatch.countDown()
             if (e.getTypedPath.getPath.endsWith("newfile")) fileLatch.countDown()
           })) { c =>
@@ -215,7 +211,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
         val linkLatch = new CountDownLatch(1)
         val contentLatch = new CountDownLatch(1)
         val link = dir.resolve("link")
-        usingAsync(simpleCache((e: CacheEntry[Path]) => {
+        usingAsync(simpleCache((e: Entry[Path]) => {
           if (e.path == link)
             if (linkLatch.getCount == 1) linkLatch.countDown() else contentLatch.countDown()
         })) { c =>
@@ -238,7 +234,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
         implicit val logger: TestLogger = new CachingLogger
         withTempFile { file =>
           val linkLatch = new CountDownLatch(1)
-          usingAsync(simpleCache((e: CacheEntry[Path]) => {
+          usingAsync(simpleCache((e: Entry[Path]) => {
             if (linkLatch.getCount == 1) linkLatch.countDown()
           })) { c =>
             val link = dir.resolve("link") linkTo file
@@ -262,15 +258,14 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val link = dir.resolve("link")
           usingAsync(FileCacheTest.get[Path](
             getPath,
-            new FileTreeDataViews.CacheObserver[Path] {
-              override def onCreate(newEntry: CacheEntry[Path]): Unit = {}
+            new CacheObserver[Path] {
+              override def onCreate(newEntry: Entry[Path]): Unit = {}
 
-              override def onDelete(oldEntry: CacheEntry[Path]): Unit = {
+              override def onDelete(oldEntry: Entry[Path]): Unit = {
                 if (oldEntry.getTypedPath.getPath == link) linkLatch.countDown()
               }
 
-              override def onUpdate(oldEntry: CacheEntry[Path],
-                                    newEntry: CacheEntry[Path]): Unit = {}
+              override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {}
 
               override def onError(exception: IOException): Unit = {}
             }
@@ -323,12 +318,11 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           usingAsync(getNoFollow) { c =>
             c.register(dir, Integer.MAX_VALUE)
             c.addCacheObserver(new CacheObserver[Object] {
-              override def onCreate(newEntry: CacheEntry[Object]): Unit =
+              override def onCreate(newEntry: Entry[Object]): Unit =
                 if (newEntry.path == link) creationLatch.countDown()
-              override def onDelete(oldEntry: CacheEntry[Object]): Unit =
+              override def onDelete(oldEntry: Entry[Object]): Unit =
                 if (oldEntry.path == link) deletionLatch.countDown()
-              override def onUpdate(oldEntry: CacheEntry[Object],
-                                    newEntry: CacheEntry[Object]): Unit = {}
+              override def onUpdate(oldEntry: Entry[Object], newEntry: Entry[Object]): Unit = {}
               override def onError(exception: IOException): Unit = {}
             })
             link.delete()
@@ -359,11 +353,10 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
             val otherLink = otherDir.resolve("link") linkTo file
             usingAsync(FileCacheTest.get[Path](
               getPath,
-              new FileTreeDataViews.CacheObserver[Path] {
-                override def onCreate(newEntry: CacheEntry[Path]): Unit = {}
-                override def onDelete(oldEntry: CacheEntry[Path]): Unit = {}
-                override def onUpdate(oldEntry: CacheEntry[Path],
-                                      newEntry: CacheEntry[Path]): Unit = {
+              new CacheObserver[Path] {
+                override def onCreate(newEntry: Entry[Path]): Unit = {}
+                override def onDelete(oldEntry: Entry[Path]): Unit = {}
+                override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {
                   val path = newEntry.getTypedPath.getPath
                   if (path.getFileName == Paths.get("link") && paths.add(path)) latch.countDown()
                 }
@@ -397,18 +390,17 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
             val otherLink = otherDir.resolve("link") linkTo file
             usingAsync(FileCacheTest.get[Path](
               getPath,
-              new FileTreeDataViews.CacheObserver[Path] {
-                override def onCreate(newEntry: CacheEntry[Path]): Unit = {}
+              new CacheObserver[Path] {
+                override def onCreate(newEntry: Entry[Path]): Unit = {}
 
-                override def onDelete(oldEntry: CacheEntry[Path]): Unit = {
+                override def onDelete(oldEntry: Entry[Path]): Unit = {
                   if (oldEntry.getTypedPath.getPath == otherLink) {
                     deletionLatch.countDown()
                   }
                   if (oldEntry.getTypedPath.getPath == link) secondDeletionLatch.countDown()
                 }
 
-                override def onUpdate(oldEntry: CacheEntry[Path],
-                                      newEntry: CacheEntry[Path]): Unit = {
+                override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {
                   if (newEntry.getTypedPath.getPath == link) {
                     paths.add(newEntry.getTypedPath.getPath)
                     updateLatch.countDown()

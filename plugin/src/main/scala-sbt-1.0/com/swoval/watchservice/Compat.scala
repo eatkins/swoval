@@ -5,7 +5,8 @@ import java.io.{ File, IOException }
 import java.nio.file.{ Files, Path }
 
 import com.swoval.files.FileTreeDataViews.Entry
-import com.swoval.files.{ CacheEntry, TypedPath }
+import com.swoval.files.TypedPath
+import com.swoval.files.cache.{ CacheEntry, Entry }
 import com.swoval.files.impl.functional
 import com.swoval.files.impl.functional.Either
 import com.swoval.functional
@@ -38,10 +39,10 @@ object Compat {
   def extraProjectSettings: Seq[Def.Setting[_]] = Nil
   def settings(s: Seq[Def.Setting[_]]): Seq[Def.Setting[_]] = s
 
-  case class CacheEntryImpl(getTypedPath: TypedPath) extends CacheEntry[Path] {
+  case class CacheEntryImpl(getTypedPath: TypedPath) extends Entry[Path] {
     override def getValue: Either[IOException, Path] =
       functional.Either.right(getTypedPath.getPath)
-    override def compareTo(other: CacheEntry[Path]): Int =
+    override def compareTo(other: Entry[Path]): Int =
       getTypedPath.getPath.compareTo(other.getTypedPath.getPath)
   }
   private class PathFileFilter(val pathFilter: functional.Filter[Path]) extends FileFilter {
@@ -106,7 +107,7 @@ object Compat {
   }
   def filter(files: Seq[WatchSource], id: Filter.ID): Seq[SourcePath] = files map sourcePath
   def makeScopedSource(p: Path,
-                       pathFilter: functional.Filter[CacheEntry[Path]],
+                       pathFilter: functional.Filter[Entry[Path]],
                        id: Def.ScopedKey[_]): WatchSource = {
     Source(p.toFile, new SourceFilter(p, pathFilter, id) {
       override lazy val toString: String = pathFilter.toString
