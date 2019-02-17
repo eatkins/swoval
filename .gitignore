@@ -16,6 +16,7 @@ files/jvm/src/test/scala/com/swoval/files/RelativeFileTreeViewTest.scala
 files/jvm/src/test/scala/com/swoval/files/TestHelpers.scala
 files/jvm/src/test/scala/com/swoval/files/impl/CachedFileTreeViewTest.scala
 files/jvm/src/test/scala/com/swoval/files/impl/NioPathWatcherOverflowTest.scala
+files/jvm/src/test/scala/com/swoval/files/impl/NioRelativeFileTreeViewTest.scala
 files/jvm/src/test/scala/com/swoval/files/impl/Provider.scala
 files/jvm/src/test/scala/com/swoval/files/impl/apple/ApplePathWatcherTest.scala
 files/jvm/src/test/scala/com/swoval/files/impl/apple/FileEventMonitorTest.scala

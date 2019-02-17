@@ -11,5 +11,10 @@ public class Filters {
         public boolean accept(Object o) {
           return true;
         }
+
+        @Override
+        public String toString() {
+          return "AllPass";
+        }
       };
 }

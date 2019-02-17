@@ -1,21 +1,25 @@
 package com.swoval.files.impl;
 
+import static com.swoval.functional.Filters.AllPass;
+
+import com.swoval.files.RelativeFileTreeView;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.TypedPath;
 import com.swoval.functional.Filter;
 import java.io.IOException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class RelativeFileTreeView implements FileTreeView<TypedPath> {
+public class RelativeFileTreeViewImpl implements RelativeFileTreeView<TypedPath> {
   private final Path path;
   private final FileTreeView<TypedPath> view;
   private final int maxDepth;
-  private final Filter<? super TypedPath> filter;
+  private final Filter<? super TypedPath> baseFilter;
 
-  public RelativeFileTreeView(
+  public RelativeFileTreeViewImpl(
       final Path path,
       final int maxDepth,
       final Filter<? super TypedPath> filter,
@@ -23,7 +27,7 @@ public class RelativeFileTreeView implements FileTreeView<TypedPath> {
     this.path = path;
     this.view = view;
     this.maxDepth = maxDepth;
-    this.filter = filter;
+    this.baseFilter = filter;
   }
 
   @Override
@@ -40,24 +44,40 @@ public class RelativeFileTreeView implements FileTreeView<TypedPath> {
           new Filter<TypedPath>() {
             @Override
             public boolean accept(final TypedPath typedPath) {
-              return RelativeFileTreeView.this.filter.accept(typedPath) && filter.accept(typedPath);
+              return RelativeFileTreeViewImpl.this.baseFilter.accept(typedPath)
+                  && filter.accept(typedPath);
             }
           };
-      final Iterator<TypedPath> absoluteTypedPaths =
-          view.list(listPath, depth - baseDepth, combinedFilter).iterator();
-      while (absoluteTypedPaths.hasNext()) {
-        final TypedPath absoluteTypedPath = absoluteTypedPaths.next();
-        result.add(
-            TypedPaths.getDelegate(
-                path.relativize(absoluteTypedPath.getPath()), absoluteTypedPath));
+      try {
+        final Iterator<TypedPath> absoluteTypedPaths =
+            view.list(listPath, depth - baseDepth, AllPass).iterator();
+        while (absoluteTypedPaths.hasNext()) {
+          final TypedPath absoluteTypedPath = absoluteTypedPaths.next();
+          if (filter.accept(absoluteTypedPath)) {
+            result.add(
+                TypedPaths.getDelegate(
+                    this.path.relativize(absoluteTypedPath.getPath()), absoluteTypedPath));
+          } else {
+          }
+        }
+      } catch (final NotDirectoryException e) {
+        if (maxDepth != -1) throw e;
+        result.add(TypedPaths.getDelegate(path, TypedPaths.get(this.path.resolve(path))));
       }
       return result;
+    } else {
+      throw new IllegalArgumentException(
+          path + " is neither relative nor starts with the base path " + path);
     }
-    return null;
   }
 
   @Override
   public void close() throws Exception {
     view.close();
+  }
+
+  @Override
+  public List<TypedPath> list(int maxDepth, Filter<? super TypedPath> filter) throws IOException {
+    return list(path, maxDepth, filter);
   }
 }

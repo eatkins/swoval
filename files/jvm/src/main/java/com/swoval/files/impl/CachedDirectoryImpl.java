@@ -424,7 +424,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   private Either<Entry<T>, CachedDirectoryImpl<T>> find(final Path path) {
     if (!getEntry().getTypedPath().exists()) {
       return null;
-    } else if (path.equals(this.getPath())) {
+    } else if (path.equals(this.getPath()) || path.equals(Paths.get(""))) {
       return Either.right(this);
     } else if (path.isAbsolute() && path.startsWith(this.getPath())) {
       return findImpl(parts(this.getPath().relativize(path)));
