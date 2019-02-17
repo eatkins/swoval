@@ -2,7 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.files.impl.LinkOption.NOFOLLOW_LINKS;
 
-import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.functional.Converter;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.functional.EitherImpl;

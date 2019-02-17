@@ -7,7 +7,7 @@ import static java.util.Map.Entry;
 
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.functional.Converter;
 import com.swoval.files.RegisterableWatchService;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;

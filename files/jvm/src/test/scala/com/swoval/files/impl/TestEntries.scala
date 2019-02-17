@@ -1,6 +1,7 @@
 package com.swoval.files
 package impl
-import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
+import com.swoval.files.FileTreeDataViews.Entry
+import com.swoval.functional.Converter
 
 object TestEntries {
   def get[T](typedPath: TypedPath, converter: Converter[T], converterPath: TypedPath): Entry[T] =

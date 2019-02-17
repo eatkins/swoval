@@ -8,7 +8,7 @@ import static com.swoval.files.PathWatchers.Event.Kind.Overflow;
 import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.functional.Converter;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeDataViews.ObservableCache;
 import com.swoval.files.api.FileTreeView;

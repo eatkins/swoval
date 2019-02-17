@@ -1,6 +1,6 @@
 package com.swoval.files;
 
-import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.functional.Converter;
 import com.swoval.files.impl.SwovalProviderImpl;
 import java.io.IOException;
 

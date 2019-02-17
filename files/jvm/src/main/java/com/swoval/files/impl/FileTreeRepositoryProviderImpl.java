@@ -1,7 +1,7 @@
 package com.swoval.files.impl;
 
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.functional.Converter;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;

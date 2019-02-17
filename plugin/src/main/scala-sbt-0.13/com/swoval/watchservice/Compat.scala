@@ -4,10 +4,11 @@ package watchservice
 import java.io.{File, IOException}
 import java.nio.file._
 
-import com.swoval.files.FileTreeDataViews.{Converter, Entry}
+import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.impl.{TypedPaths, functional}
 import com.swoval.files.impl.functional.Either
 import com.swoval.files.{FileTreeRepositories, TypedPath}
+import com.swoval.functional.Converter
 import com.swoval.watchservice.CloseWatchPlugin.autoImport.closeWatchFileCache
 import sbt.Keys._
 

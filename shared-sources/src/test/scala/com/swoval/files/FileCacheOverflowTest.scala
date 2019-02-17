@@ -11,6 +11,7 @@ import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers._
 import com.swoval.files.impl._
 import com.swoval.files.test._
+import com.swoval.functional.Converter
 import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
@@ -23,7 +24,7 @@ import scala.util.{ Failure, Success, Try }
 
 trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
   def getBounded[T <: AnyRef](
-      converter: FileTreeDataViews.Converter[T],
+      converter: Converter[T],
       cacheObserver: FileTreeDataViews.CacheObserver[T]
   )(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
     val res = provider.noFollowSymlinks(converter)

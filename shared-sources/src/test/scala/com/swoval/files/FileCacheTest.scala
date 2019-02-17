@@ -4,12 +4,12 @@ package files
 import java.io.IOException
 import java.nio.file.Path
 
-import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
+import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
 import com.swoval.files.TestHelpers._
 import com.swoval.files.impl.Provider
 import com.swoval.files.test._
 import com.swoval.files.test.platform.Bool
-import com.swoval.functional.{ Filter, Filters }
+import com.swoval.functional.{ Converter, Filter, Filters }
 import utest._
 
 import scala.collection.JavaConverters._

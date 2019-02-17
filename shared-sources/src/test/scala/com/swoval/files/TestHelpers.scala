@@ -5,11 +5,11 @@ package files
 import java.io.{ File, FileFilter, IOException }
 import java.nio.file.{ Path, Paths }
 
-import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
+import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
 import com.swoval.files.api.{ Observer, PathWatcher }
 import com.swoval.files.impl.functional.{ Consumer, EitherImpl }
 import com.swoval.files.test.platform.Bool
-import com.swoval.functional.Filter
+import com.swoval.functional.{ Converter, Filter }
 import com.swoval.runtime.Platform
 import com.swoval.test._
 import utest._

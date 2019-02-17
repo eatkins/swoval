@@ -4,9 +4,10 @@ package watchservice
 import java.io.FileFilter
 import java.nio.file.Path
 
-import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
+import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files._
 import com.swoval.files.api.PathWatcher
+import com.swoval.functional.Converter
 import sbt.Keys._
 import sbt._
 import sbt.complete.{ DefaultParsers, Parser }

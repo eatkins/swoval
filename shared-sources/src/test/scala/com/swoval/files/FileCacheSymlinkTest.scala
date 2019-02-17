@@ -6,10 +6,11 @@ import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileCacheTest.FileCacheOps
-import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
+import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
 import com.swoval.files.test._
+import com.swoval.functional.Converter
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
 import utest._
