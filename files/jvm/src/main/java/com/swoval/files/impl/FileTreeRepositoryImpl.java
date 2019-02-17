@@ -2,8 +2,8 @@ package com.swoval.files.impl;
 
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.api.Observer;
-import com.swoval.files.cache.CacheObserver;
 import com.swoval.files.cache.Entry;
+import com.swoval.files.cache.Event;
 import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
@@ -52,29 +52,8 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   }
 
   @Override
-  public int addObserver(final Observer<? super Entry<T>> observer) {
-    return addCacheObserver(
-        new CacheObserver<T>() {
-          @Override
-          public void onCreate(final Entry<T> newCacheEntry) {
-            observer.onNext(newCacheEntry);
-          }
-
-          @Override
-          public void onDelete(final Entry<T> oldCacheEntry) {
-            observer.onNext(oldCacheEntry);
-          }
-
-          @Override
-          public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
-            observer.onNext(newCacheEntry);
-          }
-
-          @Override
-          public void onError(final IOException exception) {
-            observer.onError(exception);
-          }
-        });
+  public int addObserver(Observer<? super Event<T>> observer) {
+    return directoryTree.addObserver(observer);
   }
 
   @Override
@@ -107,11 +86,6 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
   public void unregister(final Path path) {
     final Path absolutePath = path.isAbsolute() ? path : path.toAbsolutePath();
     watcher.unregister(absolutePath);
-  }
-
-  @Override
-  public int addCacheObserver(final CacheObserver<T> observer) {
-    return directoryTree.addCacheObserver(observer);
   }
 
   abstract static class Callback implements Runnable, Comparable<Callback> {

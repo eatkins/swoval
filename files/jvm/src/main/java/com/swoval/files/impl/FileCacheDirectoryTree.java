@@ -7,15 +7,17 @@ import static com.swoval.files.PathWatchers.Event.Kind.Modify;
 import static com.swoval.files.PathWatchers.Event.Kind.Overflow;
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.ObservableCache;
-import com.swoval.files.PathWatchers.Event;
+import com.swoval.files.PathWatchers;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.api.Observer;
+import com.swoval.files.api.Observable;
 import com.swoval.files.api.PathWatcher;
 import com.swoval.files.cache.CacheObserver;
+import com.swoval.files.cache.Creation;
 import com.swoval.files.cache.Entry;
+import com.swoval.files.cache.Event;
 import com.swoval.files.impl.FileTreeRepositoryImpl.Callback;
 import com.swoval.functional.Filter;
 import com.swoval.functional.IOFunction;
@@ -88,7 +90,7 @@ class FileCachePendingFiles extends Lockable {
   }
 }
 
-class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entry<T>> {
+class FileCacheDirectoryTree<T> implements Observable<Event<T>>, FileTreeView<Entry<T>> {
   private final DirectoryRegistry directoryRegistry = new DirectoryRegistryImpl();
   private final Filter<TypedPath> filter = DirectoryRegistries.toTypedPathFilter(directoryRegistry);
   private final IOFunction<TypedPath, T> converter;
@@ -97,7 +99,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   private final boolean rescanOnDirectoryUpdate;
   private final AtomicBoolean closed = new AtomicBoolean(false);
   private final Logger logger;
-  private final CacheObservers<T> observers;
+  private final Observers<Event<T>> observers;
   final SymlinkWatcher symlinkWatcher;
 
   FileCacheDirectoryTree(
@@ -112,11 +114,11 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
     this.followLinks = symlinkWatcher != null;
     this.rescanOnDirectoryUpdate = rescanOnDirectoryUpdate;
     this.logger = logger;
-    observers = new CacheObservers<>(logger);
+    observers = new Observers<>(logger);
     if (symlinkWatcher != null) {
       final boolean log = System.getProperty("swoval.symlink.debug", "false").equals("true");
       symlinkWatcher.addObserver(
-          new Observer<Event>() {
+          new Observer<PathWatchers.Event>() {
             @Override
             public void onError(final Throwable t) {
               if (log && Loggers.shouldLog(logger, Level.ERROR)) {
@@ -125,7 +127,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
             }
 
             @Override
-            public void onNext(final Event event) {
+            public void onNext(final PathWatchers.Event event) {
               handleEvent(event);
             }
           });
@@ -214,7 +216,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   }
 
   @SuppressWarnings("EmptyCatchBlock")
-  void handleEvent(final Event event) {
+  void handleEvent(final PathWatchers.Event event) {
     if (Loggers.shouldLog(logger, Level.DEBUG)) logger.debug(this + " received event " + event);
     final TypedPath typedPath = event.getTypedPath();
     final List<TypedPath> symlinks = new ArrayList<>();
@@ -446,12 +448,9 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   private void addCallback(
       final List<Callback> callbacks,
       final List<TypedPath> symlinks,
-      final Entry<T> cacheEntry,
-      final Entry<T> oldCacheEntry,
-      final Entry<T> newCacheEntry,
-      final Kind kind,
-      final IOException ioException) {
-    final TypedPath typedPath = cacheEntry == null ? null : cacheEntry.getTypedPath();
+      final TypedPath typedPath,
+      final Event<T> event,
+      final Kind kind) {
     if (typedPath != null && typedPath.isSymbolicLink() && followLinks) {
       symlinks.add(typedPath);
     }
@@ -460,15 +459,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
           @Override
           public void run() {
             try {
-              if (ioException != null) {
-                observers.onError(ioException);
-              } else if (kind.equals(Create)) {
-                observers.onCreate(newCacheEntry);
-              } else if (kind.equals(Delete)) {
-                observers.onDelete(Entries.setExists(oldCacheEntry, false));
-              } else if (kind.equals(Modify)) {
-                observers.onUpdate(oldCacheEntry, newCacheEntry);
-              }
+              observers.onNext(event);
             } catch (final Exception e) {
               if (Loggers.shouldLog(logger, Level.ERROR)) {
                 Loggers.logException(logger, e);
@@ -479,18 +470,13 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   }
 
   @Override
-  public int addObserver(final Observer<? super Entry<T>> observer) {
+  public int addObserver(final Observer<? super Event<T>> observer) {
     return observers.addObserver(observer);
   }
 
   @Override
   public void removeObserver(final int handle) {
     observers.removeObserver(handle);
-  }
-
-  @Override
-  public int addCacheObserver(final CacheObserver<T> observer) {
-    return observers.addCacheObserver(observer);
   }
 
   @Override
@@ -522,7 +508,17 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
     return new CacheObserver<T>() {
       @Override
       public void onCreate(final Entry<T> newCacheEntry) {
-        addCallback(callbacks, symlinks, newCacheEntry, null, newCacheEntry, Create, null);
+        addCallback(
+            callbacks,
+            symlinks,
+            newCacheEntry.getTypedPath(),
+            new Creation<Entry<T>>() {
+              @Override
+              public Entry<Entry<T>> getEntry() {
+                return null;
+              }
+            },
+            null);
       }
 
       @Override
@@ -536,7 +532,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
       }
 
       @Override
-      public void onError(final IOException exception) {
+      public void onError(final Throwable throwable) {
         addCallback(callbacks, symlinks, null, null, null, Error, exception);
       }
     };

@@ -36,5 +36,5 @@ public interface CacheObserver<T> {
    *
    * @param exception The exception thrown by the computation
    */
-  void onError(final IOException exception);
+  void onError(final Throwable throwable);
 }

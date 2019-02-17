@@ -171,10 +171,9 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
                 val expected = files.filter(_.getFileName.toString == "file-1").toSet
                 println((expected diff updatedFiles.toSet).take(10).toSeq.sorted mkString "\n")
                 if (newCount == count)
-                  println(s"$this Update latch not triggered ($count)")
+                  println(s"$this Event latch not triggered ($count)")
                 else
-                  println(
-                    s"$this Update latch not triggered, but still being decremented $newCount")
+                  println(s"$this Event latch not triggered, but still being decremented $newCount")
               }
               if (creationLatch.getCount <= 0 && updateLatch.getCount <= 0 && deletionLatch.getCount > 0) {
                 val count = deletionLatch.getCount

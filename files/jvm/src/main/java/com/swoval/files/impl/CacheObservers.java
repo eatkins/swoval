@@ -2,7 +2,11 @@ package com.swoval.files.impl;
 
 import com.swoval.files.api.Observer;
 import com.swoval.files.cache.CacheObserver;
+import com.swoval.files.cache.Creation;
+import com.swoval.files.cache.Deletion;
 import com.swoval.files.cache.Entry;
+import com.swoval.files.cache.Event;
+import com.swoval.files.cache.Update;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
 import com.swoval.logging.Loggers.Level;
@@ -14,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
+public class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   private final AtomicInteger counter = new AtomicInteger(0);
   private final Map<Integer, CacheObserver<T>> observers = new LinkedHashMap<>();
   private final Logger logger;
@@ -78,13 +82,13 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onError(IOException exception) {
+  public void onError(final Throwable throwable) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
     }
     final Iterator<CacheObserver<T>> it = cbs.iterator();
-    while (it.hasNext()) it.next().onError(exception);
+    while (it.hasNext()) it.next().onError(throwable);
   }
 
   /**
@@ -127,27 +131,105 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
     observers.clear();
   }
 
+  private static class WrappedObserver<T> implements CacheObserver<T> {
+    private final Observer<? super Entry<T>> observer;
+
+    WrappedObserver(final Observer<? super Entry<T>> observer) {
+      this.observer = observer;
+    }
+
+    @Override
+    public void onCreate(final Entry<T> newCacheEntry) {
+      observer.onNext(newCacheEntry);
+    }
+
+    @Override
+    public void onDelete(final Entry<T> oldCacheEntry) {
+      observer.onNext(oldCacheEntry);
+    }
+
+    @Override
+    public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
+      observer.onNext(newCacheEntry);
+    }
+
+    @Override
+    public void onError(final Throwable throwable) {
+      observer.onError(throwable);
+    }
+
+    @Override
+    public String toString() {
+      return "WrappedCacheObserver(" + observer + ")";
+    }
+
+    @Override
+    public int hashCode() {
+      return observer.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+      return (other instanceof WrappedObserver<?>)
+          && ((WrappedObserver) other).observer.equals(this.observer);
+    }
+  }
+
+  private static class WrappedCacheObserver<T> implements Observer<Event<T>> {
+    private final CacheObserver<T> cacheObserver;
+
+    WrappedCacheObserver(final CacheObserver<T> cacheObserver) {
+      this.cacheObserver = cacheObserver;
+    }
+
+    @Override
+    public void onError(final Throwable t) {
+      cacheObserver.onError(t);
+    }
+
+    @Override
+    public void onNext(final Event<T> event) {
+      onNextImpl(cacheObserver, event);
+    }
+
+    @Override
+    public String toString() {
+      return "WrappedCacheObserver(" + cacheObserver + ")";
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+      return (other instanceof WrappedCacheObserver<?>)
+          && ((WrappedCacheObserver) other).cacheObserver.equals(this.cacheObserver);
+    }
+
+    @Override
+    public int hashCode() {
+      return cacheObserver.hashCode();
+    }
+  }
+
   static <T> CacheObserver<T> fromObserver(final Observer<? super Entry<T>> observer) {
-    return new CacheObserver<T>() {
-      @Override
-      public void onCreate(final Entry<T> newCacheEntry) {
-        observer.onNext(newCacheEntry);
-      }
+    return new WrappedObserver<>(observer);
+  }
 
-      @Override
-      public void onDelete(final Entry<T> oldCacheEntry) {
-        observer.onNext(oldCacheEntry);
-      }
+  public static <T> Observer<Event<T>> fromCacheObserver(final CacheObserver<T> cacheObserver) {
+    return new WrappedCacheObserver<>(cacheObserver);
+  }
 
-      @Override
-      public void onUpdate(final Entry<T> oldCacheEntry, final Entry<T> newCacheEntry) {
-        observer.onNext(newCacheEntry);
-      }
-
-      @Override
-      public void onError(final IOException exception) {
-        observer.onError(exception);
-      }
-    };
+  private static <T> void onNextImpl(final CacheObserver<T> cacheObserver, final Event<T> event) {
+    final Creation<T> creation = event.getCreation();
+    final Deletion<T> deletion = event.getDeletion();
+    final Update<T> update = event.getUpdate();
+    final Throwable throwable = event.getThrowable();
+    if (creation != null) {
+      cacheObserver.onCreate(creation.getEntry());
+    } else if (deletion != null) {
+      cacheObserver.onDelete(deletion.getEntry());
+    } else if (update != null) {
+      cacheObserver.onUpdate(update.getPreviousEntry(), update.getCurrentEntry());
+    } else if (throwable != null) {
+      cacheObserver.onError(throwable);
+    }
   }
 }

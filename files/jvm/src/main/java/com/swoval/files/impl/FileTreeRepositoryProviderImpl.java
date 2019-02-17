@@ -102,23 +102,18 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
       delegate.close();
     }
 
     @Override
-    public int addObserver(final Observer<? super Entry<T>> observer) {
+    public int addObserver(Observer<? super com.swoval.files.cache.Event<T>> observer) {
       return delegate.addObserver(observer);
     }
 
     @Override
     public void removeObserver(final int handle) {
       delegate.removeObserver(handle);
-    }
-
-    @Override
-    public int addCacheObserver(final CacheObserver<T> observer) {
-      return delegate.addCacheObserver(observer);
     }
   }
 

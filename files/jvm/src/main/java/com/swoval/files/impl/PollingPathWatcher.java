@@ -189,8 +189,8 @@ class PollingPathWatcher implements PathWatcher<Event> {
           }
 
           @Override
-          public void onError(final IOException exception) {
-            observers.onError(exception);
+          public void onError(final Throwable throwable) {
+            observers.onError(throwable);
           }
         };
 

@@ -47,7 +47,7 @@ class CacheUpdates<T> implements CacheObserver<T> {
   }
 
   @Override
-  public void onError(final IOException exception) {}
+  public void onError(final Throwable throwable) {}
 
   @Override
   public String toString() {

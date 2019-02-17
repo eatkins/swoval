@@ -86,7 +86,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
           final Entry<WatchedDirectory> newCacheEntry) {}
 
       @Override
-      public void onError(final IOException exception) {}
+      public void onError(final Throwable throwable) {}
     };
   }
 
