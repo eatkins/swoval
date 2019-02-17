@@ -8,7 +8,7 @@ import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.impl.{TypedPaths, functional}
 import com.swoval.files.impl.functional.Either
 import com.swoval.files.{FileTreeRepositories, TypedPath}
-import com.swoval.functional.Converter
+import com.swoval.functional.{Converter, IOFunction}
 import com.swoval.watchservice.CloseWatchPlugin.autoImport.closeWatchFileCache
 import sbt.Keys._
 
@@ -86,7 +86,7 @@ object Compat {
   val global = Scope(Global, Global, Global, Global)
   def extraProjectSettings: Seq[Def.Setting[_]] = Seq(
     pollInterval := 75,
-    closeWatchFileCache := FileTreeRepositories.get(new Converter[Path] {
+    closeWatchFileCache := FileTreeRepositories.get(new IOFunction[Path] {
       override def apply(p: TypedPath): Path = p.getPath()
     }, true)
   )

@@ -11,7 +11,7 @@ import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers._
 import com.swoval.files.impl._
 import com.swoval.files.test._
-import com.swoval.functional.Converter
+import com.swoval.functional.IOFunction
 import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
@@ -24,7 +24,7 @@ import scala.util.{ Failure, Success, Try }
 
 trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
   def getBounded[T <: AnyRef](
-      converter: Converter[T],
+      converter: IOFunction[TypedPath, T],
       cacheObserver: FileTreeDataViews.CacheObserver[T]
   )(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
     val res = provider.noFollowSymlinks(converter)
@@ -107,7 +107,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
         },
         (_: IOException) => {}
       )
-      usingAsync(getBounded[Path](identity, observer)) { c =>
+      usingAsync(getBounded[Path](getPath, observer)) { c =>
         c.reg(dir)
         val lambdas =
           new java.util.ArrayList((subdirs.map(d => () => d.createDirectories()) ++ files.map(f =>
@@ -199,7 +199,7 @@ object FileCacheOverflowTest extends FileCacheOverflowTest with DefaultFileCache
   private implicit class SyncOps[T <: AnyRef](val t: T) extends AnyVal {
     def sync[R](f: T => R): R = t.synchronized(f(t))
   }
-//  override def getBounded[T <: AnyRef](converter: FileTreeDataViews.Converter[T],
+//  override def getBounded[T <: AnyRef](converter: FileTreeDataViews.IOFunction[T],
 //                                       cacheObserver: FileTreeDataViews.CacheObserver[T])(
 //      implicit logger: TestLogger): FileTreeRepository[T] =
 //    if (Platform.isMac) FileCacheTest.get(converter, cacheObserver)

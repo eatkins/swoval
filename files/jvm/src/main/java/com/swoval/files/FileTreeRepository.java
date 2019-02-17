@@ -1,6 +1,6 @@
 package com.swoval.files;
 
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeDataViews.ObservableCache;
 import com.swoval.files.api.FileTreeView;
@@ -17,7 +17,7 @@ import java.nio.file.Path;
  * path information in {@link Entry} instances.
  *
  * <p>A default implementation is provided by {@link FileTreeRepositories#get}. The user may cache
- * arbitrary information in the cache by customizing the {@link Converter} that is passed into the
+ * arbitrary information in the cache by customizing the {@link IOFunction} that is passed into the
  * factory {@link FileTreeRepositories#get}.
  *
  * <p>The cache allows the user to register a regular file, directory or symbolic link. After

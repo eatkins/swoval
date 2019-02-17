@@ -2,7 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.files.impl.LinkOption.NOFOLLOW_LINKS;
 
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.functional.EitherImpl;
@@ -23,7 +23,9 @@ final class Entries {
   private Entries() {}
 
   static <T> Entry<T> get(
-      final TypedPath typedPath, final Converter<T> converter, final TypedPath converterPath) {
+      final TypedPath typedPath,
+      final IOFunction<TypedPath, T> converter,
+      final TypedPath converterPath) {
     try {
       return new ValidEntry<>(typedPath, converter.apply(converterPath));
     } catch (final IOException e) {

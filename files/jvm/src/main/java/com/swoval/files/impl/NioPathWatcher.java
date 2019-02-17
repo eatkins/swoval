@@ -7,7 +7,7 @@ import static java.util.Map.Entry;
 
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.RegisterableWatchService;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
@@ -39,7 +39,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
   private final Observers<Event> observers;
   private final RootDirectories rootDirectories = new RootDirectories();
   private final DirectoryRegistry directoryRegistry;
-  private final Converter<WatchedDirectory> converter;
+  private final IOFunction<TypedPath, WatchedDirectory> converter;
   private final Logger logger;
 
   private CacheObserver<WatchedDirectory> updateCacheObserver(final List<Event> events) {
@@ -118,7 +118,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
             watchService,
             logger);
     this.converter =
-        new Converter<WatchedDirectory>() {
+        new IOFunction<TypedPath, WatchedDirectory>() {
           @Override
           public WatchedDirectory apply(final TypedPath typedPath) {
             return typedPath.isDirectory() && !typedPath.isSymbolicLink()

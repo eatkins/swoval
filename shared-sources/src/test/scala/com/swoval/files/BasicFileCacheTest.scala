@@ -111,7 +111,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           val onUpdate = ignoreOld[Path](ignore)
           val onError = (_: IOException) => {}
           val observer = getObserver(onChange, onUpdate, onChange, onError)
-          usingAsync(FileCacheTest.get(identity, observer)) { c =>
+          usingAsync(FileCacheTest.get(getPath, observer)) { c =>
             c.reg(dir, recursive = false)
             c.ls(dir, recursive = false) === Seq(initial)
             initial.renameTo(moved)
@@ -438,7 +438,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
 
             override def onError(exception: IOException): Unit = {}
           }
-          usingAsync(FileCacheTest.get(identity, observer)) { c =>
+          usingAsync(FileCacheTest.get(getPath, observer)) { c =>
             c.reg(dir)
             c.ls(dir) === Seq(file)
             dir.deleteRecursive()

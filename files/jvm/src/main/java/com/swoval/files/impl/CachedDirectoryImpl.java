@@ -2,7 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.api.FileTreeView;
@@ -47,7 +47,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   private final int depth;
   private final FileTreeView<TypedPath> fileTreeView;
   private final boolean followLinks;
-  private final Converter<T> converter;
+  private final IOFunction<TypedPath, T> converter;
   private final Filter<? super TypedPath> pathFilter;
   private final LockableMap<Path, CachedDirectoryImpl<T>> subdirectories = new LockableMap<>();
   private final Map<Path, Entry<T>> files = new HashMap<>();
@@ -58,7 +58,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
 
   CachedDirectoryImpl(
       final TypedPath typedPath,
-      final Converter<T> converter,
+      final IOFunction<TypedPath, T> converter,
       final int depth,
       final Filter<? super TypedPath> filter,
       final boolean followLinks,
@@ -73,7 +73,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
 
   public CachedDirectoryImpl(
       final Path path,
-      final Converter<T> converter,
+      final IOFunction<TypedPath, T> converter,
       final int depth,
       final Filter<? super TypedPath> filter,
       final boolean followLinks) {

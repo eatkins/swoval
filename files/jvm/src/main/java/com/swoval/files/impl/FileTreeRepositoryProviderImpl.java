@@ -1,7 +1,8 @@
 package com.swoval.files.impl;
 
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.functional.Converter;
+import com.swoval.files.TypedPath;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
@@ -31,20 +32,20 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
   }
 
   @Override
-  public <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
+  public <T> FollowSymlinks<T> followSymlinks(final IOFunction<TypedPath, T> converter)
       throws InterruptedException, IOException {
     return new FollowWrapper<>(get(true, converter, logger, pathWatcherProvider));
   }
 
   @Override
-  public <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
+  public <T> NoFollowSymlinks<T> noFollowSymlinks(final IOFunction<TypedPath, T> converter)
       throws InterruptedException, IOException {
     return new NoFollowWrapper<>(get(false, converter, logger, pathWatcherProvider));
   }
 
   static <T> FileTreeRepository<T> get(
       final boolean followLinks,
-      final Converter<T> converter,
+      final IOFunction<TypedPath, T> converter,
       final Logger logger,
       final PathWatcherProvider pathWatcherProvider)
       throws InterruptedException, IOException {

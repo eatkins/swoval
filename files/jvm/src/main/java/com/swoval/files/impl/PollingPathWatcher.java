@@ -4,7 +4,7 @@ import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeViews;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
@@ -37,11 +37,11 @@ class PollingPathWatcher implements PathWatcher<Event> {
   private final Observers<Event> observers;
   private Map<Path, FileTreeDataViews.Entry<Long>> oldEntries;
   private final PeriodicTask periodicTask;
-  private final Converter<Long> converter;
+  private final IOFunction<TypedPath, Long> converter;
   private final Logger logger;
 
   PollingPathWatcher(
-      final Converter<Long> converter,
+      final IOFunction<TypedPath, Long> converter,
       final boolean followLinks,
       final long pollInterval,
       final TimeUnit timeUnit,
@@ -62,7 +62,7 @@ class PollingPathWatcher implements PathWatcher<Event> {
       final Logger logger)
       throws InterruptedException {
     this(
-        new Converter<Long>() {
+        new IOFunction<TypedPath, Long>() {
           @Override
           public Long apply(final TypedPath typedPath) {
             try {

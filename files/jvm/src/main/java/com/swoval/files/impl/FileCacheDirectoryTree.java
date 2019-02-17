@@ -8,7 +8,7 @@ import static com.swoval.files.PathWatchers.Event.Kind.Overflow;
 import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeDataViews.ObservableCache;
 import com.swoval.files.api.FileTreeView;
@@ -91,7 +91,7 @@ class FileCachePendingFiles extends Lockable {
 class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entry<T>> {
   private final DirectoryRegistry directoryRegistry = new DirectoryRegistryImpl();
   private final Filter<TypedPath> filter = DirectoryRegistries.toTypedPathFilter(directoryRegistry);
-  private final Converter<T> converter;
+  private final IOFunction<TypedPath, T> converter;
   private final Executor callbackExecutor;
   private final boolean followLinks;
   private final boolean rescanOnDirectoryUpdate;
@@ -101,7 +101,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   final SymlinkWatcher symlinkWatcher;
 
   FileCacheDirectoryTree(
-      final Converter<T> converter,
+      final IOFunction<TypedPath, T> converter,
       final Executor callbackExecutor,
       final SymlinkWatcher symlinkWatcher,
       final boolean rescanOnDirectoryUpdate,

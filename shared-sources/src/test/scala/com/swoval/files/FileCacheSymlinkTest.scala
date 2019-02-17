@@ -10,7 +10,7 @@ import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
 import com.swoval.files.test._
-import com.swoval.functional.Converter
+import com.swoval.functional.IOFunction
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
 import utest._
@@ -22,9 +22,7 @@ import scala.util.Failure
 
 trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
   private val sentinel = new Object
-  val objectConverter: Converter[Object] = new Converter[Object] {
-    override def apply(typedPath: TypedPath): Object = sentinel
-  }
+  val objectConverter: IOFunction[TypedPath, Object] = (_: TypedPath) => sentinel
   def getRepo(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Object] =
     provider.followSymlinks(objectConverter)
   def getNoFollow(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Object] =
@@ -259,7 +257,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val linkLatch = new CountDownLatch(1)
           val link = dir.resolve("link")
           usingAsync(FileCacheTest.get[Path](
-            identity,
+            getPath,
             new FileTreeDataViews.CacheObserver[Path] {
               override def onCreate(newEntry: Entry[Path]): Unit = {}
 
@@ -354,7 +352,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
             val link = dir.resolve("link") linkTo file
             val otherLink = otherDir.resolve("link") linkTo file
             usingAsync(FileCacheTest.get[Path](
-              identity,
+              getPath,
               new FileTreeDataViews.CacheObserver[Path] {
                 override def onCreate(newEntry: Entry[Path]): Unit = {}
                 override def onDelete(oldEntry: Entry[Path]): Unit = {}
@@ -391,7 +389,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
             val link = dir.resolve("link") linkTo file
             val otherLink = otherDir.resolve("link") linkTo file
             usingAsync(FileCacheTest.get[Path](
-              identity,
+              getPath,
               new FileTreeDataViews.CacheObserver[Path] {
                 override def onCreate(newEntry: Entry[Path]): Unit = {}
 

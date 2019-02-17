@@ -1,6 +1,6 @@
 package com.swoval.files;
 
-import com.swoval.functional.Converter;
+import com.swoval.functional.IOFunction;
 import com.swoval.files.impl.SwovalProviderImpl;
 import java.io.IOException;
 
@@ -21,7 +21,7 @@ public class FileTreeRepositories {
    * @throws InterruptedException if the path watcher can't be started.
    * @throws IOException if an instance of {@link java.nio.file.WatchService} cannot be created.
    */
-  public static <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
+  public static <T> FollowSymlinks<T> followSymlinks(final IOFunction<TypedPath, T> converter)
       throws InterruptedException, IOException {
     return provider.followSymlinks(converter);
   }
@@ -38,7 +38,7 @@ public class FileTreeRepositories {
    * @throws InterruptedException if the path watcher can't be started.
    * @throws IOException if an instance of {@link java.nio.file.WatchService} cannot be created.
    */
-  public static <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
+  public static <T> NoFollowSymlinks<T> noFollowSymlinks(final IOFunction<TypedPath, T> converter)
       throws InterruptedException, IOException {
     return provider.noFollowSymlinks(converter);
   }

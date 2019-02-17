@@ -9,7 +9,7 @@ import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
 import com.swoval.files.api.{ Observer, PathWatcher }
 import com.swoval.files.impl.functional.{ Consumer, EitherImpl }
 import com.swoval.files.test.platform.Bool
-import com.swoval.functional.{ Converter, Filter }
+import com.swoval.functional.{ Filter, IOFunction }
 import com.swoval.runtime.Platform
 import com.swoval.test._
 import utest._
@@ -64,8 +64,8 @@ object TestHelpers extends PlatformFiles {
     def get(): R = EitherImpl.getRight(either)
   }
 
-  implicit class ConverterFunctionOps[T](val f: TypedPath => T) extends Converter[T] {
-    override def apply(path: TypedPath): T = f(path)
+  implicit class IOFunctionFunctionOps[T, R](val f: T => R) extends IOFunction[T, R] {
+    override def apply(t: T): R = f(t)
   }
 
   implicit class FileFilterFunctionOps(val f: File => Boolean) extends FileFilter {

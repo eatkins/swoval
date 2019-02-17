@@ -7,7 +7,7 @@ import java.nio.file.Path
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files._
 import com.swoval.files.api.PathWatcher
-import com.swoval.functional.Converter
+import com.swoval.functional.IOFunction
 import sbt.Keys._
 import sbt._
 import sbt.complete.{ DefaultParsers, Parser }
@@ -287,7 +287,7 @@ object CloseWatchPlugin extends AutoPlugin {
             .put(stateBuildStructure, newStructure)
             .put(sessionSettings, session.copy(original = newSettings))
         } else state
-        val fileCache = FileTreeRepositories.followSymlinks(new Converter[Path] {
+        val fileCache = FileTreeRepositories.followSymlinks(new IOFunction[Path] {
           override def apply(typedPath: TypedPath): Path = typedPath.getPath
         })
         newState

@@ -9,18 +9,18 @@ import com.swoval.files.TestHelpers._
 import com.swoval.files.impl.Provider
 import com.swoval.files.test._
 import com.swoval.files.test.platform.Bool
-import com.swoval.functional.{ Converter, Filter, Filters }
+import com.swoval.functional.{ IOFunction, Filter, Filters }
 import utest._
 
 import scala.collection.JavaConverters._
 
 trait FileCacheTest extends TestSuite { self: TestSuite =>
   def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider
-  def identity: Converter[Path] = (_: TypedPath).getPath
+  def getPath: IOFunction[TypedPath, Path] = (_: TypedPath).getPath
 
   def simpleCache(f: Entry[Path] => Unit)(
       implicit provider: FileTreeRepositoryProvider): FileTreeRepository[Path] =
-    FileCacheTest.get(identity, getObserver(f))
+    FileCacheTest.get(getPath, getObserver(f))
 
   def lastModifiedCache(f: Entry[LastModified] => Unit)(
       implicit provider: FileTreeRepositoryProvider): FileTreeRepository[LastModified] =
@@ -34,7 +34,7 @@ trait FileCacheTest extends TestSuite { self: TestSuite =>
 }
 
 object FileCacheTest {
-  def get[T <: AnyRef](converter: Converter[T], cacheObserver: CacheObserver[T])(
+  def get[T <: AnyRef](converter: IOFunction[TypedPath, T], cacheObserver: CacheObserver[T])(
       implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
     val res = provider.followSymlinks(converter)
     res.addCacheObserver(cacheObserver)
