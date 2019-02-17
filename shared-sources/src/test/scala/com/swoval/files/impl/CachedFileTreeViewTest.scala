@@ -2,13 +2,12 @@ package com.swoval.files
 package impl
 
 import java.io.IOException
-import java.nio.file.Path
+import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileTreeDataViews.{ CacheObserver, Entry }
-import com.swoval.files.Observer
-import com.swoval.files.RelativeFileTreeViewTest.RepositoryOps
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
+import com.swoval.files.api.{ FileTreeView, Observer }
 import com.swoval.files.test._
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass
@@ -18,18 +17,15 @@ import utest._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Future
-
+import RelativeFileTreeViewTest._
 object CachedFileTreeViewTest extends TestSuite {
-  def newCachedView(path: Path): CachedDirectory[Path] = newCachedView(path, Integer.MAX_VALUE)
-  def newCachedView(path: Path, maxDepth: Int): CachedDirectory[Path] =
+  val empty = Paths.get("")
+  def newCachedView(path: Path): UpdatableFileTreeView[Path] =
+    newCachedView(path, Integer.MAX_VALUE)
+  def newCachedView(path: Path, maxDepth: Int): UpdatableFileTreeView[Path] =
     newCachedView(path, maxDepth, followLinks = true)
-  def newCachedView(path: Path, maxDepth: Int, followLinks: Boolean): CachedDirectory[Path] =
-    new CachedDirectoryImpl(TestTypedPaths.get(path),
-                            (_: TypedPath).getPath,
-                            maxDepth,
-                            AllPass,
-                            followLinks)
-      .init()
+  def newCachedView(path: Path, maxDepth: Int, followLinks: Boolean): UpdatableFileTreeView[Path] =
+    new CachedDirectoryImpl(path, (_: TypedPath).getPath, maxDepth, AllPass, followLinks).init()
   class Updates[T <: AnyRef](u: CacheUpdates[T]) {
     private[this] var _creations: Seq[Entry[T]] = Nil
     private[this] var _deletions: Seq[Entry[T]] = Nil
@@ -203,19 +199,20 @@ object CachedFileTreeViewTest extends TestSuite {
       }
       def subfiles: Future[Unit] = withTempDirectorySync { dir =>
         val directory = newCachedView(dir)
-        directory.list(Integer.MAX_VALUE, AllPass).asScala.toSeq === Seq.empty[TypedPath]
+        directory.list(empty, Integer.MAX_VALUE, AllPass).asScala.toSeq === Seq.empty[Path]
         val subdir: Path = dir.resolve("subdir").resolve("nested").createDirectories()
         val files = 1 to 2 map (i => subdir.resolve(s"file-$i").createFile())
         val found = mutable.Set.empty[Path]
         val updates = directory.update(TestTypedPaths.get(files.last, TestEntries.FILE))
-        updates.observe(CacheObservers.fromObserver(new Observer[Entry[Path]] {
+        val observer = CacheObservers.fromObserver(new Observer[Entry[Path]] {
           override def onError(t: Throwable): Unit = {}
           override def onNext(t: Entry[Path]): Unit = found.add(t.getTypedPath.getPath())
-        }))
+        })
+        updates.observe(observer)
         val expected = (files :+ subdir :+ subdir.getParent).toSet
         found.toSet === expected
         directory.update(TestTypedPaths.get(subdir.getParent, TestEntries.DIRECTORY))
-        directory.list(Integer.MAX_VALUE, AllPass).asScala.toSeq.map(_.getPath) === expected
+        directory.list(empty, Integer.MAX_VALUE, AllPass).asScala.toSeq.map(_.path) === expected
       }
     }
     def depth: Future[Unit] = withTempDirectory { dir =>
@@ -256,11 +253,8 @@ object CachedFileTreeViewTest extends TestSuite {
   }
   object subTypes {
     private def newDirectory[T <: AnyRef](path: Path, converter: TypedPath => T) =
-      new CachedDirectoryImpl(TestTypedPaths.get(path),
-                              converter,
-                              Integer.MAX_VALUE,
-                              (_: TypedPath) => true,
-                              true).init()
+      new CachedDirectoryImpl(path, converter, Integer.MAX_VALUE, (_: TypedPath) => true, true)
+        .init()
     def overrides: Future[Unit] = withTempFileSync { f =>
       val dir = newDirectory(f.getParent, LastModified(_: TypedPath))
       val lastModified = f.lastModified

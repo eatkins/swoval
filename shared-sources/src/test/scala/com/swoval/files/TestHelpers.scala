@@ -5,6 +5,7 @@ import java.io.{ File, FileFilter, IOException }
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
+import com.swoval.files.api.{ Observer, PathWatcher }
 import com.swoval.files.impl.functional.Consumer
 import com.swoval.files.test.platform.Bool
 import com.swoval.functional.Filter
@@ -91,6 +92,15 @@ object TestHelpers extends PlatformFiles {
 
   implicit class EntryFilterFunctionOps[T](val f: Entry[T] => Boolean) extends Filter[Entry[T]] {
     override def accept(cacheEntry: Entry[T]): Boolean = f(cacheEntry)
+  }
+
+  implicit class EntryAsTypedPath(val e: Entry[_]) extends TypedPath {
+    override def getPath: Path = tp.getPath
+    override def exists(): Boolean = tp.exists()
+    override def isDirectory: Boolean = tp.isDirectory
+    override def isFile: Boolean = tp.isFile
+    override def isSymbolicLink: Boolean = tp.isSymbolicLink
+    val tp: TypedPath = e.getTypedPath
   }
 
   implicit class CallbackOps(f: PathWatchers.Event => _) extends Observer[PathWatchers.Event] {

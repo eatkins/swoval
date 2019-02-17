@@ -1,10 +1,11 @@
 package com.swoval.files.impl;
 
+import com.swoval.files.TypedPath;
 import com.swoval.files.api.FileTreeView;
 
 class FileTreeViewProviderImpl implements com.swoval.files.FileTreeViewProvider {
-  private static final FileTreeView followSymlinksView;
-  private static final FileTreeView noFollowSymlinksView;
+  private static final FileTreeView<TypedPath> followSymlinksView;
+  private static final FileTreeView<TypedPath> noFollowSymlinksView;
 
   static {
     final DirectoryLister lister = DirectoryListers.INSTANCE;
@@ -13,7 +14,7 @@ class FileTreeViewProviderImpl implements com.swoval.files.FileTreeViewProvider 
   }
 
   @Override
-  public FileTreeView get(boolean followSymlinks) {
+  public FileTreeView<TypedPath> get(boolean followSymlinks) {
     return followSymlinks ? followSymlinksView : noFollowSymlinksView;
   }
 }

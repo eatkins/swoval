@@ -9,6 +9,7 @@ import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
+import com.swoval.files.api.Observer
 import com.swoval.files.impl.{ Provider, TypedPaths }
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
@@ -25,6 +26,12 @@ import scala.concurrent.duration._
 trait BasicFileCacheTest extends TestSuite with FileCacheTest {
   def ignore[T]: Entry[T] => Unit = (_: Entry[T]) => ()
   def ignoreOld[T](f: Entry[T] => Unit): (Entry[T], Entry[T]) => Unit = (_, e) => f(e)
+  import scala.language.implicitConversions
+  class RichEntries(entries: mutable.Buffer[Entry[Path]]) {
+    def toTypedPaths: Seq[TypedPath] = entries.toIndexedSeq.map(_.getTypedPath)
+  }
+  implicit def entryOps(entries: java.util.List[Entry[Path]]): RichEntries =
+    new RichEntries(entries.asScala)
   implicit def provider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
     Provider.fileTreeRepository(testLogger)
   val testsImpl: Tests = Tests {
@@ -456,7 +463,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           using(simpleCache(ignore)) { c =>
             c.reg(file)
             c.ls(file) === Seq(file)
-            c.list(file, 0, AllPass).asScala.toSeq === Seq(TypedPaths.get(file))
+            c.list(file, 0, AllPass).toTypedPaths === Seq(TypedPaths.get(file))
           }
         }
         'directory - {
@@ -465,7 +472,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             using(simpleCache(ignore)) { c =>
               c.reg(dir)
               c.ls(dir) === Seq.empty[Path]
-              c.list(dir, 0, AllPass).asScala.toSeq === Seq.empty[TypedPath]
+              c.list(dir, 0, AllPass).toTypedPaths === Seq.empty[TypedPath]
             }
           }
           'nonEmpty - withTempFile { file =>
@@ -474,7 +481,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             using(simpleCache(ignore)) { c =>
               c.reg(dir)
               c.ls(dir) === Seq(file)
-              c.list(dir, 0, AllPass).asScala.toSeq === Seq(TypedPaths.get(file))
+              c.list(dir, 0, AllPass).toTypedPaths === Seq(TypedPaths.get(file))
             }
           }
           'limit - withTempFile { file =>
@@ -483,7 +490,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             using(simpleCache(ignore)) { c =>
               c.register(dir, -1)
               c.ls(dir) === Seq(dir)
-              c.list(dir, 0, AllPass).asScala.toSeq.map(_.getPath).headOption ==> Some(dir)
+              c.list(dir, 0, AllPass).toTypedPaths.map(_.getPath).headOption ==> Some(dir)
             }
           }
           'nonExistent - {
@@ -491,7 +498,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             using(simpleCache(ignore)) { c =>
               val dir = Paths.get("/foo")
               c.ls(dir) === Seq.empty[Path]
-              c.list(dir, 0, AllPass).asScala.toSeq === Seq.empty[TypedPath]
+              c.list(dir, 0, AllPass).toTypedPaths === Seq.empty[TypedPath]
             }
           }
         }

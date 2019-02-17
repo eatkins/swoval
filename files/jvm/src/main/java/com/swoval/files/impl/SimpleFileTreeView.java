@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public final class SimpleFileTreeView implements FileTreeView {
+public final class SimpleFileTreeView implements FileTreeView<TypedPath> {
   /*
    * These constants must be kept in sync with the native quick list implementation
    */

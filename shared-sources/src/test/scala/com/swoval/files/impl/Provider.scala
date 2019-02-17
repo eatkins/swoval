@@ -4,6 +4,7 @@ package impl
 import java.util.concurrent.TimeUnit
 
 import com.swoval.files
+import com.swoval.files.api.{ FileTreeView, PathWatcher }
 import com.swoval.files.test.TestLogger
 
 class Provider(implicit testLogger: TestLogger) extends SwovalProvider {
@@ -11,8 +12,8 @@ class Provider(implicit testLogger: TestLogger) extends SwovalProvider {
     Provider.fileTreeRepository(testLogger)
   override def getFileTreeViewProvider: files.FileTreeViewProvider =
     new files.FileTreeViewProvider {
-      override def followSymlinks(): _root_.com.swoval.files.FileTreeViews.FollowSymlinks = ???
-      override def noFollowSymlinks(): _root_.com.swoval.files.FileTreeViews.NoFollowSymlinks = ???
+      override def get(followSymlinks: Boolean): FileTreeView[TypedPath] =
+        new FileTreeViewProviderImpl().get(followSymlinks)
     }
   override def getPathWatcherProvider: PathWatcherProvider = new PathWatcherProvider {
     override def noFollowSymlinks(): PathWatchers.NoFollowSymlinks[PathWatchers.Event] =

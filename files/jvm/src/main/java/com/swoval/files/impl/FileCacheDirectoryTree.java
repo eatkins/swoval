@@ -553,9 +553,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
     CachedDirectory<T> result = null;
     do {
       try {
-        result =
-            new CachedDirectoryImpl<>(TypedPaths.get(path), converter, depth, filter, followLinks)
-                .init();
+        result = new CachedDirectoryImpl<>(path, converter, depth, filter, followLinks).init();
       } catch (final AccessDeniedException e) {
         if (Platform.isWin()) {
           try {

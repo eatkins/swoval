@@ -72,13 +72,13 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
   }
 
   public CachedDirectoryImpl(
-      final TypedPath typedPath,
+      final Path path,
       final Converter<T> converter,
       final int depth,
       final Filter<? super TypedPath> filter,
       final boolean followLinks) {
     this(
-        typedPath,
+        TypedPaths.get(path),
         converter,
         depth,
         filter,
@@ -249,7 +249,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
     final Path path = typedPath.getPath();
     final CachedDirectoryImpl<T> dir =
         new CachedDirectoryImpl<>(
-            typedPath, converter, currentDir.subdirectoryDepth(), pathFilter, followLinks);
+            path, converter, currentDir.subdirectoryDepth(), pathFilter, followLinks);
     boolean exists = true;
     try {
       final TypedPath tp = dir.getEntry().getTypedPath();
@@ -346,7 +346,8 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
                             converter,
                             -1,
                             pathFilter,
-                            followLinks));
+                            followLinks,
+                            fileTreeView));
                   } else {
                     updateDirectory(previous, result, newEntry);
                   }
@@ -520,7 +521,12 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
                 if (!file.isSymbolicLink() || !isLoop(path, TypedPaths.expanded(file))) {
                   final CachedDirectoryImpl<T> dir =
                       new CachedDirectoryImpl<>(
-                          file, converter, subdirectoryDepth(), pathFilter, followLinks);
+                          file,
+                          converter,
+                          subdirectoryDepth(),
+                          pathFilter,
+                          followLinks,
+                          fileTreeView);
                   try {
                     dir.init();
                     subdirectories.put(key, dir);
@@ -531,7 +537,9 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
                   }
                 } else {
                   subdirectories.put(
-                      key, new CachedDirectoryImpl<>(file, converter, -1, pathFilter, followLinks));
+                      key,
+                      new CachedDirectoryImpl<>(
+                          file, converter, -1, pathFilter, followLinks, fileTreeView));
                 }
               } else {
                 files.put(key, Entries.get(TypedPaths.getDelegate(key, file), converter, file));

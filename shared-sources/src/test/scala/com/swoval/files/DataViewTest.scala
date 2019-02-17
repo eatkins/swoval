@@ -2,7 +2,7 @@ package com.swoval
 package files
 
 import java.io.IOException
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{ Files, Path, Paths }
 
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
@@ -12,15 +12,20 @@ import utest._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import TestHelpers._
+import com.swoval.files.impl.CachedDirectoryImpl
 
 object DataViewTest extends TestSuite {
   import RelativeFileTreeViewTest.RepositoryOps
+  private def cached(path: Path, pathToInteger: TypedPath => Integer) = {
+    new CachedDirectoryImpl[Integer](path, pathToInteger, Int.MaxValue, AllPass, true).init()
+  }
   def directory: Future[Unit] = withTempFileSync { file =>
     val parent = file.getParent
-    val dir = FileTreeDataViews.cached[Integer](parent, (p: TypedPath) => {
+    val converter = (p: TypedPath) => {
       if (p.isDirectory) throw new IOException("die")
       1: Integer
-    }, Integer.MAX_VALUE, true)
+    }
+    val dir = cached(parent, converter)
     val either = dir.getEntry.getValue
     either.left.getValue.getMessage == "die"
     either.getOrElse(2) ==> 2
@@ -28,10 +33,10 @@ object DataViewTest extends TestSuite {
   }
   def subdirectory: Future[Unit] = withTempDirectorySync { dir =>
     val subdir = Files.createDirectory(dir.resolve("subdir"))
-    val directory = FileTreeDataViews.cached(dir, (p: TypedPath) => {
+    val directory = cached(dir, (p: TypedPath) => {
       if (p.getPath.toString.contains("subdir")) throw new IOException("die")
       1: Integer
-    }, 0, true)
+    })
     directory.getEntry.getValue.getOrElse(2) ==> 1
     directory
       .list(Integer.MAX_VALUE, AllPass)
@@ -41,10 +46,10 @@ object DataViewTest extends TestSuite {
   }
   def file: Future[Unit] = withTempFileSync { file =>
     val parent = file.getParent
-    val dir = FileTreeDataViews.cached(parent, (p: TypedPath) => {
+    val dir = cached(parent, (p: TypedPath) => {
       if (!p.isDirectory) throw new IOException("die")
       1: Integer
-    }, Integer.MAX_VALUE, true)
+    })
     dir.getEntry.getValue.getOrElse(2) ==> 1
     dir
       .list(parent, Integer.MAX_VALUE, AllPass)

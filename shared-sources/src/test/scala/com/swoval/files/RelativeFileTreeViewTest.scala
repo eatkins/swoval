@@ -1,11 +1,10 @@
 package com.swoval.files
 
 import java.nio.file.{ Path, Paths }
-import java.util
 
 import com.swoval.files.TestHelpers._
 import com.swoval.files.api.FileTreeView
-import com.swoval.files.impl.TypedPaths
+import com.swoval.files.impl.RelativeFileTreeView
 import com.swoval.files.test._
 import com.swoval.functional.Filter
 import com.swoval.functional.Filters.AllPass
@@ -17,20 +16,27 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 object RelativeFileTreeViewTest {
-  implicit class RepositoryOps[T <: AnyRef](val d: DirectoryView) {
-    def ls(path: Path, recursive: Boolean, filter: Filter[_ >: TypedPath]): Seq[Path] =
+  implicit class RepositoryOps[T <: AnyRef](val d: FileTreeView[T])(implicit f: T => TypedPath) {
+    def ls(path: Path, recursive: Boolean, filter: Filter[_ >: T]): Seq[Path] =
       d.list(path, if (recursive) Integer.MAX_VALUE else 0, filter).asScala.map(_.getPath)
-    def ls(path: Path, depth: Int, filter: Filter[_ >: TypedPath]): Seq[Path] =
+    def ls(path: Path, depth: Int, filter: Filter[_ >: T]): Seq[Path] =
       d.list(path, depth, filter).asScala.map(_.getPath)
     def ls(recursive: Boolean, filter: Filter[_ >: TypedPath]): Seq[Path] =
-      d.list(if (recursive) Integer.MAX_VALUE else 0, filter).asScala.map(_.getPath)
+      d.list(Paths.get(""), if (recursive) Integer.MAX_VALUE else 0, AllPass)
+        .asScala
+        .flatMap(t =>
+          f(t) match {
+            case tp if filter.accept(tp) => Some(tp.getPath)
+            case _                       => None
+        })
   }
 }
 import com.swoval.files.RelativeFileTreeViewTest._
-class RelativeFileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView)
+class RelativeFileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => FileTreeView[TypedPath])
     extends TestSuite {
-  def newFileTreeView(path: Path): DirectoryView = newFileTreeView(path, Integer.MAX_VALUE, false)
-  def newFileTreeView(path: Path, maxDepth: Int): DirectoryView =
+  def newFileTreeView(path: Path): FileTreeView[TypedPath] =
+    newFileTreeView(path, Integer.MAX_VALUE, false)
+  def newFileTreeView(path: Path, maxDepth: Int): FileTreeView[TypedPath] =
     newFileTreeView(path, maxDepth, true)
 
   def pathFilter(f: TypedPath => Boolean): Filter[TypedPath] = (tp: TypedPath) => f(tp)
@@ -123,7 +129,7 @@ class RelativeFileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => Director
       }
     }
     object negative {
-      def ls(fileTreeView: FileTreeView, file: Path): Seq[Path] =
+      def ls(fileTreeView: FileTreeView[TypedPath], file: Path): Seq[Path] =
         fileTreeView.list(file, -1, AllPass).asScala.map(_.getPath)
       def file: Future[Unit] = withTempFileSync { file =>
         newFileTreeView(file, -1)
@@ -225,29 +231,9 @@ class RelativeFileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => Director
 //object DirectoryFileTreeViewTest extends RelativeFileTreeViewTest(FileTreeViews.cached)
 object DefaultRelativeFileTreeViewTest$
     extends RelativeFileTreeViewTest((path, depth, follow: Boolean) => {
-      new DirectoryView {
-        private val view =
-          if (follow) FileTreeViews.followSymlinks() else FileTreeViews.noFollowSymlinks()
-        override def getPath: Path = path
-        override val getTypedPath: TypedPath = TypedPaths.get(path)
-        override def list(maxDepth: Int, filter: Filter[_ >: TypedPath]): util.List[TypedPath] = {
-          val actualDepth = if (maxDepth > depth) depth else maxDepth
-          view.list(path, actualDepth, filter)
-        }
-        override def getMaxDepth: Int = depth
-        override def list(path: Path,
-                          maxDepth: Int,
-                          filter: Filter[_ >: TypedPath]): util.List[TypedPath] = {
-          if (path.startsWith(getPath)) {
-            val distance = getPath.relativize(path).getNameCount - 1
-            val actualDepth =
-              if (maxDepth < Int.MaxValue - distance) maxDepth + distance else maxDepth
-            val d = if (actualDepth > depth) depth else actualDepth
-            view.list(path, d, filter)
-          } else {
-            util.Collections.emptyList()
-          }
-        }
-        override def close(): Unit = {}
-      }
+      new RelativeFileTreeView(path,
+                               depth,
+                               AllPass,
+                               if (follow) FileTreeViews.followSymlinks
+                               else FileTreeViews.noFollowSymlinks)
     })

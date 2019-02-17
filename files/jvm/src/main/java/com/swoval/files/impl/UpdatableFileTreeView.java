@@ -2,11 +2,12 @@ package com.swoval.files.impl;
 
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.TypedPath;
+import com.swoval.files.api.FileTreeView;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-interface UpdatableFileTreeDataView<T> {
+interface UpdatableFileTreeView<T> extends FileTreeView<Entry<T>> {
   /**
    * Updates the CachedDirectory entry for a particular typed path.
    *
