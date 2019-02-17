@@ -2,7 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.FileTreeDataViews.Entry;
+import com.swoval.files.CacheEntry;
 import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import java.io.IOException;
@@ -27,13 +27,14 @@ class FileCachePathWatcher<T> implements AutoCloseable {
       if (dir.getEntry().getTypedPath().isSymbolicLink()) {
         symlinkWatcher.addSymlink(absolutePath, maxDepth);
       }
-      final Iterator<Entry<T>> it = dir.list(dir.getMaxDepth(), AllPass).iterator();
+      final Iterator<CacheEntry<T>> it = dir.list(dir.getMaxDepth(), AllPass).iterator();
       while (it.hasNext()) {
-        final Entry<T> entry = it.next();
-        if (entry.getTypedPath().isSymbolicLink()) {
-          final int depth = absolutePath.relativize(entry.getTypedPath().getPath()).getNameCount();
+        final CacheEntry<T> cacheEntry = it.next();
+        if (cacheEntry.getTypedPath().isSymbolicLink()) {
+          final int depth =
+              absolutePath.relativize(cacheEntry.getTypedPath().getPath()).getNameCount();
           symlinkWatcher.addSymlink(
-              entry.getTypedPath().getPath(),
+              cacheEntry.getTypedPath().getPath(),
               maxDepth == Integer.MAX_VALUE ? maxDepth : maxDepth - depth);
         }
       }

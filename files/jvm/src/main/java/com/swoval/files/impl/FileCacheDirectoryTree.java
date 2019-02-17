@@ -7,9 +7,9 @@ import static com.swoval.files.PathWatchers.Event.Kind.Modify;
 import static com.swoval.files.PathWatchers.Event.Kind.Overflow;
 import static com.swoval.functional.Filters.AllPass;
 
+import com.swoval.files.CacheEntry;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.functional.IOFunction;
-import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeDataViews.ObservableCache;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.api.Observer;
@@ -88,7 +88,7 @@ class FileCachePendingFiles extends Lockable {
   }
 }
 
-class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entry<T>> {
+class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<CacheEntry<T>> {
   private final DirectoryRegistry directoryRegistry = new DirectoryRegistryImpl();
   private final Filter<TypedPath> filter = DirectoryRegistries.toTypedPathFilter(directoryRegistry);
   private final IOFunction<TypedPath, T> converter;
@@ -263,11 +263,11 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
                   cachedDirectory.getEntry(),
                   Create,
                   null);
-              final Iterator<Entry<T>> it =
+              final Iterator<CacheEntry<T>> it =
                   cachedDirectory.list(cachedDirectory.getMaxDepth(), AllPass).iterator();
               while (it.hasNext()) {
-                final Entry<T> entry = it.next();
-                addCallback(callbacks, symlinks, entry, null, entry, Create, null);
+                final CacheEntry<T> cacheEntry = it.next();
+                addCallback(callbacks, symlinks, cacheEntry, null, cacheEntry, Create, null);
               }
             } catch (final IOException e) {
               if (Loggers.shouldLog(logger, Level.ERROR)) {
@@ -307,16 +307,16 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
 
   private void handleDelete(
       final Path path, final List<Callback> callbacks, final List<TypedPath> symlinks) {
-    final List<Iterator<Entry<T>>> removeIterators = new ArrayList<>();
+    final List<Iterator<CacheEntry<T>>> removeIterators = new ArrayList<>();
     final Iterator<CachedDirectory<T>> directoryIterator =
         new ArrayList<>(directories.values()).iterator();
     while (directoryIterator.hasNext()) {
       final CachedDirectory<T> dir = directoryIterator.next();
       if (path.startsWith(getPath(dir))) {
-        final List<Entry<T>> updates =
+        final List<CacheEntry<T>> updates =
             path.equals(getPath(dir))
                 ? dir.list(Integer.MAX_VALUE, AllPass)
-                : new ArrayList<Entry<T>>();
+                : new ArrayList<CacheEntry<T>>();
         updates.addAll(dir.remove(path));
         final Iterator<Path> it = directoryRegistry.registered().keySet().iterator();
         while (it.hasNext()) {
@@ -331,14 +331,14 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
         removeIterators.add(updates.iterator());
       }
     }
-    final Iterator<Iterator<Entry<T>>> it = removeIterators.iterator();
+    final Iterator<Iterator<CacheEntry<T>>> it = removeIterators.iterator();
     while (it.hasNext()) {
-      final Iterator<Entry<T>> removeIterator = it.next();
+      final Iterator<CacheEntry<T>> removeIterator = it.next();
       while (removeIterator.hasNext()) {
-        final Entry<T> entry = Entries.setExists(removeIterator.next(), false);
-        if (symlinkWatcher != null && entry.getTypedPath().isSymbolicLink())
-          symlinkWatcher.remove(entry.getTypedPath().getPath());
-        addCallback(callbacks, symlinks, entry, entry, null, Delete, null);
+        final CacheEntry<T> cacheEntry = Entries.setExists(removeIterator.next(), false);
+        if (symlinkWatcher != null && cacheEntry.getTypedPath().isSymbolicLink())
+          symlinkWatcher.remove(cacheEntry.getTypedPath().getPath());
+        addCallback(callbacks, symlinks, cacheEntry, cacheEntry, null, Delete, null);
       }
     }
   }
@@ -446,12 +446,12 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   private void addCallback(
       final List<Callback> callbacks,
       final List<TypedPath> symlinks,
-      final Entry<T> entry,
-      final Entry<T> oldEntry,
-      final Entry<T> newEntry,
+      final CacheEntry<T> cacheEntry,
+      final CacheEntry<T> oldCacheEntry,
+      final CacheEntry<T> newCacheEntry,
       final Kind kind,
       final IOException ioException) {
-    final TypedPath typedPath = entry == null ? null : entry.getTypedPath();
+    final TypedPath typedPath = cacheEntry == null ? null : cacheEntry.getTypedPath();
     if (typedPath != null && typedPath.isSymbolicLink() && followLinks) {
       symlinks.add(typedPath);
     }
@@ -463,11 +463,11 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
               if (ioException != null) {
                 observers.onError(ioException);
               } else if (kind.equals(Create)) {
-                observers.onCreate(newEntry);
+                observers.onCreate(newCacheEntry);
               } else if (kind.equals(Delete)) {
-                observers.onDelete(Entries.setExists(oldEntry, false));
+                observers.onDelete(Entries.setExists(oldCacheEntry, false));
               } else if (kind.equals(Modify)) {
-                observers.onUpdate(oldEntry, newEntry);
+                observers.onUpdate(oldCacheEntry, newCacheEntry);
               }
             } catch (final Exception e) {
               if (Loggers.shouldLog(logger, Level.ERROR)) {
@@ -479,7 +479,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   }
 
   @Override
-  public int addObserver(final Observer<? super Entry<T>> observer) {
+  public int addObserver(final Observer<? super CacheEntry<T>> observer) {
     return observers.addObserver(observer);
   }
 
@@ -494,15 +494,15 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
   }
 
   @Override
-  public List<Entry<T>> list(
-      final Path path, final int maxDepth, final Filter<? super Entry<T>> filter) {
+  public List<CacheEntry<T>> list(
+      final Path path, final int maxDepth, final Filter<? super CacheEntry<T>> filter) {
     if (directories.lock()) {
       try {
         final CachedDirectory<T> dir = find(path);
         if (dir == null) {
           return Collections.emptyList();
         } else if (dir.getEntry().getTypedPath().getPath().equals(path) && maxDepth == -1) {
-          List<Entry<T>> result = new ArrayList<>();
+          List<CacheEntry<T>> result = new ArrayList<>();
           result.add(dir.getEntry());
           return result;
         } else {
@@ -521,18 +521,18 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
       final List<Callback> callbacks, final List<TypedPath> symlinks) {
     return new CacheObserver<T>() {
       @Override
-      public void onCreate(final Entry<T> newEntry) {
-        addCallback(callbacks, symlinks, newEntry, null, newEntry, Create, null);
+      public void onCreate(final CacheEntry<T> newCacheEntry) {
+        addCallback(callbacks, symlinks, newCacheEntry, null, newCacheEntry, Create, null);
       }
 
       @Override
-      public void onDelete(final Entry<T> oldEntry) {
-        addCallback(callbacks, symlinks, oldEntry, oldEntry, null, Delete, null);
+      public void onDelete(final CacheEntry<T> oldCacheEntry) {
+        addCallback(callbacks, symlinks, oldCacheEntry, oldCacheEntry, null, Delete, null);
       }
 
       @Override
-      public void onUpdate(final Entry<T> oldEntry, final Entry<T> newEntry) {
-        addCallback(callbacks, symlinks, oldEntry, oldEntry, newEntry, Modify, null);
+      public void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
+        addCallback(callbacks, symlinks, oldCacheEntry, oldCacheEntry, newCacheEntry, Modify, null);
       }
 
       @Override

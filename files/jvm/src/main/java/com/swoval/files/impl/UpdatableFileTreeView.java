@@ -1,13 +1,13 @@
 package com.swoval.files.impl;
 
-import com.swoval.files.FileTreeDataViews.Entry;
+import com.swoval.files.CacheEntry;
 import com.swoval.files.RelativeFileTreeView;
 import com.swoval.files.TypedPath;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-interface UpdatableFileTreeView<T> extends RelativeFileTreeView<Entry<T>> {
+interface UpdatableFileTreeView<T> extends RelativeFileTreeView<CacheEntry<T>> {
   /**
    * Updates the CachedDirectory entry for a particular typed path.
    *
@@ -15,7 +15,7 @@ interface UpdatableFileTreeView<T> extends RelativeFileTreeView<Entry<T>> {
    * @return a list of updates for the path. When the path is new, the updates have the
    *     oldCachedPath field set to null and will contain all of the children of the new path when
    *     it is a directory. For an existing path, the List contains a single Updates that contains
-   *     the previous and new {@link Entry}.
+   *     the previous and new {@link CacheEntry}.
    */
   CacheUpdates<T> update(final TypedPath typedPath) throws IOException;
 
@@ -30,7 +30,7 @@ interface UpdatableFileTreeView<T> extends RelativeFileTreeView<Entry<T>> {
    * @return a list of updates for the path. When the path is new, the updates have the
    *     oldCachedPath field set to null and will contain all of the children of the new path when
    *     it is a directory. For an existing path, the List contains a single Updates that contains
-   *     the previous and new {@link Entry}.
+   *     the previous and new {@link CacheEntry}.
    */
   CacheUpdates<T> update(final TypedPath typedPath, final boolean rescanDirectories)
       throws IOException;
@@ -39,8 +39,9 @@ interface UpdatableFileTreeView<T> extends RelativeFileTreeView<Entry<T>> {
    * Remove a path from the directory.
    *
    * @param path the path to remove
-   * @return a List containing the Entry instances for the removed path. The result also contains
-   *     the cache entries for any children of the path when the path is a non-empty directory.
+   * @return a List containing the CacheEntry instances for the removed path. The result also
+   *     contains the cache entries for any children of the path when the path is a non-empty
+   *     directory.
    */
-  List<Entry<T>> remove(final Path path);
+  List<CacheEntry<T>> remove(final Path path);
 }

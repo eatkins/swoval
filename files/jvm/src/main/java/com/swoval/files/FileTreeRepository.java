@@ -1,7 +1,6 @@
 package com.swoval.files;
 
 import com.swoval.functional.IOFunction;
-import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeDataViews.ObservableCache;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.api.Observer;
@@ -14,7 +13,7 @@ import java.nio.file.Path;
  * Provides an in memory cache of portions of the file system. Directories are added to the cache
  * using the {@link FileTreeRepository#register} method. Once a Path is added the cache, its
  * contents may be retrieved using the {@link FileTreeRepository#list} method. The cache stores the
- * path information in {@link Entry} instances.
+ * path information in {@link CacheEntry} instances.
  *
  * <p>A default implementation is provided by {@link FileTreeRepositories#get}. The user may cache
  * arbitrary information in the cache by customizing the {@link IOFunction} that is passed into the
@@ -35,11 +34,11 @@ import java.nio.file.Path;
  * directory is empty. Listing a file, however, will return the entry for the file if it exists and
  * the empty list otherwise.
  *
- * @param <T> the type of data stored in the {@link Entry} instances for the cache
+ * @param <T> the type of data stored in the {@link CacheEntry} instances for the cache
  */
 public interface FileTreeRepository<T>
-    extends FileTreeView<FileTreeDataViews.Entry<T>>,
-        PathWatcher<Entry<T>>,
+    extends FileTreeView<CacheEntry<T>>,
+        PathWatcher<CacheEntry<T>>,
         ObservableCache<T>,
         AutoCloseable {
 

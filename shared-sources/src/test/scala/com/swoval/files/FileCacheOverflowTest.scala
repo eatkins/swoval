@@ -86,12 +86,12 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
       val updatedFiles = mutable.Set.empty[Path]
       val deletedFiles = mutable.Set.empty[Path]
       val observer = getObserver[Path](
-        (e: Entry[Path]) =>
+        (e: CacheEntry[Path]) =>
           pendingCreations.remove(e.path).foreach { l =>
             l.countDown()
             foundFiles.add(e.path)
         },
-        (_: Entry[Path], e: Entry[Path]) => {
+        (_: CacheEntry[Path], e: CacheEntry[Path]) => {
           if (Try(e.path.lastModified) == Success(3000)) {
             pendingUpdates.remove(e.path).foreach { l =>
               l.countDown()
@@ -100,7 +100,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
             }
           }
         },
-        (e: Entry[Path]) =>
+        (e: CacheEntry[Path]) =>
           pendingDeletions.remove(e.path).foreach { l =>
             l.countDown()
             deletedFiles.add(e.path)

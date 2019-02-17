@@ -3,7 +3,7 @@ package com.swoval.files.impl;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.TypedPath;
 import com.swoval.functional.IOFunction;
-import com.swoval.files.FileTreeDataViews.Entry;
+import com.swoval.files.CacheEntry;
 import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
 import com.swoval.files.FileTreeRepository;
@@ -95,8 +95,8 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
     }
 
     @Override
-    public List<Entry<T>> list(
-        final Path path, final int maxDepth, final Filter<? super Entry<T>> filter)
+    public List<CacheEntry<T>> list(
+        final Path path, final int maxDepth, final Filter<? super CacheEntry<T>> filter)
         throws IOException {
       return delegate.list(path, maxDepth, filter);
     }
@@ -107,7 +107,7 @@ class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
     }
 
     @Override
-    public int addObserver(final Observer<? super Entry<T>> observer) {
+    public int addObserver(final Observer<? super CacheEntry<T>> observer) {
       return delegate.addObserver(observer);
     }
 

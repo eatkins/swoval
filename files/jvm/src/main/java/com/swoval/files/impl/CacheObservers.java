@@ -1,7 +1,7 @@
 package com.swoval.files.impl;
 
+import com.swoval.files.CacheEntry;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
-import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.api.Observer;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -24,7 +24,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onCreate(final Entry<T> newEntry) {
+  public void onCreate(final CacheEntry<T> newCacheEntry) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
@@ -32,7 +32,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
     final Iterator<CacheObserver<T>> it = cbs.iterator();
     while (it.hasNext()) {
       try {
-        it.next().onCreate(newEntry);
+        it.next().onCreate(newCacheEntry);
       } catch (final Exception e) {
         if (Loggers.shouldLog(logger, Level.ERROR)) {
           Loggers.logException(logger, e);
@@ -42,7 +42,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onDelete(final Entry<T> oldEntry) {
+  public void onDelete(final CacheEntry<T> oldCacheEntry) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
@@ -50,7 +50,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
     final Iterator<CacheObserver<T>> it = cbs.iterator();
     while (it.hasNext()) {
       try {
-        it.next().onDelete(oldEntry);
+        it.next().onDelete(oldCacheEntry);
       } catch (final Exception e) {
         if (Loggers.shouldLog(logger, Level.ERROR)) {
           Loggers.logException(logger, e);
@@ -60,7 +60,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
   }
 
   @Override
-  public void onUpdate(final Entry<T> oldEntry, final Entry<T> newEntry) {
+  public void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
     final List<CacheObserver<T>> cbs;
     synchronized (observers) {
       cbs = new ArrayList<>(observers.values());
@@ -68,7 +68,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
     final Iterator<CacheObserver<T>> it = cbs.iterator();
     while (it.hasNext()) {
       try {
-        it.next().onUpdate(oldEntry, newEntry);
+        it.next().onUpdate(oldCacheEntry, newCacheEntry);
       } catch (final Exception e) {
         if (Loggers.shouldLog(logger, Level.ERROR)) {
           Loggers.logException(logger, e);
@@ -94,7 +94,7 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
    * @return a handle to the added cacheObserver that can be used to halt observation using {@link
    *     com.swoval.files.Observers#removeObserver(int)} .
    */
-  int addObserver(final Observer<? super Entry<T>> observer) {
+  int addObserver(final Observer<? super CacheEntry<T>> observer) {
     final int key = counter.getAndIncrement();
     synchronized (observers) {
       observers.put(key, CacheObservers.fromObserver(observer));
@@ -127,21 +127,21 @@ class CacheObservers<T> implements CacheObserver<T>, AutoCloseable {
     observers.clear();
   }
 
-  static <T> CacheObserver<T> fromObserver(final Observer<? super Entry<T>> observer) {
+  static <T> CacheObserver<T> fromObserver(final Observer<? super CacheEntry<T>> observer) {
     return new CacheObserver<T>() {
       @Override
-      public void onCreate(final Entry<T> newEntry) {
-        observer.onNext(newEntry);
+      public void onCreate(final CacheEntry<T> newCacheEntry) {
+        observer.onNext(newCacheEntry);
       }
 
       @Override
-      public void onDelete(final Entry<T> oldEntry) {
-        observer.onNext(oldEntry);
+      public void onDelete(final CacheEntry<T> oldCacheEntry) {
+        observer.onNext(oldCacheEntry);
       }
 
       @Override
-      public void onUpdate(final Entry<T> oldEntry, final Entry<T> newEntry) {
-        observer.onNext(newEntry);
+      public void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry) {
+        observer.onNext(newCacheEntry);
       }
 
       @Override

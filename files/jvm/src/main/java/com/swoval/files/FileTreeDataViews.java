@@ -1,8 +1,6 @@
 package com.swoval.files;
 
 import com.swoval.files.api.Observable;
-import com.swoval.files.impl.CachedDirectoryImpl;
-import com.swoval.functional.Either;
 import java.io.IOException;
 
 /**
@@ -11,55 +9,33 @@ import java.io.IOException;
 public class FileTreeDataViews {
 
   /**
-   * Container class for {@link CachedDirectoryImpl} entries. Contains both the path to which the
-   * path corresponds along with a data value.
-   *
-   * @param <T> The value wrapped in the Entry
-   */
-  public interface Entry<T> extends Comparable<Entry<T>> {
-
-    /**
-     * Returns the {@link TypedPath} associated with this entry.
-     *
-     * @return the {@link TypedPath}.
-     */
-    TypedPath getTypedPath();
-    /**
-     * Return the value associated with this entry. jjj
-     *
-     * @return the value associated with this entry.
-     */
-    Either<IOException, T> getValue();
-  }
-
-  /**
    * Provides callbacks to run when different types of file events are detected by the cache.
    *
-   * @param <T> the type for the {@link Entry} data
+   * @param <T> the type for the {@link CacheEntry} data
    */
   public interface CacheObserver<T> {
 
     /**
      * Callback to fire when a new path is created.
      *
-     * @param newEntry the {@link Entry} for the newly created file
+     * @param newCacheEntry the {@link CacheEntry} for the newly created file
      */
-    void onCreate(final Entry<T> newEntry);
+    void onCreate(final CacheEntry<T> newCacheEntry);
 
     /**
      * Callback to fire when a path is deleted.
      *
-     * @param oldEntry the {@link Entry} for the deleted.
+     * @param oldCacheEntry the {@link CacheEntry} for the deleted.
      */
-    void onDelete(final Entry<T> oldEntry);
+    void onDelete(final CacheEntry<T> oldCacheEntry);
 
     /**
      * Callback to fire when a path is modified.
      *
-     * @param oldEntry the {@link Entry} for the updated path
-     * @param newEntry the {@link Entry} for the deleted path
+     * @param oldCacheEntry the {@link CacheEntry} for the updated path
+     * @param newCacheEntry the {@link CacheEntry} for the deleted path
      */
-    void onUpdate(final Entry<T> oldEntry, final Entry<T> newEntry);
+    void onUpdate(final CacheEntry<T> oldCacheEntry, final CacheEntry<T> newCacheEntry);
 
     /**
      * Callback to fire when an error is encountered generating while updating a path.
@@ -74,7 +50,7 @@ public class FileTreeDataViews {
    *
    * @param <T> the type of data stored in the cache.
    */
-  public interface ObservableCache<T> extends Observable<Entry<T>> {
+  public interface ObservableCache<T> extends Observable<CacheEntry<T>> {
     /**
      * Add an observer of cache events.
      *

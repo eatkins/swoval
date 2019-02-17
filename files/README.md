@@ -51,26 +51,26 @@ class FileTreeRepositoryExample {
       final com.swoval.files.FileTreeViews.CacheObserver<Long> cacheObserver =
           new com.swoval.files.FileTreeViews.CacheObserver<Long>() {
             @Override
-            public void onCreate(final com.swoval.files.FileTreeDataViews.Entry<Long> newEntry) {
+            public void onCreate(final com.swoval.files.FileTreeDataViews.CacheEntry<Long> newCacheEntry) {
               System.out.println(
-                  "Got event for new file: " + newEntry.getPath() +
-                      " (last modified at " + newEntry.getValue() + ")");
+                  "Got event for new file: " + newCacheEntry.getPath() +
+                      " (last modified at " + newCacheEntry.getValue() + ")");
             }
 
             @Override
-            public void onDelete(final com.swoval.files.FileTreeDataViews.Entry<Long> oldEntry) {
+            public void onDelete(final com.swoval.files.FileTreeDataViews.CacheEntry<Long> oldCacheEntry) {
               System.out.println(
-                  "Got event for deleted file: " + oldEntry.getPath() +
-                      " (last modified at " + oldEntry.getValue() + ")");
+                  "Got event for deleted file: " + oldCacheEntry.getPath() +
+                      " (last modified at " + oldCacheEntry.getValue() + ")");
             }
 
             @Override
             public void onUpdate(
-                final com.swoval.files.FileTreeDataViews.Entry<Long> oldEntry,
-                final com.swoval.files.FileTreeDataViews.Entry<Long> newEntry) {
+                final com.swoval.files.FileTreeDataViews.CacheEntry<Long> oldCacheEntry,
+                final com.swoval.files.FileTreeDataViews.CacheEntry<Long> newCacheEntry) {
               System.out.println(
-                  "Got event for updated file: " + newEntry.getPath() +
-                      " (last modified at " + newEntry.getValue() + ")");
+                  "Got event for updated file: " + newCacheEntry.getPath() +
+                      " (last modified at " + newCacheEntry.getValue() + ")");
             }
 
             @Override
@@ -85,14 +85,14 @@ class FileTreeRepositoryExample {
         java.nio.file.Files.setLastModifiedTime(
             path, java.nio.file.attribute.FileTime.fromMillis(3000));
         Thread.sleep(200); // Sleep long enough to ensure the callback fires
-        for (final com.swoval.files.FileTreeDataViews.Entry<Long> entry :
+        for (final com.swoval.files.FileTreeDataViews.CacheEntry<Long> cacheEntry :
             cache.list(
                 path.getParent(), Integer.MAX_VALUE, com.swoval.functional.Filters.AllPass)) {
-          if (entry.getPath().equals(path)) {
-            System.out.println("Listed an entry with last modified time " + entry.getValue());
+          if (cacheEntry.getPath().equals(path)) {
+            System.out.println("Listed an cacheEntry with last modified time " + cacheEntry.getValue());
           }
         }
-        // The list above should print "Listed an entry with last modified time 3000"
+        // The list above should print "Listed an cacheEntry with last modified time 3000"
       } finally {
         cache.close();
       }

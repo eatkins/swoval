@@ -2,7 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.FileTreeDataViews;
+import com.swoval.files.CacheEntry;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.functional.IOFunction;
 import com.swoval.files.FileTreeViews;
@@ -35,7 +35,7 @@ class PollingPathWatcher implements PathWatcher<Event> {
   private final boolean followLinks;
   private final DirectoryRegistry registry = new DirectoryRegistryImpl();
   private final Observers<Event> observers;
-  private Map<Path, FileTreeDataViews.Entry<Long>> oldEntries;
+  private Map<Path, CacheEntry<Long>> oldEntries;
   private final PeriodicTask periodicTask;
   private final IOFunction<TypedPath, Long> converter;
   private final Logger logger;
@@ -82,7 +82,7 @@ class PollingPathWatcher implements PathWatcher<Event> {
   public Either<IOException, Boolean> register(final Path path, final int maxDepth) {
     final Path absolutePath = path.isAbsolute() ? path : path.toAbsolutePath();
     boolean result;
-    final List<FileTreeDataViews.Entry<Long>> entries = getEntries(absolutePath, maxDepth);
+    final List<CacheEntry<Long>> entries = getEntries(absolutePath, maxDepth);
     synchronized (this) {
       addAll(oldEntries, entries);
       result = registry.addDirectory(absolutePath, maxDepth);
@@ -120,17 +120,15 @@ class PollingPathWatcher implements PathWatcher<Event> {
     observers.removeObserver(handle);
   }
 
-  private void addAll(
-      final Map<Path, FileTreeDataViews.Entry<Long>> map,
-      final List<FileTreeDataViews.Entry<Long>> list) {
-    final Iterator<FileTreeDataViews.Entry<Long>> it = list.iterator();
+  private void addAll(final Map<Path, CacheEntry<Long>> map, final List<CacheEntry<Long>> list) {
+    final Iterator<CacheEntry<Long>> it = list.iterator();
     while (it.hasNext()) {
-      final FileTreeDataViews.Entry<Long> entry = it.next();
-      map.put(entry.getTypedPath().getPath(), entry);
+      final CacheEntry<Long> cacheEntry = it.next();
+      map.put(cacheEntry.getTypedPath().getPath(), cacheEntry);
     }
   }
 
-  private List<FileTreeDataViews.Entry<Long>> getEntries(final Path path, final int maxDepth) {
+  private List<CacheEntry<Long>> getEntries(final Path path, final int maxDepth) {
     try {
       final CachedDirectory<Long> view =
           new CachedDirectoryImpl<>(
@@ -141,12 +139,12 @@ class PollingPathWatcher implements PathWatcher<Event> {
                   followLinks,
                   FileTreeViews.followSymlinks())
               .init();
-      final List<FileTreeDataViews.Entry<Long>> newEntries = view.list(maxDepth, AllPass);
-      final List<FileTreeDataViews.Entry<Long>> pathEntry = view.list(-1, AllPass);
-      if (pathEntry.size() == 1) newEntries.add(pathEntry.get(0));
+      final List<CacheEntry<Long>> newEntries = view.list(maxDepth, AllPass);
+      final List<CacheEntry<Long>> pathCacheEntry = view.list(-1, AllPass);
+      if (pathCacheEntry.size() == 1) newEntries.add(pathCacheEntry.get(0));
       return newEntries;
     } catch (final NotDirectoryException e) {
-      final List<FileTreeDataViews.Entry<Long>> result = new ArrayList<>();
+      final List<CacheEntry<Long>> result = new ArrayList<>();
       final TypedPath typedPath = TypedPaths.get(path);
       result.add(Entries.get(typedPath, converter, typedPath));
       return result;
@@ -155,18 +153,17 @@ class PollingPathWatcher implements PathWatcher<Event> {
     }
   }
 
-  private Map<Path, FileTreeDataViews.Entry<Long>> getEntries() {
+  private Map<Path, CacheEntry<Long>> getEntries() {
     // I have to use putAll because scala.js doesn't handle new HashMap(registry.registered()).
     final Map<Path, Integer> map = new ConcurrentHashMap<>();
     synchronized (this) {
       map.putAll(registry.registered());
     }
     final Iterator<Entry<Path, Integer>> it = map.entrySet().iterator();
-    final Map<Path, FileTreeDataViews.Entry<Long>> result = new ConcurrentHashMap<>();
+    final Map<Path, CacheEntry<Long>> result = new ConcurrentHashMap<>();
     while (it.hasNext()) {
       final Entry<Path, Integer> entry = it.next();
-      final List<FileTreeDataViews.Entry<Long>> entries =
-          getEntries(entry.getKey(), entry.getValue());
+      final List<CacheEntry<Long>> entries = getEntries(entry.getKey(), entry.getValue());
       addAll(result, entries);
     }
     return result;
@@ -176,21 +173,20 @@ class PollingPathWatcher implements PathWatcher<Event> {
     final CacheObserver<Long> cacheObserver =
         new CacheObserver<Long>() {
           @Override
-          public void onCreate(final FileTreeDataViews.Entry<Long> newEntry) {
-            observers.onNext(new Event(newEntry.getTypedPath(), Kind.Create));
+          public void onCreate(final CacheEntry<Long> newCacheEntry) {
+            observers.onNext(new Event(newCacheEntry.getTypedPath(), Kind.Create));
           }
 
           @Override
-          public void onDelete(final FileTreeDataViews.Entry<Long> oldEntry) {
-            observers.onNext(new Event(oldEntry.getTypedPath(), Kind.Delete));
+          public void onDelete(final CacheEntry<Long> oldCacheEntry) {
+            observers.onNext(new Event(oldCacheEntry.getTypedPath(), Kind.Delete));
           }
 
           @Override
           public void onUpdate(
-              final FileTreeDataViews.Entry<Long> oldEntry,
-              FileTreeDataViews.Entry<Long> newEntry) {
-            if (!oldEntry.getValue().equals(newEntry.getValue())) {
-              observers.onNext(new Event(newEntry.getTypedPath(), Kind.Modify));
+              final CacheEntry<Long> oldCacheEntry, CacheEntry<Long> newCacheEntry) {
+            if (!oldCacheEntry.getValue().equals(newCacheEntry.getValue())) {
+              observers.onNext(new Event(newCacheEntry.getTypedPath(), Kind.Modify));
             }
           }
 
@@ -202,7 +198,7 @@ class PollingPathWatcher implements PathWatcher<Event> {
 
     @Override
     public void run() {
-      final Map<Path, FileTreeDataViews.Entry<Long>> newEntries = getEntries();
+      final Map<Path, CacheEntry<Long>> newEntries = getEntries();
       MapOps.diffDirectoryEntries(oldEntries, newEntries, cacheObserver);
       synchronized (this) {
         oldEntries = newEntries;

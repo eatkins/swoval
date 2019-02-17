@@ -2,8 +2,8 @@ package com.swoval.files.impl;
 
 import static com.swoval.files.impl.LinkOption.NOFOLLOW_LINKS;
 
+import com.swoval.files.CacheEntry;
 import com.swoval.functional.IOFunction;
-import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-/** Provides static constants and methods related to {@link Entry}. */
+/** Provides static constants and methods related to {@link CacheEntry}. */
 final class Entries {
   static final int DIRECTORY = 1;
   static final int FILE = 2;
@@ -22,39 +22,40 @@ final class Entries {
 
   private Entries() {}
 
-  static <T> Entry<T> get(
+  static <T> CacheEntry<T> get(
       final TypedPath typedPath,
       final IOFunction<TypedPath, T> converter,
       final TypedPath converterPath) {
     try {
-      return new ValidEntry<>(typedPath, converter.apply(converterPath));
+      return new ValidCacheEntry<>(typedPath, converter.apply(converterPath));
     } catch (final IOException e) {
-      return new InvalidEntry<>(typedPath, e);
+      return new InvalidCacheEntry<>(typedPath, e);
     }
   }
 
-  static <T> Entry<T> setExists(final Entry<T> entry, final boolean exists) {
-    final TypedPath typedPath = entry.getTypedPath();
+  static <T> CacheEntry<T> setExists(final CacheEntry<T> cacheEntry, final boolean exists) {
+    final TypedPath typedPath = cacheEntry.getTypedPath();
     final int kind =
         (exists ? 0 : NONEXISTENT)
             | (typedPath.isFile() ? FILE : 0)
             | (typedPath.isDirectory() ? DIRECTORY : 0)
             | (typedPath.isSymbolicLink() ? LINK : 0);
     final TypedPath nonExistent = TypedPaths.get(typedPath.getPath(), kind);
-    if (!entry.getValue().isRight()) {
-      return new InvalidEntry<>(nonExistent, EitherImpl.getLeft(entry.getValue()));
+    if (!cacheEntry.getValue().isRight()) {
+      return new InvalidCacheEntry<>(nonExistent, EitherImpl.getLeft(cacheEntry.getValue()));
     } else {
-      return new ValidEntry<>(nonExistent, EitherImpl.getRight(entry.getValue()));
+      return new ValidCacheEntry<>(nonExistent, EitherImpl.getRight(cacheEntry.getValue()));
     }
   }
 
-  static <T> Entry<T> resolve(final Path path, final Entry<T> entry) {
-    final Either<IOException, T> value = entry.getValue();
-    final int kind = getKind(entry);
-    final TypedPath typedPath = TypedPaths.get(path.resolve(entry.getTypedPath().getPath()), kind);
+  static <T> CacheEntry<T> resolve(final Path path, final CacheEntry<T> cacheEntry) {
+    final Either<IOException, T> value = cacheEntry.getValue();
+    final int kind = getKind(cacheEntry);
+    final TypedPath typedPath =
+        TypedPaths.get(path.resolve(cacheEntry.getTypedPath().getPath()), kind);
     return value.isRight()
-        ? new ValidEntry<>(typedPath, EitherImpl.getRight(value))
-        : new InvalidEntry<T>(typedPath, EitherImpl.getLeft(value));
+        ? new ValidCacheEntry<>(typedPath, EitherImpl.getRight(value))
+        : new InvalidCacheEntry<T>(typedPath, EitherImpl.getLeft(value));
   }
 
   private static int getKindFromAttrs(final Path path, final BasicFileAttributes attrs) {
@@ -74,17 +75,17 @@ final class Entries {
     return getKindFromAttrs(path, attrs);
   }
 
-  private static int getKind(final Entry<?> entry) {
-    final TypedPath typedPath = entry.getTypedPath();
+  private static int getKind(final CacheEntry<?> cacheEntry) {
+    final TypedPath typedPath = cacheEntry.getTypedPath();
     return (typedPath.isSymbolicLink() ? LINK : 0)
         | (typedPath.isDirectory() ? DIRECTORY : 0)
         | (typedPath.isFile() ? FILE : 0);
   }
 
-  private abstract static class EntryImpl<T> implements Entry<T> {
+  private abstract static class CacheEntryImpl<T> implements CacheEntry<T> {
     private final TypedPath typedPath;
 
-    EntryImpl(final TypedPath typedPath) {
+    CacheEntryImpl(final TypedPath typedPath) {
       this.typedPath = typedPath;
     }
 
@@ -96,13 +97,13 @@ final class Entries {
 
     @Override
     public boolean equals(final Object other) {
-      return other instanceof Entry<?>
-          && ((Entry<?>) other).getTypedPath().getPath().equals(getTypedPath().getPath())
-          && getValue().equals(((Entry<?>) other).getValue());
+      return other instanceof CacheEntry<?>
+          && ((CacheEntry<?>) other).getTypedPath().getPath().equals(getTypedPath().getPath())
+          && getValue().equals(((CacheEntry<?>) other).getValue());
     }
 
     @Override
-    public int compareTo(final Entry<T> that) {
+    public int compareTo(final CacheEntry<T> that) {
       return this.getTypedPath().getPath().compareTo(that.getTypedPath().getPath());
     }
 
@@ -112,7 +113,7 @@ final class Entries {
     }
   }
 
-  private static final class ValidEntry<T> extends EntryImpl<T> {
+  private static final class ValidCacheEntry<T> extends CacheEntryImpl<T> {
     private final T value;
 
     @Override
@@ -120,26 +121,26 @@ final class Entries {
       return EitherImpl.right(value);
     }
     /**
-     * Create a new Entry
+     * Create a new CacheEntry
      *
      * @param typedPath The path to which this entry corresponds
      * @param value The {@code path} derived value for this entry
      */
-    ValidEntry(final TypedPath typedPath, final T value) {
+    ValidCacheEntry(final TypedPath typedPath, final T value) {
       super(typedPath);
       this.value = value;
     }
 
     @Override
     public String toString() {
-      return "ValidEntry(" + getTypedPath().getPath() + ", " + value + ")";
+      return "ValidCacheEntry(" + getTypedPath().getPath() + ", " + value + ")";
     }
   }
 
-  private static class InvalidEntry<T> extends EntryImpl<T> {
+  private static class InvalidCacheEntry<T> extends CacheEntryImpl<T> {
     private final IOException exception;
 
-    InvalidEntry(final TypedPath typedPath, final IOException exception) {
+    InvalidCacheEntry(final TypedPath typedPath, final IOException exception) {
       super(typedPath);
       this.exception = exception;
     }
@@ -151,7 +152,7 @@ final class Entries {
 
     @Override
     public String toString() {
-      return "InvalidEntry(" + getTypedPath().getPath() + ", " + exception + ")";
+      return "InvalidCacheEntry(" + getTypedPath().getPath() + ", " + exception + ")";
     }
   }
 }

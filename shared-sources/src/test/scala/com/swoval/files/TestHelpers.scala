@@ -30,26 +30,27 @@ object TestHelpers extends PlatformFiles {
       baseDir.resolve("files").resolve(if (Platform.isJVM) "jvm" else "js").resolve("target")
   }
 
-  val Ignore: CacheObserver[_] = getObserver[Path]((_: Entry[Path]) => {})
+  val Ignore: CacheObserver[_] = getObserver[Path]((_: CacheEntry[Path]) => {})
 
   def getObserver[T <: AnyRef](
-      oncreate: Entry[T] => Unit,
-      onupdate: (Entry[T], Entry[T]) => Unit,
-      ondelete: Entry[T] => Unit,
+      oncreate: CacheEntry[T] => Unit,
+      onupdate: (CacheEntry[T], CacheEntry[T]) => Unit,
+      ondelete: CacheEntry[T] => Unit,
       onerror: IOException => Unit = _ => {}): FileTreeDataViews.CacheObserver[T] =
     new FileTreeDataViews.CacheObserver[T] {
-      override def onCreate(newEntry: Entry[T]): Unit = oncreate(newEntry)
+      override def onCreate(newEntry: CacheEntry[T]): Unit = oncreate(newEntry)
 
-      override def onDelete(oldEntry: Entry[T]): Unit = ondelete(oldEntry)
+      override def onDelete(oldEntry: CacheEntry[T]): Unit = ondelete(oldEntry)
 
-      override def onUpdate(oldEntry: Entry[T], newEntry: Entry[T]): Unit =
+      override def onUpdate(oldEntry: CacheEntry[T], newEntry: CacheEntry[T]): Unit =
         onupdate(oldEntry, newEntry)
 
       override def onError(exception: IOException): Unit = onerror(exception)
     }
 
-  def getObserver[T <: AnyRef](onUpdate: Entry[T] => Unit): FileTreeDataViews.CacheObserver[T] =
-    getObserver[T](onUpdate, (_: Entry[T], e: Entry[T]) => onUpdate(e), onUpdate)
+  def getObserver[T <: AnyRef](
+      onUpdate: CacheEntry[T] => Unit): FileTreeDataViews.CacheObserver[T] =
+    getObserver[T](onUpdate, (_: CacheEntry[T], e: CacheEntry[T]) => onUpdate(e), onUpdate)
 
   implicit class PathWatcherOps[T](val watcher: PathWatcher[T]) extends AnyVal {
     def register(path: Path, recursive: Boolean): functional.Either[IOException, Bool] =
@@ -76,7 +77,7 @@ object TestHelpers extends PlatformFiles {
     override def accept(t: T): Boolean = f(t)
   }
 
-  implicit class EntryOps[T](val entry: Entry[T]) {
+  implicit class EntryOps[T](val entry: CacheEntry[T]) {
     def value: T = entry.getValue.get
     def path: Path = entry.getTypedPath.getPath
   }
@@ -88,11 +89,12 @@ object TestHelpers extends PlatformFiles {
     override def run(): Unit = f()
   }
 
-  implicit class EntryFilterFunctionOps[T](val f: Entry[T] => Boolean) extends Filter[Entry[T]] {
-    override def accept(cacheEntry: Entry[T]): Boolean = f(cacheEntry)
+  implicit class EntryFilterFunctionOps[T](val f: CacheEntry[T] => Boolean)
+      extends Filter[CacheEntry[T]] {
+    override def accept(cacheEntry: CacheEntry[T]): Boolean = f(cacheEntry)
   }
 
-  implicit class EntryAsTypedPath(val e: Entry[_]) extends TypedPath {
+  implicit class EntryAsTypedPath(val e: CacheEntry[_]) extends TypedPath {
     override def getPath: Path = tp.getPath
     override def exists(): Boolean = tp.exists()
     override def isDirectory: Boolean = tp.isDirectory
@@ -105,13 +107,13 @@ object TestHelpers extends PlatformFiles {
     override def onError(t: Throwable): Unit = {}
     override def onNext(t: PathWatchers.Event): Unit = f(t)
   }
-  implicit class CacheObserverFunctionOps[T](val f: Entry[T] => Unit)
+  implicit class CacheObserverFunctionOps[T](val f: CacheEntry[T] => Unit)
       extends FileTreeDataViews.CacheObserver[T] {
-    override def onCreate(newCachedPath: Entry[T]): Unit = f(newCachedPath)
+    override def onCreate(newCachedPath: CacheEntry[T]): Unit = f(newCachedPath)
 
-    override def onDelete(oldCachedPath: Entry[T]): Unit = f(oldCachedPath)
+    override def onDelete(oldCachedPath: CacheEntry[T]): Unit = f(oldCachedPath)
 
-    override def onUpdate(oldCachedPath: Entry[T], newCachedPath: Entry[T]): Unit =
+    override def onUpdate(oldCachedPath: CacheEntry[T], newCachedPath: CacheEntry[T]): Unit =
       f(newCachedPath)
 
     override def onError(exception: IOException): Unit = {}
@@ -129,7 +131,7 @@ object TestHelpers extends PlatformFiles {
 
   object EntryOps {
 
-    implicit class SeqEntryOps[T](val l: Seq[Entry[T]]) extends AnyVal {
+    implicit class SeqEntryOps[T](val l: Seq[CacheEntry[T]]) extends AnyVal {
       def ===(r: Seq[Path]): Unit = new RichTraversable(l.map(_.getTypedPath.getPath)) === r
 
       def ===(r: Set[Path]): Unit = new RichTraversable(l.map(_.getTypedPath.getPath).toSet) === r

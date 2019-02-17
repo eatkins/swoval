@@ -5,7 +5,7 @@ import static com.swoval.files.PathWatchers.Event.Kind.Delete;
 import static com.swoval.files.PathWatchers.Event.Kind.Overflow;
 import static java.util.Map.Entry;
 
-import com.swoval.files.FileTreeDataViews;
+import com.swoval.files.CacheEntry;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.functional.IOFunction;
 import com.swoval.files.RegisterableWatchService;
@@ -46,13 +46,13 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
     return new CacheObserver<WatchedDirectory>() {
       @Override
       @SuppressWarnings("EmptyCatchBlock")
-      public void onCreate(final FileTreeDataViews.Entry<WatchedDirectory> newEntry) {
-        events.add(new Event(newEntry.getTypedPath(), Create));
+      public void onCreate(final CacheEntry<WatchedDirectory> newCacheEntry) {
+        events.add(new Event(newCacheEntry.getTypedPath(), Create));
         try {
           final Iterator<TypedPath> it =
               fileTreeView
                   .list(
-                      newEntry.getTypedPath().getPath(),
+                      newCacheEntry.getTypedPath().getPath(),
                       0,
                       new Filter<TypedPath>() {
                         @Override
@@ -72,19 +72,19 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
       }
 
       @Override
-      public void onDelete(final FileTreeDataViews.Entry<WatchedDirectory> oldEntry) {
-        if (oldEntry.getValue().isRight()) {
+      public void onDelete(final CacheEntry<WatchedDirectory> oldCacheEntry) {
+        if (oldCacheEntry.getValue().isRight()) {
           if (Loggers.shouldLog(logger, Level.DEBUG))
-            logger.debug(this + " closing key for " + oldEntry.getTypedPath().getPath());
-          EitherImpl.getRight(oldEntry.getValue()).close();
+            logger.debug(this + " closing key for " + oldCacheEntry.getTypedPath().getPath());
+          EitherImpl.getRight(oldCacheEntry.getValue()).close();
         }
-        events.add(new Event(oldEntry.getTypedPath(), Delete));
+        events.add(new Event(oldCacheEntry.getTypedPath(), Delete));
       }
 
       @Override
       public void onUpdate(
-          final FileTreeDataViews.Entry<WatchedDirectory> oldEntry,
-          final FileTreeDataViews.Entry<WatchedDirectory> newEntry) {}
+          final CacheEntry<WatchedDirectory> oldCacheEntry,
+          final CacheEntry<WatchedDirectory> newCacheEntry) {}
 
       @Override
       public void onError(final IOException exception) {}
@@ -159,19 +159,19 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
       final CachedDirectory<WatchedDirectory> cachedDirectory,
       final Path path,
       final List<Event> events) {
-    final List<FileTreeDataViews.Entry<WatchedDirectory>> toCancel = cachedDirectory.remove(path);
+    final List<CacheEntry<WatchedDirectory>> toCancel = cachedDirectory.remove(path);
     if (path == null || path == cachedDirectory.getEntry().getTypedPath().getPath())
       toCancel.add(cachedDirectory.getEntry());
-    final Iterator<FileTreeDataViews.Entry<WatchedDirectory>> it = toCancel.iterator();
+    final Iterator<CacheEntry<WatchedDirectory>> it = toCancel.iterator();
     while (it.hasNext()) {
-      final FileTreeDataViews.Entry<WatchedDirectory> entry = it.next();
-      final Either<IOException, WatchedDirectory> either = entry.getValue();
+      final CacheEntry<WatchedDirectory> cacheEntry = it.next();
+      final Either<IOException, WatchedDirectory> either = cacheEntry.getValue();
       if (either.isRight()) {
         if (events != null) {
           final TypedPath typedPath =
               TypedPaths.get(
-                  entry.getTypedPath().getPath(),
-                  TypedPaths.getKind(entry.getTypedPath()) | Entries.NONEXISTENT);
+                  cacheEntry.getTypedPath().getPath(),
+                  TypedPaths.getKind(cacheEntry.getTypedPath()) | Entries.NONEXISTENT);
           events.add(new Event(typedPath, Delete));
         }
         EitherImpl.getRight(either).close();
@@ -335,9 +335,8 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
               add(file, events);
             }
           } catch (final IOException e) {
-            final List<FileTreeDataViews.Entry<WatchedDirectory>> removed = root.remove(path);
-            final Iterator<FileTreeDataViews.Entry<WatchedDirectory>> removedIt =
-                removed.iterator();
+            final List<CacheEntry<WatchedDirectory>> removed = root.remove(path);
+            final Iterator<CacheEntry<WatchedDirectory>> removedIt = removed.iterator();
             while (removedIt.hasNext()) {
               events.add(
                   new Event(Entries.setExists(removedIt.next(), false).getTypedPath(), Delete));
