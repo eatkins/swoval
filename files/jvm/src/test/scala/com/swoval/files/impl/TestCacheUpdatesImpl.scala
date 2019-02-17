@@ -1,6 +1,4 @@
 package com.swoval.files.impl
-import java.io.IOException
-
 import com.swoval.files.cache.{ CacheObserver, Entry }
 class TestCacheUpdates[T] extends CacheUpdates[T]
 object TestCacheUpdates {
@@ -15,7 +13,7 @@ object TestCacheUpdates {
         cacheUpdates.onDelete(oldEntry)
       override def onUpdate(oldEntry: Entry[T], newEntry: Entry[T]): Unit =
         cacheUpdates.onUpdate(oldEntry, newEntry)
-      override def onError(exception: IOException): Unit = cacheUpdates.onError(exception)
+      override def onError(throwable: Throwable): Unit = cacheUpdates.onError(throwable)
       override def toString: String = cacheUpdates.toString
     }
 }

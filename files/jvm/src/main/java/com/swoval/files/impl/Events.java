@@ -2,25 +2,101 @@ package com.swoval.files.impl;
 
 import com.swoval.files.cache.Creation;
 import com.swoval.files.cache.Deletion;
+import com.swoval.files.cache.Entry;
 import com.swoval.files.cache.Event;
 import com.swoval.files.cache.Update;
 import java.util.Objects;
 
 class Events {
-  static <T> Event<T> creation(final Creation<T> creation) {
-    return new EventImpl<>(creation, null, null, null);
+  static <T> Event<T> creation(final Entry<T> entry) {
+    return new EventImpl<>(new CreationImpl<>(entry), null, null, null);
   }
 
-  static <T> Event<T> deletion(final Deletion<T> deletion) {
-    return new EventImpl<>(null, deletion, null, null);
+  static <T> Event<T> deletion(final Entry<T> deletion) {
+    return new EventImpl<>(null, new DeletionImpl<>(deletion), null, null);
   }
 
-  static <T> Event<T> update(final Update<T> update) {
-    return new EventImpl<>(null, null, update, null);
+  static <T> Event<T> update(final Entry<T> previous, final Entry<T> current) {
+    return new EventImpl<>(null, null, new UpdateImpl<>(previous, current), null);
   }
 
   static <T> Event<T> error(final Throwable throwable) {
-    return new EventImpl<T>(null, null, null, throwable);
+    return new EventImpl<>(null, null, null, throwable);
+  }
+
+  private static class CreationOrDeletionImpl<T> {
+    private final Entry<T> entry;
+
+    CreationOrDeletionImpl(final Entry<T> entry) {
+      this.entry = entry;
+    }
+
+    public Entry<T> getEntry() {
+      return entry;
+    }
+
+    @Override
+    public int hashCode() {
+      return entry.hashCode();
+    }
+  }
+
+  private static class CreationImpl<T> extends CreationOrDeletionImpl<T> implements Creation<T> {
+    CreationImpl(final Entry<T> entry) {
+      super(entry);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+      return (other instanceof CreationImpl) && ((CreationImpl) other).getEntry() == getEntry();
+    }
+  }
+
+  private static class DeletionImpl<T> extends CreationOrDeletionImpl<T> implements Deletion<T> {
+    DeletionImpl(final Entry<T> entry) {
+      super(entry);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+      return (other instanceof CreationImpl) && ((CreationImpl) other).getEntry() == getEntry();
+    }
+  }
+
+  private static class UpdateImpl<T> implements Update<T> {
+    private final Entry<T> previousEntry;
+    private final Entry<T> currentEntry;
+
+    UpdateImpl(final Entry<T> previousEntry, final Entry<T> currentEntry) {
+      this.previousEntry = previousEntry;
+      this.currentEntry = currentEntry;
+    }
+
+    @Override
+    public Entry<T> getPreviousEntry() {
+      return previousEntry;
+    }
+
+    @Override
+    public Entry<T> getCurrentEntry() {
+      return currentEntry;
+    }
+
+    @Override
+    public int hashCode() {
+      return currentEntry.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+      if (other instanceof UpdateImpl) {
+        final UpdateImpl<?> that = (UpdateImpl<?>) other;
+        return Objects.equals(that.previousEntry, previousEntry)
+            && Objects.equals(that.currentEntry, currentEntry);
+      } else {
+        return false;
+      }
+    }
   }
 
   private static class EventImpl<T> implements Event<T> {

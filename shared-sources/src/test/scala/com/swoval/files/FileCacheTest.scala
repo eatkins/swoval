@@ -5,7 +5,7 @@ import java.io.IOException
 import java.nio.file.Path
 
 import com.swoval.files.TestHelpers._
-import com.swoval.files.cache.{ CacheObserver, Entry }
+import com.swoval.files.cache.{ CacheObserver, Entry, Observers }
 import com.swoval.files.impl.Provider
 import com.swoval.files.test._
 import com.swoval.files.test.platform.Bool
@@ -37,14 +37,14 @@ object FileCacheTest {
   def get[T <: AnyRef](converter: IOFunction[TypedPath, T], cacheObserver: CacheObserver[T])(
       implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
     val res = provider.followSymlinks(converter)
-    res.addCacheObserver(cacheObserver)
+    res.addObserver(Observers.toEventObserver(cacheObserver))
     res
   }
   class LoopCacheObserver(val latch: CountDownLatch) extends CacheObserver[Path] {
     override def onCreate(newEntry: Entry[Path]): Unit = {}
     override def onDelete(oldEntry: Entry[Path]): Unit = {}
     override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {}
-    override def onError(exception: IOException): Unit = latch.countDown()
+    override def onError(throwable: Throwable): Unit = latch.countDown()
   }
 
   implicit class FileCacheOps[T <: AnyRef](val fileCache: FileTreeRepository[T]) extends AnyVal {
@@ -65,10 +65,5 @@ object FileCacheTest {
 
 trait DefaultFileCacheTest extends FileCacheTest {
   override def defaultProvider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
-    new Provider().getFileTreeRepositoryProvider
-}
-
-trait NioFileCacheTest extends FileCacheTest {
-  override def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider =
     new Provider().getFileTreeRepositoryProvider
 }

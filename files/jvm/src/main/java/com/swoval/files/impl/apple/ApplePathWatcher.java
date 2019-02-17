@@ -8,7 +8,6 @@ import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
 import com.swoval.files.api.Observer;
 import com.swoval.files.api.PathWatcher;
-import com.swoval.files.impl.AppleFileEventStreams;
 import com.swoval.files.impl.DirectoryRegistry;
 import com.swoval.files.impl.Observers;
 import com.swoval.files.impl.TypedPaths;

@@ -1,7 +1,5 @@
 package com.swoval.files.cache;
 
-import java.io.IOException;
-
 /**
  * Provides callbacks to run when different types of file events are detected by the cache.
  *

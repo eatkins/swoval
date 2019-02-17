@@ -1,7 +1,6 @@
 package com.swoval.files
 package impl
 
-import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.RelativeFileTreeViewTest._
@@ -19,7 +18,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Future
 object CachedFileTreeViewTest extends TestSuite {
-  val empty = Paths.get("")
+  private val empty = Paths.get("")
   def newCachedView(path: Path): UpdatableFileTreeView[Path] =
     newCachedView(path, Integer.MAX_VALUE)
   def newCachedView(path: Path, maxDepth: Int): UpdatableFileTreeView[Path] =
@@ -35,7 +34,7 @@ object CachedFileTreeViewTest extends TestSuite {
       override def onDelete(oldEntry: Entry[T]): Unit = _deletions :+= oldEntry
       override def onUpdate(oldEntry: Entry[T], newEntry: Entry[T]): Unit =
         _updates :+= (oldEntry, newEntry)
-      override def onError(exception: IOException): Unit = {}
+      override def onError(throwable: Throwable): Unit = {}
     })
     def creations: Seq[Entry[T]] = _creations
     def deletions: Seq[Entry[T]] = _deletions

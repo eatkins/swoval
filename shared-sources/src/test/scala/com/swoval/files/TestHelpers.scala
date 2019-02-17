@@ -6,7 +6,7 @@ import java.io.{ File, FileFilter, IOException }
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.api.{ Observer, PathWatcher }
-import com.swoval.files.cache.{ CacheObserver, Entry }
+import com.swoval.files.cache.{ CacheObserver, Entry, Event }
 import com.swoval.files.impl.functional.{ Consumer, EitherImpl }
 import com.swoval.files.test.platform.Bool
 import com.swoval.functional.{ Filter, IOFunction }
@@ -35,7 +35,7 @@ object TestHelpers extends PlatformFiles {
   def getObserver[T <: AnyRef](oncreate: Entry[T] => Unit,
                                onupdate: (Entry[T], Entry[T]) => Unit,
                                ondelete: Entry[T] => Unit,
-                               onerror: IOException => Unit = _ => {}): CacheObserver[T] =
+                               onerror: Throwable => Unit = _ => {}): CacheObserver[T] =
     new CacheObserver[T] {
       override def onCreate(newEntry: Entry[T]): Unit = oncreate(newEntry)
 
@@ -44,7 +44,7 @@ object TestHelpers extends PlatformFiles {
       override def onUpdate(oldEntry: Entry[T], newEntry: Entry[T]): Unit =
         onupdate(oldEntry, newEntry)
 
-      override def onError(exception: IOException): Unit = onerror(exception)
+      override def onError(throwable: Throwable): Unit = onerror(throwable)
     }
 
   def getObserver[T <: AnyRef](onUpdate: Entry[T] => Unit): CacheObserver[T] =
@@ -56,6 +56,21 @@ object TestHelpers extends PlatformFiles {
 
     def register(path: Path): functional.Either[IOException, Bool] =
       register(path, recursive = true)
+  }
+
+  implicit class FileTreeRepositoryOps[T](val repository: FileTreeRepository[T]) extends AnyVal {
+    def register(path: Path, recursive: Boolean): functional.Either[IOException, Bool] =
+      repository.register(path, if (recursive) Integer.MAX_VALUE else 0)
+
+    def register(path: Path): functional.Either[IOException, Bool] =
+      register(path, recursive = true)
+  }
+  implicit class CacheEventOps(val t: Event[_]) extends AnyVal {
+    def path: Path =
+      (Option(t.getCreation).map(_.getEntry) orElse Option(t.getDeletion).map(_.getEntry) orElse Option(
+        t.getUpdate).map(_.getCurrentEntry))
+        .map(_.getTypedPath.getPath)
+        .getOrElse(throw new IllegalArgumentException)
   }
 
   implicit class EitherOps[L, R](val either: functional.Either[L, R]) extends AnyVal {
@@ -76,7 +91,7 @@ object TestHelpers extends PlatformFiles {
   }
 
   implicit class EntryOps[T](val entry: Entry[T]) {
-    def value: T = entry.getValue.get
+    def value: T = entry.getValue.get()
     def path: Path = entry.getTypedPath.getPath
   }
   implicit class EventOps(val event: PathWatchers.Event) {
@@ -112,7 +127,7 @@ object TestHelpers extends PlatformFiles {
     override def onUpdate(oldCachedPath: Entry[T], newCachedPath: Entry[T]): Unit =
       f(newCachedPath)
 
-    override def onError(exception: IOException): Unit = {}
+    override def onError(throwable: Throwable): Unit = {}
   }
 
   implicit class ConsumerFunctionOps[T](val f: T => Unit) extends Consumer[T] {

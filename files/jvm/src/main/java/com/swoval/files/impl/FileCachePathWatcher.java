@@ -2,7 +2,7 @@ package com.swoval.files.impl;
 
 import static com.swoval.functional.Filters.AllPass;
 
-import com.swoval.files.PathWatchers.Event;
+import com.swoval.files.PathWatchers;
 import com.swoval.files.api.PathWatcher;
 import com.swoval.files.cache.Entry;
 import java.io.IOException;
@@ -11,10 +11,11 @@ import java.util.Iterator;
 
 class FileCachePathWatcher<T> implements AutoCloseable {
   private final SymlinkWatcher symlinkWatcher;
-  private final PathWatcher<Event> pathWatcher;
+  private final PathWatcher<PathWatchers.Event> pathWatcher;
   private final FileCacheDirectoryTree<T> tree;
 
-  FileCachePathWatcher(final FileCacheDirectoryTree<T> tree, final PathWatcher<Event> pathWatcher) {
+  FileCachePathWatcher(
+      final FileCacheDirectoryTree<T> tree, final PathWatcher<PathWatchers.Event> pathWatcher) {
     this.symlinkWatcher = tree.symlinkWatcher;
     this.pathWatcher = pathWatcher;
     this.tree = tree;

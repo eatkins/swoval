@@ -2,18 +2,16 @@ package com
 package swoval
 package files
 
-import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
 import com.swoval.files.api.Observer
-import com.swoval.files.cache.{ CacheObserver, Entry }
+import com.swoval.files.cache.{ CacheObserver, Entry, Event }
 import com.swoval.files.impl.{ Provider, TypedPaths }
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
-import com.swoval.runtime.Platform
 import com.swoval.test.Implicits.executionContext
 import com.swoval.test._
 import utest._
@@ -110,7 +108,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           val moved = Paths.get(s"${initial.toString}.moved")
           val onChange = (e: Entry[Path]) => if (e.path == moved) latch.countDown()
           val onUpdate = ignoreOld[Path](ignore)
-          val onError = (_: IOException) => {}
+          val onError = (_: Throwable) => {}
           val observer = getObserver(onChange, onUpdate, onChange, onError)
           usingAsync(FileCacheTest.get(getPath, observer)) { c =>
             c.reg(dir, recursive = false)
@@ -357,15 +355,12 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             LastModified(_: TypedPath),
             new CacheObserver[LastModified] {
               override def onCreate(newEntry: Entry[LastModified]): Unit = {}
-
               override def onDelete(oldEntry: Entry[LastModified]): Unit = {}
-
               override def onUpdate(oldEntry: Entry[LastModified],
                                     newEntry: Entry[LastModified]): Unit =
                 if (oldEntry.value.lastModified != newEntry.value.lastModified)
                   latch.countDown()
-
-              override def onError(iOException: IOException): Unit = {}
+              override def onError(throwable: Throwable): Unit = {}
             }
           )) { c =>
           c.reg(file.getParent, recursive = false)
@@ -431,13 +426,10 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
             override def onCreate(newEntry: Entry[Path]): Unit = {
               if (newEntry.path == newFile) newFileLatch.countDown()
             }
-
             override def onDelete(oldEntry: Entry[Path]): Unit =
               if (oldEntry.path == dir || oldEntry.path == file) deletionLatch.countDown()
-
             override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {}
-
-            override def onError(exception: IOException): Unit = {}
+            override def onError(throwable: Throwable): Unit = {}
           }
           usingAsync(FileCacheTest.get(getPath, observer)) { c =>
             c.reg(dir)
@@ -547,10 +539,10 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
         val file = dir.resolve("file")
         usingAsync(simpleCache((e: Entry[Path]) => if (e.entry.path == file) latch.countDown())) {
           c =>
-            val handle = c.addObserver(new Observer[Entry[Path]] {
-              override def onNext(entry: Entry[Path]): Unit =
-                if (entry.path == file) secondObserverFired = true
+            val handle = c.addObserver(new Observer[Event[Path]] {
               override def onError(t: Throwable): Unit = {}
+              override def onNext(t: Event[Path]): Unit =
+                if (t.path == file) secondObserverFired = true
             })
             c.reg(dir)
             c.removeObserver(handle)
@@ -682,14 +674,4 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
 
 object BasicFileCacheTest extends BasicFileCacheTest with DefaultFileCacheTest {
   val tests = testsImpl
-}
-
-object NioBasicFileCacheTest extends BasicFileCacheTest with NioFileCacheTest {
-  val tests =
-    if (Platform.isJVM && Platform.isMac) testsImpl
-    else
-      Tests('ignore - {
-        if (swoval.test.verbose)
-          println("Not running NioFileCacheTest on platform other than the jvm on osx")
-      })
 }

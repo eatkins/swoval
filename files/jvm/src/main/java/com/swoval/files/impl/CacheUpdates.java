@@ -2,7 +2,6 @@ package com.swoval.files.impl;
 
 import com.swoval.files.cache.CacheObserver;
 import com.swoval.files.cache.Entry;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;

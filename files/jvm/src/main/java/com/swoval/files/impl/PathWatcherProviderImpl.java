@@ -45,10 +45,10 @@ class PathWatcherProviderImpl implements PathWatcherProvider {
   }
 
   NoFollowSymlinks<Event> noFollowSymlinks(
-      final DirectoryRegistry directoryRegistry, final Logger logger, final boolean forceMac)
+      final DirectoryRegistry directoryRegistry, final Logger logger, final boolean forceNIO)
       throws InterruptedException, IOException {
     return new NoFollowWrapper<>(
-        (Platform.isMac() || forceMac)
+        (Platform.isMac() && !forceNIO)
             ? ApplePathWatchers.get(directoryRegistry, logger)
             : PlatformWatcher.make(directoryRegistry, logger));
   }

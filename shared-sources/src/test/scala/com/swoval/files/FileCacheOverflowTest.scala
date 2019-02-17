@@ -2,13 +2,12 @@ package com
 package swoval
 package files
 
-import java.io.IOException
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.TestHelpers._
-import com.swoval.files.cache.{ CacheObserver, Entry }
+import com.swoval.files.cache.{ CacheObserver, Entry, Observers }
 import com.swoval.files.impl._
 import com.swoval.files.test._
 import com.swoval.functional.IOFunction
@@ -28,7 +27,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
       cacheObserver: CacheObserver[T]
   )(implicit provider: FileTreeRepositoryProvider): FileTreeRepository[T] = {
     val res = provider.noFollowSymlinks(converter)
-    res.addCacheObserver(cacheObserver)
+    res.addObserver(Observers.toEventObserver(cacheObserver))
     res
   }
   override implicit def defaultProvider(
@@ -105,7 +104,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
             l.countDown()
             deletedFiles.add(e.path)
         },
-        (_: IOException) => {}
+        (_: Throwable) => {}
       )
       usingAsync(getBounded[Path](getPath, observer)) { c =>
         c.reg(dir)

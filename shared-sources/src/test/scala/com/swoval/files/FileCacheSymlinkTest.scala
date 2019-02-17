@@ -2,13 +2,12 @@ package com
 package swoval
 package files
 
-import java.io.IOException
 import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileCacheTest.FileCacheOps
 import com.swoval.files.TestHelpers.EntryOps._
 import com.swoval.files.TestHelpers._
-import com.swoval.files.cache.{ CacheObserver, Entry }
+import com.swoval.files.cache.{ CacheObserver, Entry, Observers }
 import com.swoval.files.test._
 import com.swoval.functional.IOFunction
 import com.swoval.test.Implicits.executionContext
@@ -267,7 +266,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
 
               override def onUpdate(oldEntry: Entry[Path], newEntry: Entry[Path]): Unit = {}
 
-              override def onError(exception: IOException): Unit = {}
+              override def onError(throwable: Throwable): Unit = {}
             }
           )) { c =>
             link linkTo file
@@ -317,14 +316,14 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
           val link = dir.resolve("link") linkTo otherDir
           usingAsync(getNoFollow) { c =>
             c.register(dir, Integer.MAX_VALUE)
-            c.addCacheObserver(new CacheObserver[Object] {
+            c.addObserver(Observers.toEventObserver(new CacheObserver[Object] {
               override def onCreate(newEntry: Entry[Object]): Unit =
                 if (newEntry.path == link) creationLatch.countDown()
               override def onDelete(oldEntry: Entry[Object]): Unit =
                 if (oldEntry.path == link) deletionLatch.countDown()
               override def onUpdate(oldEntry: Entry[Object], newEntry: Entry[Object]): Unit = {}
-              override def onError(exception: IOException): Unit = {}
-            })
+              override def onError(throwable: Throwable): Unit = {}
+            }))
             link.delete()
             deletionLatch.waitFor(DEFAULT_TIMEOUT) {
               link linkTo otherDir
@@ -360,7 +359,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
                   val path = newEntry.getTypedPath.getPath
                   if (path.getFileName == Paths.get("link") && paths.add(path)) latch.countDown()
                 }
-                override def onError(exception: IOException): Unit = {}
+                override def onError(throwable: Throwable): Unit = {}
               }
             )) { c =>
               c.register(dir)
@@ -409,7 +408,7 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
                   }
                 }
 
-                override def onError(exception: IOException): Unit = {}
+                override def onError(throwable: Throwable): Unit = {}
               }
             )) { c =>
               c.register(dir)
@@ -463,12 +462,3 @@ trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
 object FileCacheSymlinkTest extends FileCacheSymlinkTest with DefaultFileCacheTest {
   val tests = testsImpl
 }
-//object NioFileCacheSymlinkTest extends FileCacheSymlinkTest with NioFileCacheTest {
-//  override val tests =
-//    if (Platform.isJVM && Platform.isMac) testsImpl
-//    else
-//      Tests('ignore - {
-//        if (swoval.test.verbose)
-//          println("Not running NioFileCacheTest on platform other than the jvm on osx")
-//      })
-//}
