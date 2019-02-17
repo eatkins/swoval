@@ -502,16 +502,12 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeView<Entr
         if (dir == null) {
           return Collections.emptyList();
         } else if (dir.getEntry().getTypedPath().getPath().equals(path) && maxDepth == -1) {
-          if (dir.getEntry().getTypedPath().getPath().equals(path)) {
-            List<Entry<T>> result = new ArrayList<>();
-            result.add(dir.getEntry());
-            return result;
-          } else {
-            final int depth = directoryRegistry.maxDepthFor(path);
-            return dir.list(path, depth < maxDepth ? depth : maxDepth, filter);
-          }
+          List<Entry<T>> result = new ArrayList<>();
+          result.add(dir.getEntry());
+          return result;
         } else {
-          return Collections.emptyList();
+          final int depth = directoryRegistry.maxDepthFor(path);
+          return dir.list(path, depth < maxDepth ? depth : maxDepth, filter);
         }
       } finally {
         directories.unlock();

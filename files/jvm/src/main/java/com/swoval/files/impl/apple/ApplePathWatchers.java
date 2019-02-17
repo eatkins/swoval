@@ -11,11 +11,11 @@ public class ApplePathWatchers {
 
   public static PathWatcher<PathWatchers.Event> get(
       final DirectoryRegistry registry, final Logger logger) throws InterruptedException {
-    return new ApplePathWatcher(
+    return new com.swoval.files.impl.apple.ApplePathWatcher(
         10,
         TimeUnit.MILLISECONDS,
         new Flags.Create().setNoDefer().setFileEvents(),
-        ApplePathWatcher.DefaultOnStreamRemoved,
+        com.swoval.files.impl.apple.ApplePathWatcher.DefaultOnStreamRemoved,
         registry,
         logger);
   }

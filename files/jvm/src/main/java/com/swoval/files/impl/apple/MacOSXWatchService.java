@@ -1,14 +1,12 @@
-package com.swoval.files.impl;
+package com.swoval.files.impl.apple;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
-import com.swoval.files.impl.apple.ClosedFileEventMonitorException;
-import com.swoval.files.impl.apple.FileEvent;
-import com.swoval.files.impl.apple.FileEventMonitor;
-import com.swoval.files.impl.apple.FileEventMonitors;
+import com.swoval.files.impl.LockableMap;
+import com.swoval.files.impl.RegisterableWatchService;
 import com.swoval.files.impl.apple.FileEventMonitors.Handle;
 import com.swoval.files.impl.apple.FileEventMonitors.Handles;
 import com.swoval.files.impl.apple.Flags.Create;
@@ -42,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Provides an alternative {@link java.nio.file.WatchService} for mac that uses native file system
  * events rather than polling for file changes.
  */
-class MacOSXWatchService implements RegisterableWatchService {
+public class MacOSXWatchService implements RegisterableWatchService {
   private static class WatchKeys extends LockableMap<Path, WatchKey> {}
 
   private final int watchLatency;
@@ -96,24 +94,10 @@ class MacOSXWatchService implements RegisterableWatchService {
    *     timeUnit</code>
    * @param timeUnit the time unit the latency is specified with
    * @param queueSize the maximum number of events to queue per watch key
-   * @throws InterruptedException if the native file events api initialization is interrupted.
-   */
-  MacOSXWatchService(final int watchLatency, final TimeUnit timeUnit, final int queueSize)
-      throws InterruptedException {
-    this(watchLatency, timeUnit, queueSize, Loggers.getLogger());
-  }
-
-  /**
-   * Creates a new MacOSXWatchService.
-   *
-   * @param watchLatency the minimum latency between watch events specified in units of <code>
-   *     timeUnit</code>
-   * @param timeUnit the time unit the latency is specified with
-   * @param queueSize the maximum number of events to queue per watch key
    * @param logger the logger
    * @throws InterruptedException if the native file events api initialization is interrupted.
    */
-  MacOSXWatchService(
+  public MacOSXWatchService(
       final int watchLatency, final TimeUnit timeUnit, final int queueSize, final Logger logger)
       throws InterruptedException {
     this.watchLatency = watchLatency;
@@ -131,7 +115,7 @@ class MacOSXWatchService implements RegisterableWatchService {
    */
   public MacOSXWatchService() throws InterruptedException {
     // The FsEvents api doesn't seem to report events at lower than 10 millisecond intervals.
-    this(10, TimeUnit.MILLISECONDS, 1024);
+    this(10, TimeUnit.MILLISECONDS, 1024, Loggers.getLogger());
   }
 
   @Override
