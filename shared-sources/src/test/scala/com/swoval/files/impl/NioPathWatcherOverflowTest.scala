@@ -1,21 +1,27 @@
 package com.swoval.files.impl
 
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 import com.swoval
-import com.swoval.files.BoundedWatchService
+import com.swoval.files.{ BoundedWatchService, RegisterableWatchService, RegisterableWatchServices }
 import com.swoval.files.PathWatchers.Event
 import com.swoval.files.test._
 import com.swoval.runtime.Platform
 import com.swoval.test._
 import utest._
 import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.apple.MacOSXWatchService
+import com.swoval.logging.Logger
 
 import scala.collection.mutable
 import com.swoval.test.Implicits.executionContext
 
 object NioPathWatcherOverflowTest extends TestSuite {
-  val tests = if (Platform.isJVM || !Platform.isMac) Tests {
+  def getBounded(size: Int, logger: Logger): RegisterableWatchService =
+    if (Platform.isMac) new MacOSXWatchService(10, TimeUnit.MILLISECONDS, size, logger)
+    else RegisterableWatchServices.get
+  val tests: Tests = if (Platform.isJVM || !Platform.isMac) Tests {
     val subdirsToAdd = 200
     'overflows - withTempDirectory { dir =>
       implicit val logger: TestLogger = new CachingLogger
@@ -39,7 +45,7 @@ object NioPathWatcherOverflowTest extends TestSuite {
       }
       usingAsync(
         PlatformWatcher.make(
-          new BoundedWatchService(4, RegisterableWatchServices.getBounded(2, logger)),
+          new BoundedWatchService(4, getBounded(2, logger)),
           new DirectoryRegistryImpl(),
           logger
         )) { c =>

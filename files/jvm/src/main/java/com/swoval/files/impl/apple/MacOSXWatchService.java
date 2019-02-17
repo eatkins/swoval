@@ -6,7 +6,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 import com.swoval.files.impl.LockableMap;
-import com.swoval.files.impl.RegisterableWatchService;
+import com.swoval.files.RegisterableWatchService;
 import com.swoval.files.impl.apple.FileEventMonitors.Handle;
 import com.swoval.files.impl.apple.FileEventMonitors.Handles;
 import com.swoval.files.impl.apple.Flags.Create;

@@ -49,10 +49,9 @@ public interface FileTreeRepository<T>
    *
    * @param path the directory to watch for file events and to add to the cache
    * @param maxDepth the maximum maxDepth of subdirectories to watch
-   * @return an {@link com.swoval.functional.Either} that will return a right value when no
-   *     exception is thrown. The right value will be true if the path has not been previously
-   *     registered. The {@link com.swoval.functional.Either} will be a left if any IOException is
-   *     thrown attempting to register the path.
+   * @return an {@link Either} that will return a right value when no exception is thrown. The right
+   *     value will be true if the path has not been previously registered. The {@link Either} will
+   *     be a left if any IOException is thrown attempting to register the path.
    */
   Either<IOException, Boolean> register(final Path path, final int maxDepth);
   /**

@@ -1,7 +1,6 @@
-package com.swoval.files.impl;
+package com.swoval.files;
 
 import com.swoval.files.impl.apple.MacOSXWatchService;
-import com.swoval.logging.Logger;
 import com.swoval.runtime.Platform;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -22,15 +21,9 @@ public class RegisterableWatchServices {
     return Platform.isMac() ? new MacOSXWatchService() : new RegisterableWatchServiceImpl();
   }
 
-  static RegisterableWatchService getBounded(int size, final Logger logger)
-      throws IOException, InterruptedException {
-    return Platform.isMac()
-        ? new MacOSXWatchService(10, TimeUnit.MILLISECONDS, size, logger)
-        : get();
-  }
-
   /** Wraps a WatchService and implements {@link RegisterableWatchService} */
-  static class RegisterableWatchServiceImpl implements WatchService, RegisterableWatchService {
+  private static class RegisterableWatchServiceImpl
+      implements WatchService, RegisterableWatchService {
     private final WatchService watchService;
 
     RegisterableWatchServiceImpl(final WatchService watchService) {

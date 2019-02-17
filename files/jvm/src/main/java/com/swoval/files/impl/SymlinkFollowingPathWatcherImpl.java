@@ -11,6 +11,7 @@ import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.PathWatchers.FollowSymlinks;
 import com.swoval.files.TypedPath;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import com.swoval.logging.Logger;
@@ -88,9 +89,9 @@ class SymlinkFollowingPathWatcherImpl implements FollowSymlinks<Event> {
     if (pathWatcherResult.isRight()) {
       try {
         handleNewDirectory(absolutePath, maxDepth, false);
-        listResult = Either.right(true);
+        listResult = EitherImpl.right(true);
       } catch (final IOException e) {
-        listResult = Either.left(e);
+        listResult = EitherImpl.left(e);
       }
     }
     return listResult;

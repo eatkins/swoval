@@ -8,8 +8,9 @@ import com.swoval.files.api.{ FileTreeView, PathWatcher }
 import com.swoval.files.test.TestLogger
 
 class Provider(implicit testLogger: TestLogger) extends SwovalProvider {
+  val pathWatcherProvider = new PathWatcherProviderImpl(testLogger)
   override def getFileTreeRepositoryProvider: FileTreeRepositoryProvider =
-    Provider.fileTreeRepository(testLogger)
+    new FileTreeRepositoryProviderImpl(pathWatcherProvider, testLogger)
   override def getFileTreeViewProvider: files.FileTreeViewProvider =
     new files.FileTreeViewProvider {
       override def get(followSymlinks: Boolean): FileTreeView[TypedPath] =
@@ -17,15 +18,12 @@ class Provider(implicit testLogger: TestLogger) extends SwovalProvider {
     }
   override def getPathWatcherProvider: PathWatcherProvider = new PathWatcherProvider {
     override def noFollowSymlinks(): PathWatchers.NoFollowSymlinks[PathWatchers.Event] =
-      PathWatcherProviderImpl.get(new DirectoryRegistryImpl, testLogger)
+      pathWatcherProvider.noFollowSymlinks()
 
-    override def followSymlinks(): PathWatchers.FollowSymlinks[PathWatchers.Event] = ???
+    override def followSymlinks(): PathWatchers.FollowSymlinks[PathWatchers.Event] =
+      pathWatcherProvider.followSymlinks(testLogger)
     override def polling(pollInterval: Long, timeUnit: TimeUnit): PathWatcher[PathWatchers.Event] =
       new PathWatcherProviderImpl.NoFollowWrapper(
-        new PollingPathWatcher(true, pollInterval, timeUnit, testLogger))
+        new PollingPathWatcher(pollInterval, timeUnit, true, testLogger))
   }
-}
-object Provider {
-  def fileTreeRepository(logger: TestLogger): FileTreeRepositoryProvider =
-    new FileTreeRepositoryProviderImpl(logger)
 }

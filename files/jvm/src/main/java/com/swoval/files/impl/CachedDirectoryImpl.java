@@ -1,6 +1,5 @@
 package com.swoval.files.impl;
 
-import static com.swoval.functional.Either.leftProjection;
 import static com.swoval.functional.Filters.AllPass;
 
 import com.swoval.files.FileTreeDataViews.Converter;
@@ -9,6 +8,7 @@ import com.swoval.files.FileTreeRepository;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
 import com.swoval.files.TypedPath;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import java.io.IOException;
@@ -113,8 +113,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
         if (findResult != null) {
           if (findResult.isRight()) {
             final List<Entry<T>> result = new ArrayList<>();
-            findResult
-                .get()
+            EitherImpl.getRight(findResult)
                 .<Entry<T>>listImpl(
                     maxDepth,
                     filter,
@@ -127,7 +126,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
                     });
             return result;
           } else {
-            final Entry<T> entry = leftProjection(findResult).getValue();
+            final Entry<T> entry = EitherImpl.getLeft(findResult);
             final List<Entry<T>> result = new ArrayList<>();
             if (entry != null && filter.accept(entry)) result.add(entry);
             return result;
@@ -409,10 +408,10 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
       if (!it.hasNext()) {
         final CachedDirectoryImpl<T> subdir = currentDir.subdirectories.get(p);
         if (subdir != null) {
-          result = Either.right(subdir);
+          result = EitherImpl.right(subdir);
         } else {
           final Entry<T> entry = currentDir.files.get(p);
-          if (entry != null) result = Either.left(Entries.resolve(currentDir.getPath(), entry));
+          if (entry != null) result = EitherImpl.left(Entries.resolve(currentDir.getPath(), entry));
         }
       } else {
         currentDir = currentDir.subdirectories.get(p);
@@ -425,7 +424,7 @@ public class CachedDirectoryImpl<T> implements CachedDirectory<T> {
     if (!getEntry().getTypedPath().exists()) {
       return null;
     } else if (path.equals(this.getPath()) || path.equals(Paths.get(""))) {
-      return Either.right(this);
+      return EitherImpl.right(this);
     } else if (path.isAbsolute() && path.startsWith(this.getPath())) {
       return findImpl(parts(this.getPath().relativize(path)));
     } else {

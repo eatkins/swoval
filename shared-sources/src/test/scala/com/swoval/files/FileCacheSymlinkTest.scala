@@ -19,7 +19,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Future, TimeoutException }
 import scala.util.Failure
 
-trait FileCacheSymlinkTest extends TestSuite with FileCacheTest {
+trait FileCacheSymlinkTest extends TestSuite with DefaultFileCacheTest {
   private val sentinel = new Object
   val objectConverter: Converter[Object] = new Converter[Object] {
     override def apply(typedPath: TypedPath): Object = sentinel

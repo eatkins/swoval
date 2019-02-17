@@ -7,11 +7,10 @@ import com.swoval.files.FileTreeRepositories.FollowSymlinks;
 import com.swoval.files.FileTreeRepositories.NoFollowSymlinks;
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.FileTreeRepositoryProvider;
+import com.swoval.files.PathWatcherProvider;
+import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.api.Observer;
 import com.swoval.files.api.PathWatcher;
-import com.swoval.files.PathWatchers.Event;
-import com.swoval.files.TypedPath;
-import com.swoval.files.impl.functional.IOFunction;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import com.swoval.logging.Logger;
@@ -23,68 +22,41 @@ import java.util.List;
 
 class FileTreeRepositoryProviderImpl implements FileTreeRepositoryProvider {
   private final Logger logger;
+  private final PathWatcherProvider pathWatcherProvider;
 
-  FileTreeRepositoryProviderImpl(final Logger logger) {
+  FileTreeRepositoryProviderImpl(
+      final PathWatcherProvider pathWatcherProvider, final Logger logger) {
     this.logger = logger;
-  }
-
-  @Override
-  public FileTreeRepository<Object> getDefault() throws InterruptedException, IOException {
-    return followSymlinks(Converters.UNIT_CONVERTER);
+    this.pathWatcherProvider = pathWatcherProvider;
   }
 
   @Override
   public <T> FollowSymlinks<T> followSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException {
-    return new FollowWrapper<>(get(true, converter, logger, PATH_WATCHER_FACTORY));
+    return new FollowWrapper<>(get(true, converter, logger, pathWatcherProvider));
   }
 
   @Override
   public <T> NoFollowSymlinks<T> noFollowSymlinks(final Converter<T> converter)
       throws InterruptedException, IOException {
-    return new NoFollowWrapper<>(get(false, converter, logger, PATH_WATCHER_FACTORY));
+    return new NoFollowWrapper<>(get(false, converter, logger, pathWatcherProvider));
   }
 
   static <T> FileTreeRepository<T> get(
       final boolean followLinks,
       final Converter<T> converter,
       final Logger logger,
-      final IOFunction<Logger, PathWatcher<Event>> newPathWatcher)
+      final PathWatcherProvider pathWatcherProvider)
       throws InterruptedException, IOException {
-    try {
-      final SymlinkWatcher symlinkWatcher =
-          followLinks ? new SymlinkWatcher(newPathWatcher.apply(logger), logger) : null;
-      final Executor callbackExecutor =
-          Executor.make("FileTreeRepository-callback-executor", logger);
-      final FileCacheDirectoryTree<T> tree =
-          new FileCacheDirectoryTree<>(converter, callbackExecutor, symlinkWatcher, false, logger);
-      final PathWatcher<Event> pathWatcher = newPathWatcher.apply(logger);
-      pathWatcher.addObserver(fileTreeObserver(tree, logger));
-      final FileCachePathWatcher<T> watcher = new FileCachePathWatcher<>(tree, pathWatcher);
-      return new FileTreeRepositoryImpl<>(tree, watcher, logger);
-    } catch (final Interrupted e) {
-      throw e.cause;
-    }
-  }
-
-  private static final IOFunction<Logger, PathWatcher<Event>> PATH_WATCHER_FACTORY =
-      new IOFunction<Logger, PathWatcher<Event>>() {
-        @Override
-        public PathWatcher<Event> apply(final Logger logger) throws IOException {
-          try {
-            return PathWatcherProviderImpl.get(new DirectoryRegistryImpl(), logger);
-          } catch (final InterruptedException e) {
-            throw new Interrupted(e);
-          }
-        }
-      };
-
-  private static class Interrupted extends RuntimeException {
-    final InterruptedException cause;
-
-    Interrupted(final InterruptedException cause) {
-      this.cause = cause;
-    }
+    final SymlinkWatcher symlinkWatcher =
+        followLinks ? new SymlinkWatcher(pathWatcherProvider.noFollowSymlinks(), logger) : null;
+    final Executor callbackExecutor = Executor.make("FileTreeRepository-callback-executor", logger);
+    final FileCacheDirectoryTree<T> tree =
+        new FileCacheDirectoryTree<>(converter, callbackExecutor, symlinkWatcher, false, logger);
+    final PathWatcher<Event> pathWatcher = pathWatcherProvider.noFollowSymlinks();
+    pathWatcher.addObserver(fileTreeObserver(tree, logger));
+    final FileCachePathWatcher<T> watcher = new FileCachePathWatcher<>(tree, pathWatcher);
+    return new FileTreeRepositoryImpl<>(tree, watcher, logger);
   }
 
   private static Observer<Event> fileTreeObserver(

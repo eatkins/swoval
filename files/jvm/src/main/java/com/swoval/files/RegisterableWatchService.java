@@ -1,4 +1,4 @@
-package com.swoval.files.impl;
+package com.swoval.files;
 
 import java.io.IOException;
 import java.nio.file.Path;

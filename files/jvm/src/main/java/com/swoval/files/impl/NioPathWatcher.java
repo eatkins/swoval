@@ -8,6 +8,7 @@ import static java.util.Map.Entry;
 import com.swoval.files.FileTreeDataViews;
 import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Converter;
+import com.swoval.files.RegisterableWatchService;
 import com.swoval.files.api.FileTreeView;
 import com.swoval.files.FileTreeViews;
 import com.swoval.files.api.Observer;
@@ -15,6 +16,7 @@ import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.functional.Consumer;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import com.swoval.logging.Logger;
@@ -74,7 +76,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
         if (oldEntry.getValue().isRight()) {
           if (Loggers.shouldLog(logger, Level.DEBUG))
             logger.debug(this + " closing key for " + oldEntry.getTypedPath().getPath());
-          oldEntry.getValue().get().close();
+          EitherImpl.getRight(oldEntry.getValue()).close();
         }
         events.add(new Event(oldEntry.getTypedPath(), Delete));
       }
@@ -120,7 +122,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
           @Override
           public WatchedDirectory apply(final TypedPath typedPath) {
             return typedPath.isDirectory() && !typedPath.isSymbolicLink()
-                ? Either.getOrElse(
+                ? EitherImpl.getOrElse(
                     service.register(typedPath.getPath()), WatchedDirectories.INVALID)
                 : WatchedDirectories.INVALID;
           }
@@ -172,7 +174,7 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
                   TypedPaths.getKind(entry.getTypedPath()) | Entries.NONEXISTENT);
           events.add(new Event(typedPath, Delete));
         }
-        either.get().close();
+        EitherImpl.getRight(either).close();
       }
     }
   }
@@ -190,18 +192,18 @@ class NioPathWatcher implements PathWatcher<Event>, AutoCloseable {
     } catch (final IOException e) {
       realPath = absolutePath.toAbsolutePath();
     }
-    Either<IOException, Boolean> result = Either.right(false);
+    Either<IOException, Boolean> result = EitherImpl.right(false);
     if (existingMaxDepth < maxDepth) {
       directoryRegistry.addDirectory(typedPath.getPath(), maxDepth);
     }
     final CachedDirectory<WatchedDirectory> dir = getOrAdd(realPath);
 
     if (dir != null) {
-      result = Either.right(true);
+      result = EitherImpl.right(true);
       try {
         dir.update(typedPath, true);
       } catch (final IOException e) {
-        result = Either.left(e);
+        result = EitherImpl.left(e);
       }
     }
     if (Loggers.shouldLog(logger, Level.DEBUG))

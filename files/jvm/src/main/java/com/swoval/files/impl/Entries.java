@@ -1,11 +1,11 @@
 package com.swoval.files.impl;
 
 import static com.swoval.files.impl.LinkOption.NOFOLLOW_LINKS;
-import static com.swoval.functional.Either.leftProjection;
 
 import com.swoval.files.FileTreeDataViews.Converter;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.TypedPath;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,10 +39,10 @@ final class Entries {
             | (typedPath.isDirectory() ? DIRECTORY : 0)
             | (typedPath.isSymbolicLink() ? LINK : 0);
     final TypedPath nonExistent = TypedPaths.get(typedPath.getPath(), kind);
-    if (entry.getValue().isLeft()) {
-      return new InvalidEntry<>(nonExistent, Either.leftProjection(entry.getValue()).getValue());
+    if (!entry.getValue().isRight()) {
+      return new InvalidEntry<>(nonExistent, EitherImpl.getLeft(entry.getValue()));
     } else {
-      return new ValidEntry<>(nonExistent, entry.getValue().get());
+      return new ValidEntry<>(nonExistent, EitherImpl.getRight(entry.getValue()));
     }
   }
 
@@ -51,8 +51,8 @@ final class Entries {
     final int kind = getKind(entry);
     final TypedPath typedPath = TypedPaths.get(path.resolve(entry.getTypedPath().getPath()), kind);
     return value.isRight()
-        ? new ValidEntry<>(typedPath, value.get())
-        : new InvalidEntry<T>(typedPath, leftProjection(value).getValue());
+        ? new ValidEntry<>(typedPath, EitherImpl.getRight(value))
+        : new InvalidEntry<T>(typedPath, EitherImpl.getLeft(value));
   }
 
   private static int getKindFromAttrs(final Path path, final BasicFileAttributes attrs) {
@@ -88,7 +88,7 @@ final class Entries {
 
     @Override
     public int hashCode() {
-      final int value = com.swoval.functional.Either.getOrElse(getValue(), 0).hashCode();
+      final int value = EitherImpl.getOrElse(getValue(), 0).hashCode();
       return typedPath.hashCode() ^ value;
     }
 
@@ -115,7 +115,7 @@ final class Entries {
 
     @Override
     public Either<IOException, T> getValue() {
-      return Either.right(value);
+      return EitherImpl.right(value);
     }
     /**
      * Create a new Entry
@@ -144,7 +144,7 @@ final class Entries {
 
     @Override
     public Either<IOException, T> getValue() {
-      return Either.left(exception);
+      return EitherImpl.left(exception);
     }
 
     @Override

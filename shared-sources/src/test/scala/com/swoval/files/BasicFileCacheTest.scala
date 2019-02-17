@@ -33,7 +33,7 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
   implicit def entryOps(entries: java.util.List[Entry[Path]]): RichEntries =
     new RichEntries(entries.asScala)
   implicit def provider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
-    Provider.fileTreeRepository(testLogger)
+    new Provider().getFileTreeRepositoryProvider
   val testsImpl: Tests = Tests {
     'directory - {
       'subdirectories - {

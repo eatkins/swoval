@@ -1,33 +1,29 @@
 package com.swoval.functional
 
+import com.swoval.files.impl.functional.EitherImpl
+import com.swoval.functional.throwables.{ NotLeftException, NotRightException }
 import utest._
 
 object EitherTest extends TestSuite {
-  implicit class EitherOps[L, R](val either: Either[L, R]) extends AnyVal {
-    def left(): Either.Left[L, R] = Either.leftProjection[L, R](either)
-    def right(): Either.Right[L, R] = Either.rightProjection[L, R](either)
-  }
   override def tests: Tests = Tests {
     'exceptions - {
       'left - {
-        intercept[Either.NotLeftException](Either.right(1).left())
+        intercept[NotLeftException](EitherImpl.right(1).leftValue())
         ()
       }
       'right - {
-        intercept[Either.NotRightException](Either.left(1).right())
+        intercept[NotRightException](EitherImpl.left(1).rightValue())
         ()
       }
     }
     'type - {
       'left - {
-        val left = Either.left(1)
-        assert(left.isLeft)
+        val left = EitherImpl.left(1)
         assert(!left.isRight)
       }
       'right - {
-        val right = Either.right(1)
+        val right = EitherImpl.right(1)
         assert(right.isRight)
-        assert(!right.isLeft)
       }
     }
   }

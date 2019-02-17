@@ -32,7 +32,7 @@ trait FileCacheOverflowTest extends TestSuite with FileCacheTest {
   }
   override implicit def defaultProvider(
       implicit testLogger: TestLogger): FileTreeRepositoryProvider =
-    Provider.fileTreeRepository(testLogger)
+    new Provider().getFileTreeRepositoryProvider
   private val name = getClass.getSimpleName
 
   private val boundedQueueSize = System.getProperty("swoval.test.queue.size") match {

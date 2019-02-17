@@ -6,6 +6,8 @@ import java.nio.file.{ Files, Path }
 
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TypedPath
+import com.swoval.files.impl.functional
+import com.swoval.files.impl.functional.Either
 import com.swoval.functional
 import sbt.SourceWrapper._
 import sbt._
@@ -37,7 +39,7 @@ object Compat {
   def settings(s: Seq[Def.Setting[_]]): Seq[Def.Setting[_]] = s
 
   case class EntryImpl(getTypedPath: TypedPath) extends Entry[Path] {
-    override def getValue: functional.Either[IOException, Path] =
+    override def getValue: Either[IOException, Path] =
       functional.Either.right(getTypedPath.getPath)
     override def compareTo(other: Entry[Path]): Int =
       getTypedPath.getPath.compareTo(other.getTypedPath.getPath)

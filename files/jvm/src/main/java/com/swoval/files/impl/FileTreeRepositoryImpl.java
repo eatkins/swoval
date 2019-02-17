@@ -4,6 +4,7 @@ import com.swoval.files.FileTreeDataViews.CacheObserver;
 import com.swoval.files.FileTreeDataViews.Entry;
 import com.swoval.files.FileTreeRepository;
 import com.swoval.files.api.Observer;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.functional.Filter;
 import com.swoval.logging.Logger;
@@ -92,12 +93,12 @@ class FileTreeRepositoryImpl<T> implements FileTreeRepository<T> {
     try {
       final Path absolutePath = path.isAbsolute() ? path : path.toAbsolutePath();
       final Either<IOException, Boolean> res =
-          Either.right(watcher.register(absolutePath, maxDepth));
+          EitherImpl.right(watcher.register(absolutePath, maxDepth));
       if (Loggers.shouldLog(logger, Level.DEBUG))
         logger.debug(this + " registered " + path + " with max depth " + maxDepth);
       return res;
     } catch (final IOException e) {
-      return Either.left(e);
+      return EitherImpl.left(e);
     }
   }
 

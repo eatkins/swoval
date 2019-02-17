@@ -2,8 +2,10 @@ package com.swoval
 package files
 
 import java.io.IOException
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{ Files, Path }
 
+import com.swoval.files.TestHelpers._
+import com.swoval.files.impl.CachedDirectoryImpl
 import com.swoval.files.test._
 import com.swoval.functional.Filters.AllPass
 import com.swoval.test._
@@ -11,8 +13,6 @@ import utest._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import TestHelpers._
-import com.swoval.files.impl.CachedDirectoryImpl
 
 object DataViewTest extends TestSuite {
   import RelativeFileTreeViewTest.RepositoryOps
@@ -27,7 +27,7 @@ object DataViewTest extends TestSuite {
     }
     val dir = cached(parent, converter)
     val either = dir.getEntry.getValue
-    either.left.getValue.getMessage == "die"
+    either.leftValue.getMessage == "die"
     either.getOrElse(2) ==> 2
     dir.ls(recursive = true, AllPass) === Seq(file)
   }

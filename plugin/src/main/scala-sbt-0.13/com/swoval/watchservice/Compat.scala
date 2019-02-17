@@ -5,7 +5,8 @@ import java.io.{File, IOException}
 import java.nio.file._
 
 import com.swoval.files.FileTreeDataViews.{Converter, Entry}
-import com.swoval.files.impl.TypedPaths
+import com.swoval.files.impl.{TypedPaths, functional}
+import com.swoval.files.impl.functional.Either
 import com.swoval.files.{FileTreeRepositories, TypedPath}
 import com.swoval.watchservice.CloseWatchPlugin.autoImport.closeWatchFileCache
 import sbt.Keys._
@@ -61,7 +62,7 @@ class BaseFileSource(val file: File, filter: functional.Filter[Entry[Path]], _id
 
 object Compat {
   case class EntryImpl(getTypedPath: TypedPath) extends Entry[Path] {
-    override def getValue: functional.Either[IOException, Path] = functional.Either.right(getTypedPath.getPath)
+    override def getValue: Either[IOException, Path] = functional.Either.right(getTypedPath.getPath)
     override def compareTo(o: Entry[Path]): Int = getTypedPath.getPath.compareTo(o.getTypedPath.getPath)
   }
   object internal {

@@ -1,17 +1,16 @@
 package com.swoval.files.impl;
 
-import static com.swoval.functional.Either.getOrElse;
-import static com.swoval.functional.Either.leftProjection;
 import static java.util.Map.Entry;
 
-import com.swoval.files.api.Observable;
-import com.swoval.files.api.Observer;
-import com.swoval.files.api.PathWatcher;
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;
+import com.swoval.files.api.Observable;
+import com.swoval.files.api.Observer;
+import com.swoval.files.api.PathWatcher;
 import com.swoval.files.impl.SymlinkWatcher.RegisteredPath;
 import com.swoval.files.impl.functional.Consumer;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -203,10 +202,10 @@ class SymlinkWatcher implements Observable<Event>, AutoCloseable {
             final RegisteredPath targetRegistrationPath = watchedSymlinksByTarget.get(realPath);
             if (targetRegistrationPath == null) {
               final Either<IOException, Boolean> result = watcher.register(realPath, maxDepth);
-              if (getOrElse(result, false)) {
+              if (EitherImpl.getOrElse(result, false)) {
                 watchedSymlinksByTarget.put(realPath, new RegisteredPath(realPath, path));
-              } else if (result.isLeft()) {
-                throw leftProjection(result).getValue();
+              } else if (!result.isRight()) {
+                throw EitherImpl.getLeft(result);
               }
             } else {
               targetRegistrationPath.paths.add(path);

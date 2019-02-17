@@ -240,7 +240,6 @@ class RelativeFileTreeViewTest(
     }
   }
 }
-//object DirectoryFileTreeViewTest extends RelativeFileTreeViewTest(FileTreeViews.cached)
 object DefaultRelativeFileTreeViewTest
     extends RelativeFileTreeViewTest((path, depth, follow: Boolean) => {
       new RelativeFileTreeViewImpl(path,

@@ -11,6 +11,7 @@ import com.swoval.files.PathWatchers.Event.Kind;
 import com.swoval.files.TypedPath;
 import com.swoval.files.api.Observer;
 import com.swoval.files.api.PathWatcher;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -55,9 +56,9 @@ class PollingPathWatcher implements PathWatcher<Event> {
   }
 
   PollingPathWatcher(
-      final boolean followLinks,
       final long pollInterval,
       final TimeUnit timeUnit,
+      final boolean followLinks,
       final Logger logger)
       throws InterruptedException {
     this(
@@ -86,7 +87,7 @@ class PollingPathWatcher implements PathWatcher<Event> {
       addAll(oldEntries, entries);
       result = registry.addDirectory(absolutePath, maxDepth);
     }
-    return Either.right(result);
+    return EitherImpl.right(result);
   }
 
   @Override

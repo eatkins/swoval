@@ -1,4 +1,5 @@
-package com.swoval.files
+package com.swoval
+package files
 
 import java.io.IOException
 import java.nio.file.Path
@@ -8,14 +9,13 @@ import com.swoval.files.TestHelpers._
 import com.swoval.files.impl.Provider
 import com.swoval.files.test._
 import com.swoval.files.test.platform.Bool
-import com.swoval.functional.{ Filter, Filters, Either => SEither }
+import com.swoval.functional.{ Filter, Filters }
 import utest._
 
 import scala.collection.JavaConverters._
 
 trait FileCacheTest extends TestSuite { self: TestSuite =>
-  def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider =
-    Provider.fileTreeRepository(logger)
+  def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider
   def identity: Converter[Path] = (_: TypedPath).getPath
 
   def simpleCache(f: Entry[Path] => Unit)(
@@ -55,7 +55,7 @@ object FileCacheTest {
     def ls[R >: Entry[T]](dir: Path, recursive: Boolean, filter: Filter[R]): Seq[Entry[T]] =
       fileCache.list(dir, if (recursive) Int.MaxValue else 0, filter).asScala
 
-    def reg(dir: Path, recursive: Boolean = true): SEither[IOException, Bool] = {
+    def reg(dir: Path, recursive: Boolean = true): functional.Either[IOException, Bool] = {
       val res = fileCache.register(dir, recursive)
       assert(res.getOrElse[Bool](false))
       res
@@ -63,7 +63,12 @@ object FileCacheTest {
   }
 }
 
-trait DefaultFileCacheTest { self: FileCacheTest =>
+trait DefaultFileCacheTest extends FileCacheTest {
+  override def defaultProvider(implicit testLogger: TestLogger): FileTreeRepositoryProvider =
+    new Provider().getFileTreeRepositoryProvider
 }
-trait NioFileCacheTest { self: FileCacheTest =>
+
+trait NioFileCacheTest extends FileCacheTest {
+  override def defaultProvider(implicit logger: TestLogger): FileTreeRepositoryProvider =
+    new Provider().getFileTreeRepositoryProvider
 }

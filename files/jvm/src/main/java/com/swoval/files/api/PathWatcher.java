@@ -26,10 +26,9 @@ public interface PathWatcher<T> extends Observable<T>, AutoCloseable {
    *
    * @param path the directory to watch for file events
    * @param maxDepth the maximum maxDepth of subdirectories to watch
-   * @return an {@link com.swoval.functional.Either} containing the result of the registration or an
-   *     IOException if registration fails. This method should be idempotent and return true the
-   *     first time the directory is registered or when the depth is changed. Otherwise it should
-   *     return false.
+   * @return an {@link Either} containing the result of the registration or an IOException if
+   *     registration fails. This method should be idempotent and return true the first time the
+   *     directory is registered or when the depth is changed. Otherwise it should return false.
    */
   Either<IOException, Boolean> register(Path path, int maxDepth);
 

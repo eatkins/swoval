@@ -1,4 +1,5 @@
 package com.swoval
+
 package files
 
 import java.io.{ File, FileFilter, IOException }
@@ -6,7 +7,7 @@ import java.nio.file.{ Path, Paths }
 
 import com.swoval.files.FileTreeDataViews.{ CacheObserver, Converter, Entry }
 import com.swoval.files.api.{ Observer, PathWatcher }
-import com.swoval.files.impl.functional.Consumer
+import com.swoval.files.impl.functional.{ Consumer, EitherImpl }
 import com.swoval.files.test.platform.Bool
 import com.swoval.functional.Filter
 import com.swoval.runtime.Platform
@@ -59,11 +60,8 @@ object TestHelpers extends PlatformFiles {
   }
 
   implicit class EitherOps[L, R](val either: functional.Either[L, R]) extends AnyVal {
-    def getOrElse[U >: R](u: U): U = functional.Either.getOrElse(either, u)
-
-    def left(): functional.Either.Left[L, R] = functional.Either.leftProjection[L, R](either)
-
-    def right(): functional.Either.Right[L, R] = functional.Either.rightProjection[L, R](either)
+    def getOrElse[U >: R](u: U): U = EitherImpl.getOrElse(either, u)
+    def get(): R = EitherImpl.getRight(either)
   }
 
   implicit class ConverterFunctionOps[T](val f: TypedPath => T) extends Converter[T] {

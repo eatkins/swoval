@@ -15,6 +15,7 @@ import com.swoval.files.impl.TypedPaths;
 import com.swoval.files.impl.apple.FileEventMonitors.Handle;
 import com.swoval.files.impl.apple.FileEventMonitors.Handles;
 import com.swoval.files.impl.functional.Consumer;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -78,10 +79,9 @@ public class ApplePathWatcher implements PathWatcher<Event> {
    *
    * @param path The directory to watch for file events
    * @param maxDepth The maximum number of subdirectory levels to visit
-   * @return an {@link com.swoval.functional.Either} containing the result of the registration or an
-   *     IOException if registration fails. This method should be idempotent and return true the
-   *     first time the directory is registered or when the depth is changed. Otherwise it should
-   *     return false.
+   * @return an {@link Either} containing the result of the registration or an IOException if
+   *     registration fails. This method should be idempotent and return true the first time the
+   *     directory is registered or when the depth is changed. Otherwise it should return false.
    */
   @Override
   public Either<IOException, Boolean> register(final Path path, final int maxDepth) {
@@ -95,10 +95,9 @@ public class ApplePathWatcher implements PathWatcher<Event> {
    * @param path The directory to watch for file events
    * @param flags The flags {@link Flags.Create} to set for the directory
    * @param maxDepth The maximum number of subdirectory levels to visit
-   * @return an {@link com.swoval.functional.Either} containing the result of the registration or an
-   *     IOException if registration fails. This method should be idempotent and return true the
-   *     first time the directory is registered or when the depth is changed. Otherwise it should
-   *     return false.
+   * @return an {@link Either} containing the result of the registration or an IOException if
+   *     registration fails. This method should be idempotent and return true the first time the
+   *     directory is registered or when the depth is changed. Otherwise it should return false.
    */
   public Either<IOException, Boolean> register(
       final Path path, final Flags.Create flags, final int maxDepth) {
@@ -121,7 +120,7 @@ public class ApplePathWatcher implements PathWatcher<Event> {
     }
     if (Loggers.shouldLog(logger, Level.DEBUG))
       logger.debug(this + " registered " + path + " with max depth " + maxDepth);
-    return Either.right(result);
+    return EitherImpl.right(result);
   }
 
   private void removeRedundantStreams(final Path path) {

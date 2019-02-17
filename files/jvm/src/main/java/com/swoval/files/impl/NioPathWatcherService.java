@@ -11,8 +11,10 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 import com.swoval.files.PathWatchers.Event;
 import com.swoval.files.PathWatchers.Event.Kind;
+import com.swoval.files.RegisterableWatchService;
 import com.swoval.files.TypedPath;
 import com.swoval.files.impl.functional.Consumer;
+import com.swoval.files.impl.functional.EitherImpl;
 import com.swoval.functional.Either;
 import com.swoval.logging.Logger;
 import com.swoval.logging.Loggers;
@@ -146,28 +148,28 @@ class NioPathWatcherService implements AutoCloseable {
             watchedDirectoriesByPath.put(path, watchedDirectory);
             if (Loggers.shouldLog(logger, Level.DEBUG))
               logger.debug(this + " creating new watch key for " + path);
-            result = Either.right(watchedDirectory);
+            result = EitherImpl.right(watchedDirectory);
           } else {
             if (Loggers.shouldLog(logger, Level.DEBUG))
               logger.debug(this + " using existing watch key for " + path);
-            result = Either.right(previousWatchedDirectory);
+            result = EitherImpl.right(previousWatchedDirectory);
           }
         } finally {
           watchedDirectoriesByPath.unlock();
         }
       } else {
-        result = Either.right(null);
+        result = EitherImpl.right(null);
       }
     } catch (final ClosedWatchServiceException e) {
-      result = Either.left(new IOException(e));
+      result = EitherImpl.left(new IOException(e));
     } catch (final IOException e) {
-      result = Either.left(e);
+      result = EitherImpl.left(e);
     }
     if (Loggers.shouldLog(logger, Level.DEBUG))
       logger.debug(
           this
               + (" registration for " + path + " ")
-              + (result.isLeft() ? "failed (" + result + ")" : "succeeded"));
+              + (result.isRight() ? "succeeded" : "failed (" + result + ")"));
     return result;
   }
 

@@ -5,21 +5,12 @@ package files
 import java.io.IOException
 import java.lang
 import java.nio.file.{ Files, Path }
-import java.util.concurrent.TimeUnit
 
-import com.swoval.files.FileTreeRepositories.NoFollowSymlinks
 import com.swoval.files.PathWatchers.FollowSymlinks
 import com.swoval.files.TestHelpers._
 import com.swoval.files.api.{ Observer, PathWatcher }
-import com.swoval.files.impl.{
-  DirectoryRegistryImpl,
-  PlatformWatcher,
-  SwovalProviderImpl,
-  SymlinkFollowingPathWatcherImpl
-}
+import com.swoval.files.impl.SwovalProviderImpl
 import com.swoval.files.test._
-import com.swoval.logging.Logger
-import com.swoval.runtime.Platform
 import com.swoval.test._
 import utest._
 
@@ -120,35 +111,3 @@ object PathWatcherSymlinkTest extends PathWatcherSymlinkTest {
   }
   override val tests = testsImpl
 }
-//object NioPathWatcherSymlinkTest extends PathWatcherSymlinkTest {
-//  override def defaultWatcher(callback: Predef.Function[PathWatchers.Event, _])(
-//      implicit testLogger: TestLogger): PathWatcher[PathWatchers.Event] = {
-//    val registry = new DirectoryRegistryImpl
-//    val provider: PathWatcherProvider = new PathWatcherProvider {
-//      private def newWatcher(logger: Logger) = PlatformWatcher.make(registry, logger)
-//      override def noFollowSymlinks(
-//          logger: Logger): PathWatchers.NoFollowSymlinks[PathWatchers.Event] =
-//        new NoFollowWrapper[PathWatchers.Event](newWatcher(logger))
-//      override def followSymlinks(logger: Logger): FollowSymlinks[PathWatchers.Event] = ???
-//      override def polling(pollInterval: Long,
-//                           timeUnit: TimeUnit,
-//                           logger: Logger): PathWatcher[PathWatchers.Event] = ???
-//    }
-//    val res = new SymlinkFollowingPathWatcherImpl(provider.noFollowSymlinks(testLogger),
-//                                                  registry,
-//                                                  testLogger,
-//                                                  provider)
-//    res.addObserver(callback)
-//    res
-//  }
-//  override val tests = if (Platform.isMac && Platform.isJVM) {
-//    testsImpl
-//  } else {
-//    Tests {
-//      'ignore - {
-//        if (swoval.test.verbose)
-//          println("Not running NioPathWatcherSymlinkTest on platform other than osx on the jvm")
-//      }
-//    }
-//  }
-//}
