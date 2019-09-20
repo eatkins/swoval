@@ -1,5 +1,3 @@
-import sbt.Defaults.sbtPluginExtra
-
 val bundlerVersion = Option(System.getProperty("bundler.version")).getOrElse("0.14.0")
 val crossprojectVersion = "0.4.0"
 val scalaJSVersion = Option(System.getProperty("scala.js.version")).getOrElse("0.6.26")
@@ -7,6 +5,8 @@ val scalaJSVersion = Option(System.getProperty("scala.js.version")).getOrElse("0
 addSbtPlugin("com.swoval" % "sbt-source-format" % "0.1.6")
 
 addSbtPlugin("com.github.sbt" % "sbt-jacoco" % "3.1.0")
+
+addSbtPlugin("com.swoval" % "sbt-make" % "0.1.0")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
 
@@ -20,16 +20,4 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.0")
 
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.0")
 
-addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.3")
-
-libraryDependencies ++= {
-  val sbtV = (sbtBinaryVersion in update).value
-  val scalaV = (scalaBinaryVersion in update).value
-  val legacy = CrossVersion.partialVersion(sbtV).forall(_._1 == 0)
-  val scalaFmtDep =
-    if (legacy) "com.lucidchart" % "sbt-scalafmt" % "1.15"
-    else "com.geirsson" % "sbt-scalafmt" % "1.5.1"
-  val doge = "com.eed3si9n" % "sbt-doge" % "0.1.5"
-  Seq(sbtPluginExtra(scalaFmtDep, sbtV, scalaV)) ++
-    (if (legacy) Some(sbtPluginExtra(doge, sbtV, scalaV)) else None)
-}
+addSbtPlugin("org.scalameta" % "scalafmt" % "2.0.4")
