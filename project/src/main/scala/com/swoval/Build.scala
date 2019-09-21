@@ -2,37 +2,37 @@ package com.swoval
 
 import java.io._
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import java.nio.file.{ Files, Paths, Path => JPath }
+import java.nio.file.{Files, Paths, Path => JPath}
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
 
-import com.github.sbt.jacoco.JacocoKeys.{ jacocoExcludes, jacocoReportSettings }
-import com.github.sbt.jacoco.report.{ JacocoReportSettings, JacocoThresholds }
-import com.swoval.Dependencies._
+import com.github.sbt.jacoco.JacocoKeys.{jacocoExcludes, jacocoReportSettings}
+import com.github.sbt.jacoco.report.{JacocoReportSettings, JacocoThresholds}
 import com.swoval.format.ExtensionFilter
-import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, clangfmtSources, javafmt }
+import com.swoval.format.SourceFormatPlugin.autoImport.{clangfmt, clangfmtSources, javafmt}
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import org.apache.commons.codec.digest.DigestUtils
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmt
 import org.scalajs.core.tools.linker.backend.ModuleKind
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.{ fastOptJS, fullOptJS, scalaJSModuleKind }
-import sbt.Keys._
-import sbt._
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.{fastOptJS, fullOptJS, scalaJSModuleKind}
+import sbt.Keys.{sources, _}
 import sbt.internal.TaskSequential
+import sbt.{file, _}
 import sbtcrossproject.CrossPlugin.autoImport._
-import sbtcrossproject.{ CrossProject, crossProject }
+import sbtcrossproject.{CrossProject, crossProject}
 import scalajsbundler.BundlingMode
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 import scalajscrossproject.JSPlatform
 import scalajscrossproject.ScalaJSCrossPlugin.autoImport.JSCrossProjectOps
+import com.swoval.Dependencies._
 
 import scala.collection.JavaConverters._
 import scala.io.Source
-import scala.util.{ Properties, Try }
+import scala.util.{Properties, Try}
 
 object Build {
-  val scalaCrossVersions @ Seq(scala210, scala211, scala212) = Seq("2.10.7", "2.11.12", "2.12.8")
+  val scalaCrossVersions @ Seq(scala210, scala211, scala212) = Seq("2.10.7", "2.11.12", "2.12.10")
 
   def baseVersion: String = "2.2.0-SNAPSHOT"
 
@@ -326,18 +326,6 @@ object Build {
       commonSettings,
       name := "file-tree-views",
       description := "File system apis.",
-      watchSources in Compile ++= {
-        Files
-          .walk(baseDirectory.value.toPath.getParent)
-          .iterator
-          .asScala
-          .filter(Files.isRegularFile(_))
-          .collect {
-            case p if p.toString.endsWith(".hpp") || p.toString.endsWith(".cc") => p.toFile
-          }
-          .filterNot(_.toString contains "target")
-          .toSeq
-      },
       utestCrossTest,
       utestFramework
     )
@@ -488,6 +476,7 @@ object Build {
         .value
     )
     .jvmSettings(
+      JniBuild.makeSettings,
       createCrossLinks("FILESJVM"),
       clangfmtSources +=
         (files.jvm.base / "src" / "main" / "native", ExtensionFilter("cc", "h", "hh"), true),
@@ -638,7 +627,6 @@ object Build {
         "com.lihaoyi" %% "utest" % utestVersion % "test"
       ) ++ (if ((scalaVersion in crossVersion).value == scala210) None else Some(sbtIO)),
       publishMavenStyle in publishLocal := false,
-      watchSources ++= (watchSources in files.jvm).value,
       utestFramework
     )
     .dependsOn(files.jvm % "compile->compile", testing.jvm % "test->compile")

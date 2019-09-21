@@ -8,3 +8,5 @@ val swoval = Build.swoval
 val scalagen = Build.scalagen
 val testingJS = Build.testing.js
 val testingJVM = Build.testing.jvm
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
