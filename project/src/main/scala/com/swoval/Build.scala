@@ -119,7 +119,8 @@ object Build {
     nio.js,
     plugin,
     testing.js,
-    testing.jvm
+    testing.jvm,
+    jni
   )
 
   def releaseTask(key: TaskKey[Unit]) = Def.taskDyn {
@@ -319,6 +320,7 @@ object Build {
       useYarn := false
     )
 
+  lazy val jni: Project = project in file("files/jni")
   lazy val files: CrossProject = crossProject(JSPlatform, JVMPlatform)
     .in(file("files"))
     .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin).dependsOn(nio.js))
@@ -476,7 +478,6 @@ object Build {
         .value
     )
     .jvmSettings(
-      JniBuild.makeSettings,
       createCrossLinks("FILESJVM"),
       clangfmtSources +=
         (files.jvm.base / "src" / "main" / "native", ExtensionFilter("cc", "h", "hh"), true),

@@ -6,7 +6,7 @@ addSbtPlugin("com.swoval" % "sbt-source-format" % "0.1.6")
 
 addSbtPlugin("com.github.sbt" % "sbt-jacoco" % "3.1.0")
 
-addSbtPlugin("com.swoval" % "sbt-make" % "0.1.0")
+addSbtPlugin("com.swoval" % "sbt-make" % "0.1.1-SNAPSHOT")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
 
@@ -20,6 +20,6 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.0")
 
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.0")
 
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.0.4")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.0.6")
 
 

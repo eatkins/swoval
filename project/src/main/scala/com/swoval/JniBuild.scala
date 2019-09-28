@@ -1,19 +1,93 @@
 package com.swoval
 
-import java.nio.file.Path
+import java.nio.file.{ Path, Paths }
+import java.util.concurrent.TimeUnit
+
 import com.swoval.make._
 import sbt._
 import sbt.Keys._
+import sjsonnew.BasicJsonProtocol._
+
+import scala.annotation.tailrec
+import scala.collection.JavaConverters._
+import scala.util.Properties
 
 object JniBuild {
   private val makeBuildDir = settingKey[Path]("make build directory").withRank(Int.MaxValue)
   private val jniInclude = taskKey[String]("the jni include directory")
+  private def getProcOutput(args: String*): String = {
+    val proc = new ProcessBuilder(args: _*).start()
+    val out = new java.util.Vector[Byte]
+    val err = new java.util.Vector[Byte]
+    val is = proc.getInputStream
+    val es = proc.getErrorStream
+    def drain(): Unit = {
+      while (is.available > 0) out.add((is.read() & 0xFF).toByte)
+      while (es.available > 0) err.add((es.read() & 0xFF).toByte)
+    }
+    val thread = new Thread() {
+      setDaemon(true)
+      start()
+      @tailrec
+      override def run(): Unit = {
+        drain()
+        if (proc.isAlive && !Thread.currentThread.isInterrupted) {
+          try Thread.sleep(10)
+          catch { case _: InterruptedException => }
+          run()
+        }
+      }
+    }
+    proc.waitFor(5, TimeUnit.SECONDS)
+    thread.interrupt()
+    drain()
+    if (!err.isEmpty) System.err.println(new String(err.asScala.toArray))
+    new String(out.asScala.toArray)
+  }
+  private def parentPath(args: String*)(cond: String => Boolean): Option[Path] =
+    getProcOutput(args: _*).linesIterator.collectFirst {
+      case l if cond(l) => Paths.get(l).getParent
+    }
+  private val cc = taskKey[String]("compiler")
+  private val ccFlags = taskKey[String]("compiler flags")
   val makeSettings = Def.settings(
     makeBuildDir := target.value.toPath / "jni" / "build",
+    jniInclude := {
+      jniInclude.previous.getOrElse {
+        System.getProperty("java8.home") match {
+          case null =>
+            if (Properties.isMac) {
+              parentPath("mdfind", "-name", "jni.h")(_.contains("jdk1.8"))
+                .map(p => s"-I$p -I$p/darwin")
+                .getOrElse {
+                  throw new IllegalStateException("Couldn't find jni.h for jdk 8")
+                }
+            } else {
+              parentPath("locate", "jni.h")(_ => true).map(p => s"-I$p -I$p/linux").getOrElse {
+                throw new IllegalStateException("Couldn't find jni.h for jdk 8")
+              }
+            }
+          case h =>
+            val platform = if (Properties.isMac) "darwin" else "linux"
+            s"-I$h/include/ -i$h/include/$platform"
+        }
+      }
+    },
+    "CCX" := { if (Properties.isMac) "clang" else "gcc" },
+    Global / cc := { if (Properties.isMac) "clang" else "gcc" },
+    Global / ccFlags := m"-Ifiles/jvm/src/main/native/include $jniInclude -Wno-unused-command-line-argument -std=c++11 -O3",
+    pat"$makeBuildDir/objects/apple/%.o" :- pat"files/jvm/src/main/native/apple/%.cc" build {
+      println(m"${"CCX"}")
+      println("---")
+      sh(m"${Global / cc} ${Global / ccFlags} -c ${`$^`} -framework Carbon -o ${`$@`}")
+    },
 //    jniInclude build {
 //      jniInclude.track
 //    },
-    p"$makeBuildDir/foo" :- p"" build ()
+    p"$makeBuildDir/foo" :- pat"$makeBuildDir/objects/apple/%.o" build {
+      println(p"files/jvm/src/main/native/apple".toAbsolutePath)
+      println(Option(p"src/main/native/apple".toFile.list()).toVector)
+    }
   )
 //  buildNative := {
 //    val log = state.value.log
