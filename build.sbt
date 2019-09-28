@@ -8,5 +8,11 @@ val swoval = Build.swoval
 val scalagen = Build.scalagen
 val testingJS = Build.testing.js
 val testingJVM = Build.testing.jvm
+val jni = Build.jni
+
+filesJVM / Compile / compile := {
+  (jni / Compile / compile).value
+  (filesJVM / Compile / compile).value
+}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
