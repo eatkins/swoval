@@ -19,14 +19,14 @@ if (Properties.isMac) {
     p"${jni / target}/x86_64/lib${"LIB_NAME"}.dylib" build Files.copy(`$<`, `$@`, REPLACE_EXISTING)
   val win = p"${filesJVM / Compile / resourceDirectory}/native/x86_64/${"LIB_NAME"}.dll" :-
     p"${jni / target}/x86_64/${"LIB_NAME"}.dll" build Files.copy(`$<`, `$@`, REPLACE_EXISTING)
-  mac ++ win
+  mac ++ win ++ (TaskKey[Unit]("buildJNI") :-
+    (p"${filesJVM / Compile / resourceDirectory}/native/x86_64/lib${"LIB_NAME"}.dylib",
+    p"${filesJVM / Compile / resourceDirectory}/native/x86_64/${"LIB_NAME"}.dll") build { () })
 } else Nil
-//filesJVM / Compile / compile := {
-//  val jniDir = p"${jni / target}/x86_64"
-//  (jni / TaskKey[Seq[Path]]("buildJNI")).value.foreach { p =>
-//    Files.copy((filesJVM / resources
-//  }
-//  (filesJVM / Compile / compile).value
-//}
+
+filesJVM / Compile / compile := {
+  TaskKey[Unit]("buildJNI").value
+  (filesJVM / Compile / compile).value
+}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges

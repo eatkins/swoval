@@ -41,6 +41,7 @@ object Build {
 
   def commonSettings: SettingsDefinition =
     settings(
+      turbo in ThisBuild := true,
       scalaVersion in ThisBuild := scala212,
       organization := "com.swoval",
       homepage := Some(url("https://github.com/swoval/swoval")),

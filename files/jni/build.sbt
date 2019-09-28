@@ -50,21 +50,21 @@ TaskKey[Path]("buildMac") :- p"$target/x86_64/lib${"LIB_NAME"}.dylib" build { `$
 TaskKey[Path]("buildWindows") :- p"$target/x86_64/${"LIB_NAME"}.dll" build { `$<` }
 TaskKey[Path]("buildLinux") :- p"$target/x86_64/lib${"LIB_NAME"}.so" build { `$<` }
 TaskKey[Path]("buildFreeBSD") :- p"$target/x86_64/freebsd/lib${"LIB_NAME"}.so" build { `$<` }
-TaskKey[Seq[Path]]("buildJNI") := Def
-  .taskDyn[Seq[Path]] {
-    if (Properties.isMac) {
-      TaskKey[Path]("buildMac").zip(TaskKey[Path]("buildWindows")) {
-        case (mac, win) => joinTasks(Seq(mac, win)).join
-      }
-    } else if (Properties.isLinux) {
-      TaskKey[Path]("buildLinux").map(_ :: Nil)
-    } else if (System.getProperty("os.name", "").startsWith("FreeBSD")) {
-      TaskKey[Path]("buildFreeBSD").map(_ :: Nil)
-    } else {
-      throw new IllegalStateException("Unsupported platform " + System.getProperty("os.name"))
-    }
-  }
-  .value
+//TaskKey[Seq[Path]]("buildJNI") := Def
+//  .taskDyn[Seq[Path]] {
+//    if (Properties.isMac) {
+//      TaskKey[Path]("buildMac").zip(TaskKey[Path]("buildWindows")) {
+//        case (mac, win) => joinTasks(Seq(mac, win)).join
+//      }
+//    } else if (Properties.isLinux) {
+//      TaskKey[Path]("buildLinux").map(_ :: Nil)
+//    } else if (System.getProperty("os.name", "").startsWith("FreeBSD")) {
+//      TaskKey[Path]("buildFreeBSD").map(_ :: Nil)
+//    } else {
+//      throw new IllegalStateException("Unsupported platform " + System.getProperty("os.name"))
+//    }
+//  }
+//  .value
 
 def getProcOutput(args: String*): String = {
   val proc = new ProcessBuilder(args: _*).start()
