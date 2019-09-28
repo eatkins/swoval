@@ -1,11 +1,71 @@
 import java.nio.file._
 import java.util.concurrent.TimeUnit
+
+import sjsonnew.BasicJsonProtocol._
+
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.Properties
-import sjsonnew.BasicJsonProtocol._
 
 val jniInclude = taskKey[String]("the jni include directory")
+"CC" := "g++"
+"WIN64CC" := "x86_64-w64-mingw32-g++"
+"INCLUDES" := m"-I$baseDirectory/src/include"
+"CC_FLAGS" := m"-Wno-unused-command-line-argument -std=c++11 -O3 ${"INCLUDES"}"
+"LIB_NAME" := "swoval-files0"
+
+pat"$target/objects/apple/x86_64/%.o" :-
+  (pat"src/main/apple/%.cc", pat"src/include/apple/%.hpp", pat"src/include/%.h") build
+  sh(
+    m"${"CC"} ${"CC_FLAGS"} $jniInclude ${"INCLUDES"}/apple -c ${`$<`} -framework Carbon -o ${`$@`}")
+p"$target/x86_64/lib${"LIB_NAME"}.dylib" :- pat"$target/objects/apple/x86_64/%.o" build {
+  sh(
+    m"${"CC"} -dynamiclib -framework Carbon ${"CC_FLAGS"} -Wl,-headerpad_max_install_names" +
+      m" -install_name @rpath/lib${"LIB_NAME"} ${`$^`} -o ${`$@`}")
+
+}
+
+pat"$target/objects/windows/x86_64/%.o" :-
+  (pat"src/main/windows/%.cc", pat"src/include/%.h", pat"src/include/windows/%.h") build
+  sh(m"${"WIN64CC"} ${"CC_FLAGS"} $jniInclude -c ${`$<`} -o ${`$@`} -D__WIN__")
+
+p"$target/x86_64/${"LIB_NAME"}.dll" :- pat"$target/objects/windows/x86_64/%.o" build {
+  sh(
+    m"${"WIN64CC"} ${`$<`} ${"CC_FLAGS"} -Wl,-headerpad_max_install_names -o ${`$@`} " +
+      "-D__WIN__ -Wall -Wextra  -nostdlib -ffreestanding -mconsole -Os -fno-stack-check " +
+      "-fno-stack-protector -mno-stack-arg-probe -fno-leading-underscore -lkernel32 -fPIC -shared")
+}
+
+pat"$target/objects/linux/x86_64/%.o" :- pat"files/jni/src/main/posix/%.cc" build
+  sh(m"${"CC"} ${"CC_FLAGS"} $jniInclude -c ${`$<`} -o ${`$@`}")
+p"$target/x86_64/lib${"LIB_NAME"}.so" :- pat"$target/objects/linux/x86_64/" build
+  sh(m"${"CC"} -shared ${`$<`} ${"CC_FLAGS"} -Wl,-wheaderpad_max_install_names -o ${`$@`}")
+
+pat"$target/objects/freebsd/x86_64/%.o" :- pat"files/jni/src/main/posix/%.cc" build
+  sh(m"${"CC"} ${"CC_FLAGS"} $jniInclude -c ${`$<`} -o ${`$@`}")
+p"$target/x86_64/freebsd/lib${"LIB_NAME"}.so" :- pat"$target/objects/linux/x86_64/" build
+  sh(m"${"CC"} -shared ${`$<`} ${"CC_FLAGS"} -Wl,-wheaderpad_max_install_names -o ${`$@`}")
+
+TaskKey[Path]("buildMac") :- p"$target/x86_64/lib${"LIB_NAME"}.dylib" build { `$<` }
+TaskKey[Path]("buildWindows") :- p"$target/x86_64/${"LIB_NAME"}.dll" build { `$<` }
+TaskKey[Path]("buildLinux") :- p"$target/x86_64/lib${"LIB_NAME"}.so" build { `$<` }
+TaskKey[Path]("buildFreeBSD") :- p"$target/x86_64/freebsd/lib${"LIB_NAME"}.so" build { `$<` }
+TaskKey[Seq[Path]]("buildJNI") := Def
+  .taskDyn[Seq[Path]] {
+    if (Properties.isMac) {
+      TaskKey[Path]("buildMac").zip(TaskKey[Path]("buildWindows")) {
+        case (mac, win) => joinTasks(Seq(mac, win)).join
+      }
+    } else if (Properties.isLinux) {
+      TaskKey[Path]("buildLinux").map(_ :: Nil)
+    } else if (System.getProperty("os.name", "").startsWith("FreeBSD")) {
+      TaskKey[Path]("buildFreeBSD").map(_ :: Nil)
+    } else {
+      throw new IllegalStateException("Unsupported platform " + System.getProperty("os.name"))
+    }
+  }
+  .value
+
 def getProcOutput(args: String*): String = {
   val proc = new ProcessBuilder(args: _*).start()
   val out = new java.util.Vector[Byte]
@@ -16,7 +76,7 @@ def getProcOutput(args: String*): String = {
     while (is.available > 0) out.add((is.read() & 0xFF).toByte)
     while (es.available > 0) err.add((es.read() & 0xFF).toByte)
   }
-  val thread = new Thread() {
+  val thread: Thread = new Thread() {
     setDaemon(true)
     start()
     val stopped = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -44,8 +104,7 @@ def parentPath(args: String*)(cond: String => Boolean): Option[Path] =
       assert(Files.exists(f), s"$f did not exist")
       f.getParent
   }
-val cc = taskKey[String]("compiler")
-val ccFlags = taskKey[String]("compiler flags")
+
 Global / jniInclude := {
   (Global / jniInclude).previous.getOrElse {
     System.getProperty("java8.home") match {
@@ -67,30 +126,3 @@ Global / jniInclude := {
     }
   }
 }
-"CC" := { if (Properties.isMac) "clang" else "gcc" }
-"WIN64CC" := "x86_64-w64-mingw32-g++"
-"INCLUDES" := m"-I$baseDirectory/src/include"
-"CC_FLAGS" := m"-Wno-unused-command-line-argument -std=c++11 -O3 ${"INCLUDES"}"
-pat"$target/objects/apple/x86_64/%.o" :- pat"files/jni/src/main/apple/%.cc" build
-  sh(
-    m"${"CC"} ${"CC_FLAGS"} $jniInclude ${"INCLUDES"}/apple -c ${`$^`} -framework Carbon -o ${`$@`}")
-pat"$target/objects/windows/x86_64/%.o" :- pat"files/jni/src/main/windows/%.cc" build
-  sh(m"${"WIN64CC"} ${"CC_FLAGS"} $jniInclude -c ${`$^`} -o ${`$@`} -D__WIN__")
-pat"$target/objects/linux/x86_64/%.o" :- pat"files/jni/src/main/linux/%.cc" build
-  sh(m"${"WIN64CC"} ${"CC_FLAGS"} $jniInclude -c ${`$^`} -o ${`$@`} -D__WIN__")
-TaskKey[Unit]("buildJNI") := Def.taskDyn {
-  if (Properties.isMac) {
-    val x = Def
-      .task(pat"$target/objects/apple/x86_64/%.o".make)
-      .zip(Def.task(pat"$target/objects/windows/x86_64/%.o".make))
-      .flatMap {
-        case (x, y) =>
-          val z = Seq(x, y).join.map(_ => ())
-          z
-      }
-    x
-
-  } else {
-    Def.task[Unit](???)
-  }
-}.value

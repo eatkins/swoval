@@ -1,5 +1,9 @@
 import com.swoval.Build
 
+import scala.util.Properties
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+
 val filesJS = Build.files.js
 val filesJVM = Build.files.jvm
 val nioJS = Build.nio.js
@@ -10,9 +14,19 @@ val testingJS = Build.testing.js
 val testingJVM = Build.testing.jvm
 val jni = Build.jni
 
-filesJVM / Compile / compile := {
-  (jni / Compile / compile).value
-  (filesJVM / Compile / compile).value
-}
+if (Properties.isMac) {
+  val mac = p"${filesJVM / Compile / resourceDirectory}/native/x86_64/lib${"LIB_NAME"}.dylib" :-
+    p"${jni / target}/x86_64/lib${"LIB_NAME"}.dylib" build Files.copy(`$<`, `$@`, REPLACE_EXISTING)
+  val win = p"${filesJVM / Compile / resourceDirectory}/native/x86_64/${"LIB_NAME"}.dll" :-
+    p"${jni / target}/x86_64/${"LIB_NAME"}.dll" build Files.copy(`$<`, `$@`, REPLACE_EXISTING)
+  mac ++ win
+} else Nil
+//filesJVM / Compile / compile := {
+//  val jniDir = p"${jni / target}/x86_64"
+//  (jni / TaskKey[Seq[Path]]("buildJNI")).value.foreach { p =>
+//    Files.copy((filesJVM / resources
+//  }
+//  (filesJVM / Compile / compile).value
+//}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
