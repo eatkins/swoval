@@ -38,10 +38,11 @@ trait Filter extends functional.Filter[Path] {
   override lazy val hashCode: Int = (base :: id :: Nil).hashCode()
 }
 
-class SourceFilter(override val base: Path,
-                   filter: functional.Filter[Entry[Path]],
-                   override val id: ID)
-    extends Filter
+class SourceFilter(
+    override val base: Path,
+    filter: functional.Filter[Entry[Path]],
+    override val id: ID
+) extends Filter
     with Compat.FileFilter {
   override def accept(path: Path): Boolean = apply(EntryImpl(TypedPaths.get(path)))
   override def accept(file: File): Boolean = apply(EntryImpl(TypedPaths.get(file.toPath)))

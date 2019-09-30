@@ -25,8 +25,8 @@ import scala.util.Try
 private[files] class NioPathWatcherService(
     eventConsumer: Consumer[functional.Either[Overflow, Event]],
     registerable: RegisterableWatchService,
-    logger: Logger)
-    extends AutoCloseable {
+    logger: Logger
+) extends AutoCloseable {
   private[this] var closed = false
   private[this] val options = new FSWatcherOptions(recursive = false, persistent = false)
   private[this] var watchedDirectoriesByPath: Map[Path, WatchedDirectory] =

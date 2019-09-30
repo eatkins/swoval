@@ -35,7 +35,8 @@ package object test {
           case e: IOException if mkdirs =>
             Option(path.getParent).map(_.createDirectories())
             throw e
-        })
+        }
+      )
     def createTempFile(prefix: String): Path = {
       if (!path.isDirectory()) throw new NotDirectoryException(path.toString)
       retry(Files.createTempFile(path, prefix, ""))
@@ -74,8 +75,10 @@ package object test {
           Files.walkFileTree(
             path,
             new FileVisitor[Path] {
-              override def preVisitDirectory(dir: Path,
-                                             attrs: BasicFileAttributes): FileVisitResult =
+              override def preVisitDirectory(
+                  dir: Path,
+                  attrs: BasicFileAttributes
+              ): FileVisitResult =
                 FileVisitResult.CONTINUE
 
               override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
@@ -108,7 +111,8 @@ package object test {
     def setLastModifiedTime(lastModified: Long): Unit =
       retry(
         try Files.setLastModifiedTime(path, FileTime.fromMillis(lastModified))
-        catch { case _: NoSuchFileException => })
+        catch { case _: NoSuchFileException => }
+      )
     def write(bytes: Array[Byte]): Path = Files.write(path, bytes)
     def write(content: String, charset: Charset = Charset.defaultCharset()): Path =
       Files.write(path, content.getBytes(charset))
@@ -138,7 +142,8 @@ package object test {
           val comp = truncate(s)
           println(
             s"The actual result had $c fields $comp compared to the expected result.\n" +
-              s"Found: ${truncate(tSet)}\nExpected: ${truncate(oSet)} ")
+              s"Found: ${truncate(tSet)}\nExpected: ${truncate(oSet)} "
+          )
           comp.toSet ==> Set.empty
         case _ =>
       }

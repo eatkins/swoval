@@ -35,10 +35,12 @@ object PathWatchers {
    * @param timeUnit the time unit for which the pollInterval corresponds
    * @return the polling path watcher.
    */
-  def polling(converter: Converter[java.lang.Long],
-              followLinks: Boolean,
-              pollInterval: java.lang.Long,
-              timeUnit: TimeUnit): PathWatcher[PathWatchers.Event] =
+  def polling(
+      converter: Converter[java.lang.Long],
+      followLinks: Boolean,
+      pollInterval: java.lang.Long,
+      timeUnit: TimeUnit
+  ): PathWatcher[PathWatchers.Event] =
     new PollingPathWatcher(converter, followLinks, pollInterval, timeUnit)
 
   /**
@@ -49,9 +51,11 @@ object PathWatchers {
    * @param timeUnit the time unit for which the pollInterval corresponds
    * @return the polling path watcher.
    */
-  def polling(followLinks: Boolean,
-              pollInterval: java.lang.Long,
-              timeUnit: TimeUnit): PathWatcher[PathWatchers.Event] =
+  def polling(
+      followLinks: Boolean,
+      pollInterval: java.lang.Long,
+      timeUnit: TimeUnit
+  ): PathWatcher[PathWatchers.Event] =
     new PollingPathWatcher(followLinks, pollInterval, timeUnit)
 
   /**
@@ -73,10 +77,12 @@ object PathWatchers {
    * @param registry The registry of directories to monitor
    * @return PathWatcher for the runtime platform
    */
-  def get(followLinks: Boolean,
-          service: RegisterableWatchService,
-          registry: DirectoryRegistry,
-          logger: Logger): PathWatcher[Event] =
+  def get(
+      followLinks: Boolean,
+      service: RegisterableWatchService,
+      registry: DirectoryRegistry,
+      logger: Logger
+  ): PathWatcher[Event] =
     PlatformWatcher.make(followLinks, service, registry, logger)
 
   class Overflow(@BeanProperty val path: Path)

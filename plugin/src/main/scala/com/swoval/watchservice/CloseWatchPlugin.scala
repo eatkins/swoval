@@ -28,28 +28,33 @@ object CloseWatchPlugin extends AutoPlugin {
   object autoImport {
     lazy val closeWatchAntiEntropy = settingKey[Duration](
       "Set watch anti-entropy period for source files. For a given file that has triggered a" +
-        "build, any updates occuring before the last event time plus this duration will be ignored.")
+        "build, any updates occuring before the last event time plus this duration will be ignored."
+    )
     lazy val closeWatchFileCache = taskKey[FileTreeRepository[Path]]("Set the file cache to use.")
     lazy val closeWatchLegacyWatchLatency =
       settingKey[Duration]("Set the watch latency of the sbt watch service")
     lazy val closeWatchLegacyQueueSize =
       settingKey[Int](
-        "Set the maximum number of watch events to enqueue when using the legacy watch service.")
+        "Set the maximum number of watch events to enqueue when using the legacy watch service."
+      )
     lazy val closeWatchSourceDiff = taskKey[Unit]("Use default sbt include filters.")
     lazy val closeWatchTransitiveSources =
       inputKey[Seq[SourcePath]](
         "Find all of the watch sources for a particular tasks by looking in the aggregates and " +
           "dependencies of the task. This task differs from watchTransitiveSources because it " +
-          "scoped to the first argument the task that is parsed from the input")
+          "scoped to the first argument the task that is parsed from the input"
+      )
     lazy val closeWatchUseDefaultWatchService =
       settingKey[Boolean]("Use the built in sbt watch service.")
   }
   import autoImport._
 
   private[watchservice] lazy val closeWatchGlobalFileRepository =
-    AttributeKey[FileTreeRepository[Path]]("closeWatchGlobalFileRepository",
-                                           "A global cache of the file system",
-                                           10)
+    AttributeKey[FileTreeRepository[Path]](
+      "closeWatchGlobalFileRepository",
+      "A global cache of the file system",
+      10
+    )
   import scala.language.implicitConversions
   private def defaultSourcesFor(conf: Configuration) = Def.task[Seq[File]] {
     val cache = closeWatchFileCache.value
@@ -115,7 +120,8 @@ object CloseWatchPlugin extends AutoPlugin {
         }
         Seq(
           Compat
-            .makeScopedSource(baseDir.toPath, pathFilter, (baseDirectory in config).scopedKey))
+            .makeScopedSource(baseDir.toPath, pathFilter, (baseDirectory in config).scopedKey)
+        )
       } else Nil
     val unmanagedSourceDirs = ((unmanagedSourceDirectories in Compile).value ++
       (unmanagedSourceDirectories in Test).value).map(_.toPath)
@@ -189,10 +195,12 @@ object CloseWatchPlugin extends AutoPlugin {
     watchSources in publishLocal := (watchSources in Compile).value,
     watchSources in publishM2 := (watchSources in Compile).value
   )
-  private def getSources(config: ConfigKey,
-                         key: SettingKey[Seq[File]],
-                         task: TaskKey[Seq[File]],
-                         extraExclude: Option[FileFilter] = None) =
+  private def getSources(
+      config: ConfigKey,
+      key: SettingKey[Seq[File]],
+      task: TaskKey[Seq[File]],
+      extraExclude: Option[FileFilter] = None
+  ) =
     Def.task {
       val dirs = (key in config).value
       val ef = (excludeFilter in task).value
@@ -236,8 +244,10 @@ object CloseWatchPlugin extends AutoPlugin {
     }
   }
   private def getTransitiveWatchSources(taskDef: Seq[String]) = Def.taskDyn {
-    val parsed = Parser.result(Compat.internal.Act.aggregatedKeyParser(state.value),
-                               taskDef.headOption.getOrElse("compile"))
+    val parsed = Parser.result(
+      Compat.internal.Act.aggregatedKeyParser(state.value),
+      taskDef.headOption.getOrElse("compile")
+    )
     parsed.fold(_ => commands(taskDef.mkString(" ").trim), paths)
   }
   private def clearGlobalFileRepository(s: State): Unit = {
@@ -247,7 +257,8 @@ object CloseWatchPlugin extends AutoPlugin {
     closeWatchFileCache := state.value
       .get(closeWatchGlobalFileRepository)
       .getOrElse(
-        throw new IllegalStateException("Global file repository was not previously registered")),
+        throw new IllegalStateException("Global file repository was not previously registered")
+      ),
     closeWatchUseDefaultWatchService := false,
     closeWatchTransitiveSources := Def
       .inputTaskDyn {
@@ -267,8 +278,10 @@ object CloseWatchPlugin extends AutoPlugin {
       val extracted = Project.extract(state)
       clearGlobalFileRepository(state)
       val session = extracted.session
-      val useDefault = extracted.structure.data.data.exists(_._2.entries.exists(e =>
-        e.key.label == "closeWatchUseDefaultWatchService" && e.value == true))
+      val useDefault = extracted.structure.data.data.exists(
+        _._2.entries
+          .exists(e => e.key.label == "closeWatchUseDefaultWatchService" && e.value == true)
+      )
 
       if (useDefault) state
       else {

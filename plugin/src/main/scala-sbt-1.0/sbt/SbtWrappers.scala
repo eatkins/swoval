@@ -52,11 +52,13 @@ object Reapply {
         m.invoke(instance, settings, structure, show).asInstanceOf[BuildStructure]
     } catch {
       case _: Exception =>
-        val m = clazz.getMethod("reapply",
-                                classOf[Seq[_]],
-                                classOf[BuildStructure],
-                                classOf[Logger],
-                                classOf[Show[_]])
+        val m = clazz.getMethod(
+          "reapply",
+          classOf[Seq[_]],
+          classOf[BuildStructure],
+          classOf[Logger],
+          classOf[Show[_]]
+        )
         val logger = new Logger {
           override def trace(t: => Throwable): Unit = {}
           override def success(message: => String): Unit = {}
@@ -67,8 +69,10 @@ object Reapply {
             .asInstanceOf[BuildStructure]
     }
   }
-  def apply(newSettings: Seq[Setting[_]],
-            structure: BuildStructure,
-            showKey: Show[Def.ScopedKey[_]]): BuildStructure =
+  def apply(
+      newSettings: Seq[Setting[_]],
+      structure: BuildStructure,
+      showKey: Show[Def.ScopedKey[_]]
+  ): BuildStructure =
     method(newSettings, structure, showKey)
 }

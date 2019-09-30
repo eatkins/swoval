@@ -5,10 +5,12 @@ import sbt._
 import scala.collection.mutable
 
 object Sources {
-  def apply(task: Def.ScopedKey[_],
-            state: State,
-            logger: Logger,
-            visited: mutable.HashSet[String]): Seq[SourcePath] = {
+  def apply(
+      task: Def.ScopedKey[_],
+      state: State,
+      logger: Logger,
+      visited: mutable.HashSet[String]
+  ): Seq[SourcePath] = {
     val extracted = Project.extract(state)
     val structure = extracted.structure
     val currentRef =
@@ -25,7 +27,8 @@ object Sources {
             .flatMap(_.project.fold({
               case (p: ProjectRef) => impl(p)
               case _               => Nil
-            }, Nil, Nil))) ++ Compat.filter(
+            }, Nil, Nil))
+        ) ++ Compat.filter(
           {
             val key = Def.ScopedKey(task.scope in ref, Keys.watchSources.key)
             val nil: Seq[Compat.WatchSource] = Nil

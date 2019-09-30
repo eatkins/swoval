@@ -81,7 +81,8 @@ object Continuously {
     private[this] val tag = "[com.swoval.watchservice]"
     private[this] val events: BlockingQueue[TriggerEvent] = new ArrayBlockingQueue(1)
     private[this] val executor: ExecutorService = Executors.newSingleThreadExecutor(
-      new ThreadFactory("com.swoval.watchservice.Continuously.InputThread"))
+      new ThreadFactory("com.swoval.watchservice.Continuously.InputThread")
+    )
     private[this] var lastTriggerEvent: TriggerEvent = Init
     private[this] var count = -1
 
@@ -114,7 +115,9 @@ object Continuously {
     }
     @tailrec
     private[this] final def signalExit(): Unit = {
-      val signalled = try { shouldExit() } catch { case _: InterruptedException => true }
+      val signalled = try {
+        shouldExit()
+      } catch { case _: InterruptedException => true }
       if (signalled) {
         cache.removeObserver(callbackHandle)
         while (!offer(Exit)) {
@@ -155,10 +158,12 @@ object Continuously {
     def repeat(command: String) = s"$ContinuousExecutePrefix ${command.trim}"
   }
 
-  private[this] def startWatch(w: Watched,
-                               s: sbt.State,
-                               extracted: Extracted,
-                               arg: String): sbt.State = s.get(closeWatchState) match {
+  private[this] def startWatch(
+      w: Watched,
+      s: sbt.State,
+      extracted: Extracted,
+      arg: String
+  ): sbt.State = s.get(closeWatchState) match {
     case Some(ws) => ws.waitForEvents(s)
     case None =>
       val tasks = arg.split(";") match {
@@ -174,7 +179,9 @@ object Continuously {
         .get(closeWatchGlobalFileRepository)
         .getOrElse(
           throw new IllegalStateException(
-            "No global FileTreeRepository has been added to the state"))
+            "No global FileTreeRepository has been added to the state"
+          )
+        )
       val onTrigger: State => Unit = printTriggeredMessage(_, w)
       log.debug(s"Found watch sources:\n${sources.sortBy(_.base).mkString("\n")}")
       State(arg, sources, cache, log, antiEntropy, onTrigger).waitForEvents(s)

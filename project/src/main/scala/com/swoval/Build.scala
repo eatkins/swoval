@@ -2,24 +2,24 @@ package com.swoval
 
 import java.io._
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import java.nio.file.{Files, Paths, Path => JPath}
+import java.nio.file.{ Files, Paths, Path => JPath }
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
 
-import com.github.sbt.jacoco.JacocoKeys.{jacocoExcludes, jacocoReportSettings}
-import com.github.sbt.jacoco.report.{JacocoReportSettings, JacocoThresholds}
+import com.github.sbt.jacoco.JacocoKeys.{ jacocoExcludes, jacocoReportSettings }
+import com.github.sbt.jacoco.report.{ JacocoReportSettings, JacocoThresholds }
 import com.swoval.format.ExtensionFilter
-import com.swoval.format.SourceFormatPlugin.autoImport.{clangfmt, clangfmtSources, javafmt}
+import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, clangfmtSources, javafmt }
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import org.apache.commons.codec.digest.DigestUtils
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmt
 import org.scalajs.core.tools.linker.backend.ModuleKind
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.{fastOptJS, fullOptJS, scalaJSModuleKind}
-import sbt.Keys.{sources, _}
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.{ fastOptJS, fullOptJS, scalaJSModuleKind }
+import sbt.Keys.{ sources, _ }
 import sbt.internal.TaskSequential
-import sbt.{file, _}
+import sbt.{ file, _ }
 import sbtcrossproject.CrossPlugin.autoImport._
-import sbtcrossproject.{CrossProject, crossProject}
+import sbtcrossproject.{ CrossProject, crossProject }
 import scalajsbundler.BundlingMode
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
@@ -29,7 +29,7 @@ import com.swoval.Dependencies._
 
 import scala.collection.JavaConverters._
 import scala.io.Source
-import scala.util.{Properties, Try}
+import scala.util.{ Properties, Try }
 
 object Build {
   val scalaCrossVersions @ Seq(scala210, scala211, scala212) = Seq("2.10.7", "2.11.12", "2.12.10")
@@ -557,8 +557,8 @@ object Build {
         val prev = (forkOptions in Test).value
         prev.withRunJVMOptions(
           prev.runJVMOptions ++ Option(System.getProperty("swoval.test.debug")).map(v =>
-            s"-Dswoval.test.debug=$v") ++ Option(System.getProperty("swoval.test.debug.logger")).map(v =>
-            s"-Dswoval.test.debug.logger=$v"))
+            s"-Dswoval.test.debug=$v") ++ Option(System.getProperty("swoval.test.debug.logger"))
+            .map(v => s"-Dswoval.test.debug.logger=$v"))
       },
       travisQuickListReflectionTest := {
         quickListReflectionTest

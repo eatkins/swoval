@@ -24,7 +24,8 @@ package object platform {
     }
     override def reportFailure(cause: Throwable): Unit = {
       Console.err.println(
-        s"Caught error running runnable $cause\n${cause.getStackTrace mkString "\n"}")
+        s"Caught error running runnable $cause\n${cause.getStackTrace mkString "\n"}"
+      )
     }
   }
   def createTempFile(dir: String, prefix: String): (String, Thread) = {

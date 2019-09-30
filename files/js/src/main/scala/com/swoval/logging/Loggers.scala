@@ -64,11 +64,12 @@ object Loggers {
 
   abstract class Level() extends Comparable[Level]
 
-  private class LoggerImpl(@BeanProperty val level: Level,
-                           private val infoStream: OutputStream,
-                           private val errorStream: OutputStream,
-                           private val errorLevel: Level)
-      extends Logger {
+  private class LoggerImpl(
+      @BeanProperty val level: Level,
+      private val infoStream: OutputStream,
+      private val errorStream: OutputStream,
+      private val errorLevel: Level
+  ) extends Logger {
 
     override def verbose(message: String): Unit = {
       val outputStream: OutputStream =

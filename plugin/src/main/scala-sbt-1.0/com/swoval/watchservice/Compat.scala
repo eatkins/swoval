@@ -89,8 +89,7 @@ object Compat {
           (if (file.exclude == BaseFilter) {
              file.include.toString
            } else {
-             s"${include.fold("AllPassFilter")(Filter.show(_, 0))}${exclude.fold("")(f =>
-               s" && !${Filter.show(f, 0)}")}"
+             s"${include.fold("AllPassFilter")(Filter.show(_, 0))}${exclude.fold("")(f => s" && !${Filter.show(f, 0)}")}"
            }).replaceAll("SourceFilter", "SourcePath")
         } else {
           s"""ExactPath("${file.base}")"""
@@ -103,15 +102,19 @@ object Compat {
     override def toString = "NothingFilter"
   }
   def filter(files: Seq[WatchSource], id: Filter.ID): Seq[SourcePath] = files map sourcePath
-  def makeScopedSource(p: Path,
-                       pathFilter: functional.Filter[Entry[Path]],
-                       id: Def.ScopedKey[_]): WatchSource = {
+  def makeScopedSource(
+      p: Path,
+      pathFilter: functional.Filter[Entry[Path]],
+      id: Def.ScopedKey[_]
+  ): WatchSource = {
     Source(p.toFile, new SourceFilter(p, pathFilter, id) {
       override lazy val toString: String = pathFilter.toString
     }, BaseFilter)
   }
-  def reapply(newSettings: Seq[Setting[_]],
-              structure: BuildStructure,
-              showKey: Show[Def.ScopedKey[_]]): BuildStructure =
+  def reapply(
+      newSettings: Seq[Setting[_]],
+      structure: BuildStructure,
+      showKey: Show[Def.ScopedKey[_]]
+  ): BuildStructure =
     Reapply(newSettings, structure, showKey)
 }
