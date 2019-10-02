@@ -1,8 +1,9 @@
 package com.swoval
 package watchservice
 
-import java.io.FileFilter
+import java.io.{ FileFilter, IOException }
 import java.nio.file.Path
+import java.{ lang, util }
 
 import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
 import com.swoval.files._
@@ -13,6 +14,7 @@ import sbt.complete.{ DefaultParsers, Parser }
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration._
+import scala.util.Try
 
 object CloseWatchPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -31,6 +33,7 @@ object CloseWatchPlugin extends AutoPlugin {
         "build, any updates occuring before the last event time plus this duration will be ignored."
     )
     lazy val closeWatchFileCache = taskKey[FileTreeRepository[Path]]("Set the file cache to use.")
+    val closeWatchDisable = settingKey[Boolean]("Disable closewatch")
     lazy val closeWatchLegacyWatchLatency =
       settingKey[Duration]("Set the watch latency of the sbt watch service")
     lazy val closeWatchLegacyQueueSize =
@@ -57,9 +60,10 @@ object CloseWatchPlugin extends AutoPlugin {
     )
   import scala.language.implicitConversions
   private def defaultSourcesFor(conf: Configuration) = Def.task[Seq[File]] {
-    val cache = closeWatchFileCache.value
-    (unmanagedSourceDirectories in conf).value foreach (f => cache.register(f.toPath))
-    (managedSourceDirectories in conf).value foreach (f => cache.register(f.toPath))
+    closeWatchFileCache.?.value.foreach { cache =>
+      (unmanagedSourceDirectories in conf).value foreach (f => cache.register(f.toPath))
+      (managedSourceDirectories in conf).value foreach (f => cache.register(f.toPath))
+    }
     Classpaths.concat(unmanagedSources in conf, managedSources in conf).value.distinct.toIndexedSeq
   }
   private def cachedSourcesFor(conf: Configuration, sourcesInBase: Boolean) = Def.task[Seq[File]] {
@@ -67,15 +71,52 @@ object CloseWatchPlugin extends AutoPlugin {
       override def accept(f: File) = in.accept(f) && !ex.accept(f)
       override def toString = s"${Filter.show(in)} && !${Filter.show(ex)}"
     }
-    val cache = closeWatchFileCache.value
+    val cache = closeWatchFileCache.?.value.getOrElse(new FileTreeRepository[Path] {
+      override def register(
+          path: Path,
+          maxDepth: Int
+      ): functional.Either[IOException, lang.Boolean] = functional.Either.right(false: lang.Boolean)
+      override def unregister(path: Path): Unit = {}
+      override def addObserver(observer: FileTreeViews.Observer[_ >: Entry[Path]]): Int = -1
+      override def removeObserver(handle: Int): Unit = {}
+      override def listEntries(
+          path: Path,
+          maxDepth: Int,
+          filter: functional.Filter[_ >: Entry[Path]]
+      ): util.List[Entry[Path]] = {
+        val view = FileTreeViews.getDefault(true)
+        view
+          .list(path, maxDepth, AllPassFilter)
+          .asScala
+          .flatMap { tp =>
+            val e = new Entry[Path] {
+              override def getTypedPath: TypedPath = tp
+              override def getValue: functional.Either[IOException, Path] =
+                functional.Either.right(tp.getPath)
+              override def compareTo(o: Entry[Path]): Int =
+                tp.getPath.compareTo(o.getTypedPath.getPath)
+            }
+            if (filter.accept(e)) e :: Nil else Nil
+          }
+          .asJava
+      }
+      override def list(
+          path: Path,
+          maxDepth: Int,
+          filter: functional.Filter[_ >: TypedPath]
+      ): util.List[TypedPath] = {
+        val view = FileTreeViews.getDefault(true)
+        view.list(path, maxDepth, filter)
+      }
+      override def addCacheObserver(observer: FileTreeDataViews.CacheObserver[Path]): Int = -1
+      override def close(): Unit = {}
+    })
     def list(recursive: Boolean, filter: FileFilter): File => Seq[File] =
       (f: File) => {
         val path = f.toPath
         cache.register(path, recursive)
         cache
-          .list(path, if (recursive) Integer.MAX_VALUE else 0, new functional.Filter[TypedPath] {
-            override def accept(t: TypedPath): Boolean = filter.accept(t.getPath.toFile)
-          })
+          .list(path, if (recursive) Integer.MAX_VALUE else 0, t => filter.accept(t.getPath.toFile))
           .asScala
           .map(_.getPath.toFile)
       }
@@ -254,12 +295,16 @@ object CloseWatchPlugin extends AutoPlugin {
     s.get(closeWatchGlobalFileRepository).foreach(_.close())
   }
   override lazy val globalSettings: Seq[Def.Setting[_]] = super.globalSettings ++ Seq(
+    closeWatchDisable := {
+      val Array(maj, min) = sbtVersion.value.split('.').take(2)
+      Try(maj.toInt).getOrElse(0) > 0 && Try(min.toInt).getOrElse(0) > 2
+    },
     closeWatchFileCache := state.value
       .get(closeWatchGlobalFileRepository)
       .getOrElse(
         throw new IllegalStateException("Global file repository was not previously registered")
       ),
-    closeWatchUseDefaultWatchService := false,
+    closeWatchUseDefaultWatchService := closeWatchDisable.value,
     closeWatchTransitiveSources := Def
       .inputTaskDyn {
         import complete.DefaultParsers._

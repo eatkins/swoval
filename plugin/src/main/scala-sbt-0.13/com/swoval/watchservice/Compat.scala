@@ -80,12 +80,6 @@ object Compat {
   type WatchSource = File
   type FileFilter = sbt.FileFilter
   val global = Scope(Global, Global, Global, Global)
-  def extraProjectSettings: Seq[Def.Setting[_]] = Seq(
-    pollInterval := 75,
-    closeWatchFileCache := FileTreeRepositories.get(new Converter[Path] {
-      override def apply(p: TypedPath): Path = p.getPath()
-    }, true)
-  )
   implicit class FileFilterOps(val filter: java.io.FileFilter) extends AnyVal {
     def &&(other: java.io.FileFilter) = new sbt.FileFilter {
       override def accept(f: File): Boolean = filter.accept(f) && other.accept(f)
