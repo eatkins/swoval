@@ -3,6 +3,7 @@ package watchservice
 
 import java.io.{ FileFilter, IOException }
 import java.nio.file.Path
+import java.util.Collections
 import java.{ lang, util }
 
 import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
@@ -33,7 +34,7 @@ object CloseWatchPlugin extends AutoPlugin {
         "build, any updates occuring before the last event time plus this duration will be ignored."
     )
     lazy val closeWatchFileCache = taskKey[FileTreeRepository[Path]]("Set the file cache to use.")
-    val closeWatchDisable = settingKey[Boolean]("Disable closewatch")
+    lazy val closeWatchDisable = settingKey[Boolean]("Disable CloseWatch")
     lazy val closeWatchLegacyWatchLatency =
       settingKey[Duration]("Set the watch latency of the sbt watch service")
     lazy val closeWatchLegacyQueueSize =
@@ -85,20 +86,22 @@ object CloseWatchPlugin extends AutoPlugin {
           filter: functional.Filter[_ >: Entry[Path]]
       ): util.List[Entry[Path]] = {
         val view = FileTreeViews.getDefault(true)
-        view
-          .list(path, maxDepth, AllPassFilter)
-          .asScala
-          .flatMap { tp =>
-            val e = new Entry[Path] {
-              override def getTypedPath: TypedPath = tp
-              override def getValue: functional.Either[IOException, Path] =
-                functional.Either.right(tp.getPath)
-              override def compareTo(o: Entry[Path]): Int =
-                tp.getPath.compareTo(o.getTypedPath.getPath)
+        Try(
+          view
+            .list(path, maxDepth, AllPassFilter)
+            .asScala
+            .flatMap { tp =>
+              val e = new Entry[Path] {
+                override def getTypedPath: TypedPath = tp
+                override def getValue: functional.Either[IOException, Path] =
+                  functional.Either.right(tp.getPath)
+                override def compareTo(o: Entry[Path]): Int =
+                  tp.getPath.compareTo(o.getTypedPath.getPath)
+              }
+              if (filter.accept(e)) e :: Nil else Nil
             }
-            if (filter.accept(e)) e :: Nil else Nil
-          }
-          .asJava
+            .asJava
+        ).getOrElse(Collections.emptyList[Entry[Path]])
       }
       override def list(
           path: Path,
@@ -106,7 +109,7 @@ object CloseWatchPlugin extends AutoPlugin {
           filter: functional.Filter[_ >: TypedPath]
       ): util.List[TypedPath] = {
         val view = FileTreeViews.getDefault(true)
-        view.list(path, maxDepth, filter)
+        Try(view.list(path, maxDepth, filter)).getOrElse(Collections.emptyList[TypedPath])
       }
       override def addCacheObserver(observer: FileTreeDataViews.CacheObserver[Path]): Int = -1
       override def close(): Unit = {}
@@ -294,16 +297,13 @@ object CloseWatchPlugin extends AutoPlugin {
   private def clearGlobalFileRepository(s: State): Unit = {
     s.get(closeWatchGlobalFileRepository).foreach(_.close())
   }
-  override lazy val globalSettings: Seq[Def.Setting[_]] = super.globalSettings ++ Seq(
-    closeWatchDisable := {
-      val Array(maj, min) = sbtVersion.value.split('.').take(2)
+  private def isNewerThan1_3(version: String): Boolean =
+    Try {
+      val Array(maj, min) = version.split('.').take(2)
       Try(maj.toInt).getOrElse(0) > 0 && Try(min.toInt).getOrElse(0) > 2
-    },
-    closeWatchFileCache := state.value
-      .get(closeWatchGlobalFileRepository)
-      .getOrElse(
-        throw new IllegalStateException("Global file repository was not previously registered")
-      ),
+    }.getOrElse(false)
+  override lazy val globalSettings: Seq[Def.Setting[_]] = super.globalSettings ++ Seq(
+    closeWatchDisable := isNewerThan1_3(sbtVersion.value),
     closeWatchUseDefaultWatchService := closeWatchDisable.value,
     closeWatchTransitiveSources := Def
       .inputTaskDyn {
@@ -323,11 +323,15 @@ object CloseWatchPlugin extends AutoPlugin {
       val extracted = Project.extract(state)
       clearGlobalFileRepository(state)
       val session = extracted.session
-      val useDefault = extracted.structure.data.data.exists(
-        _._2.entries
-          .exists(e => e.key.label == "closeWatchUseDefaultWatchService" && e.value == true)
-      )
+      val useDefault = extracted.get(closeWatchDisable) ||
+        extracted.get(closeWatchUseDefaultWatchService)
 
+      val version = extracted.get(sbtVersion)
+      if (isNewerThan1_3(version)) {
+        val msg = s"Using CloseWatch plugin with sbt $version. We recommend disabling this plugin" +
+          " for sbt versions >= 1.3.0."
+        state.globalLogging.full.warn(msg)
+      }
       if (useDefault) state
       else {
         val filtered = state.definedCommands.filterNot(SimpleCommandMatcher.nameMatches("~"))
@@ -336,7 +340,11 @@ object CloseWatchPlugin extends AutoPlugin {
             case f: FilePosition => f.path.contains("Defaults.scala")
             case _               => false
           })
-        }
+        } :+ (closeWatchFileCache := sbt.Keys.state.value
+          .get(closeWatchGlobalFileRepository)
+          .getOrElse(
+            throw new IllegalStateException("Global file repository was not previously registered")
+          ))
         val newState = if (newSettings.lengthCompare(session.original.length) != 0) {
           val newStructure = Compat.reapply(newSettings, extracted.structure, extracted.showKey)
           state
