@@ -36,15 +36,15 @@ p"$target/x86_64/${"LIB_NAME"}.dll" :- pat"$target/objects/windows/x86_64/%.o" b
       "-fno-stack-protector -mno-stack-arg-probe -fno-leading-underscore -lkernel32 -fPIC -shared")
 }
 
-pat"$target/objects/linux/x86_64/%.o" :- pat"files/jni/src/main/posix/%.cc" build
+pat"$target/objects/linux/x86_64/%.o" :- pat"src/main/posix/%.cc" build
   sh(m"${"CC"} ${"CC_FLAGS"} $jniInclude -c ${`$<`} -o ${`$@`}")
-p"$target/x86_64/lib${"LIB_NAME"}.so" :- pat"$target/objects/linux/x86_64/" build
-  sh(m"${"CC"} -shared ${`$<`} ${"CC_FLAGS"} -Wl,-wheaderpad_max_install_names -o ${`$@`}")
+p"$target/x86_64/lib${"LIB_NAME"}.so" :- pat"$target/objects/linux/x86_64/%.o" build
+  sh(m"${"CC"} -shared ${`$<`} ${"CC_FLAGS"} -Wl,-headerpad_max_install_names -o ${`$@`}")
 
-pat"$target/objects/freebsd/x86_64/%.o" :- pat"files/jni/src/main/posix/%.cc" build
+pat"$target/objects/freebsd/x86_64/%.o" :- pat"src/main/posix/%.cc" build
   sh(m"${"CC"} ${"CC_FLAGS"} $jniInclude -c ${`$<`} -o ${`$@`}")
-p"$target/x86_64/freebsd/lib${"LIB_NAME"}.so" :- pat"$target/objects/linux/x86_64/" build
-  sh(m"${"CC"} -shared ${`$<`} ${"CC_FLAGS"} -Wl,-wheaderpad_max_install_names -o ${`$@`}")
+p"$target/x86_64/freebsd/lib${"LIB_NAME"}.so" :- pat"$target/objects/linux/x86_64/%.o" build
+  sh(m"${"CC"} -shared ${`$<`} ${"CC_FLAGS"} -Wl,-headerpad_max_install_names -o ${`$@`}")
 
 TaskKey[Path]("buildMac") :- p"$target/x86_64/lib${"LIB_NAME"}.dylib" build { `$<` }
 TaskKey[Path]("buildWindows") :- p"$target/x86_64/${"LIB_NAME"}.dll" build { `$<` }
