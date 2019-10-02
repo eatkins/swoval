@@ -6,7 +6,7 @@ addSbtPlugin("com.swoval" % "sbt-source-format" % "0.1.6")
 
 addSbtPlugin("com.github.sbt" % "sbt-jacoco" % "3.1.0")
 
-addSbtPlugin("com.swoval" % "sbt-make" % "0.1.1-SNAPSHOT")
+addSbtPlugin("com.swoval" % "sbt-make" % "0.1.1")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
 
