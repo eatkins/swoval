@@ -128,14 +128,12 @@ object Build {
     val valid = checkFormat.toTask(" silent").value
     if (valid) {
       Def.taskDyn {
-        (key in testing.jvm).value
         (scalaVersion in crossVersion).value match {
           case `scala210` => Def.task((key in plugin).value)
           case v =>
             Def.taskDyn {
               (key in nio.js).value
               (key in files.js).value
-              (key in testing.js).value
               if (v == scala212)
                 Def.task {
                   (key in files.jvm).value
@@ -522,27 +520,6 @@ object Build {
       crossScalaVersions := scalaCrossVersions,
       crossPaths := false,
       autoScalaLibrary := false,
-      buildNative := {
-        val log = state.value.log
-        val nativeDir = sourceDirectory.value.toPath.resolve("main/native").toFile
-        val makeCmd = System.getProperty("swoval.make.cmd", "make")
-        val proc = new ProcessBuilder(makeCmd, "-j", "8").directory(nativeDir).start()
-        proc.waitFor(1, TimeUnit.MINUTES)
-        log.info(Source.fromInputStream(proc.getInputStream).mkString)
-        if (proc.exitValue() != 0) {
-          log.error(Source.fromInputStream(proc.getErrorStream).mkString)
-          throw new IllegalStateException("Couldn't build native library!")
-        }
-      },
-      unmanagedResources in Compile := Def.taskDyn {
-        val res = (unmanagedResources in Compile).value
-        if ((skip in buildNative).value) Def.task(res)
-        else
-          Def.task {
-            buildNative.value
-            res
-          }
-      }.value,
       skip in formatSources := System.getProperty("swoval.format", "true") == "true",
       formatSources := Def.taskDyn {
         if ((skip in formatSources).value) Def.task {

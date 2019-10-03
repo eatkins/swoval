@@ -42,14 +42,9 @@ if (Properties.isMac) {
 buildJNI := buildJNIImpl.value
 buildJNI := buildJNI.dependsOn(filesJVM / Compile / compile).value
 
-filesJVM / Compile / fullClasspath := {
+filesJVM / Compile / unmanagedResources := {
   buildJNI.value
-  (filesJVM / Compile / fullClasspath).value
-}
-
-filesJVM / Test / fullClasspath := {
-  buildJNI.value
-  (filesJVM / Test / fullClasspath).value
+  (filesJVM / Compile / unmanagedResources).value
 }
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
