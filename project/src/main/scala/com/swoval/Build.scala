@@ -8,8 +8,8 @@ import java.util.jar.JarFile
 
 import com.github.sbt.jacoco.JacocoKeys.{ jacocoExcludes, jacocoReportSettings }
 import com.github.sbt.jacoco.report.{ JacocoReportSettings, JacocoThresholds }
-import com.swoval.format.ExtensionFilter
-import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, clangfmtSources, javafmt }
+import com.swoval.Dependencies._
+import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, javafmt }
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import org.apache.commons.codec.digest.DigestUtils
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmt
@@ -17,6 +17,7 @@ import org.scalajs.core.tools.linker.backend.ModuleKind
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.{ fastOptJS, fullOptJS, scalaJSModuleKind }
 import sbt.Keys.{ sources, _ }
 import sbt.internal.TaskSequential
+import sbt.nio.Keys.fileInputs
 import sbt.{ file, _ }
 import sbtcrossproject.CrossPlugin.autoImport._
 import sbtcrossproject.{ CrossProject, crossProject }
@@ -25,7 +26,6 @@ import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 import scalajscrossproject.JSPlatform
 import scalajscrossproject.ScalaJSCrossPlugin.autoImport.JSCrossProjectOps
-import com.swoval.Dependencies._
 
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -46,12 +46,16 @@ object Build {
       organization := "com.swoval",
       homepage := Some(url("https://github.com/swoval/swoval")),
       scmInfo := Some(
-        ScmInfo(url("https://github.com/swoval/swoval"), "git@github.com:swoval/swoval.git")),
+        ScmInfo(url("https://github.com/swoval/swoval"), "git@github.com:swoval/swoval.git")
+      ),
       developers := List(
-        Developer("username",
-                  "Ethan Atkins",
-                  "ethan.atkins@gmail.com",
-                  url("https://github.com/eatkins"))),
+        Developer(
+          "username",
+          "Ethan Atkins",
+          "ethan.atkins@gmail.com",
+          url("https://github.com/eatkins")
+        )
+      ),
       licenses += ("MIT", url("https://opensource.org/licenses/MIT")),
       scalacOptions ++= Seq("-feature"),
       publishMavenStyle in publishLocal := false,
@@ -199,8 +203,8 @@ object Build {
       publishLocal := {},
       checkFormat := {
         import sys.process._
-        javafmt.toTask(" --check").value
-        clangfmt.toTask(" --check").value
+        (Compile / javafmt).value
+        clangfmt.value
         (scalafmt in Compile).value
         val output = Seq("git", "status").!!
         println(output)
@@ -290,8 +294,10 @@ object Build {
             val content = new String(Files.readAllBytes(root.resolve(".gitignore")))
             val name = s"$projectName ${conf.name.toUpperCase}"
             val newGitignore = if (content.contains(name)) {
-              content.replaceAll(s"(?s)(#BEGIN $name SYMLINKS)(.*)(#END $name SYMLINKS)",
-                                 s"$$1\n${links.sorted.mkString("\n")}\n$$3")
+              content.replaceAll(
+                s"(?s)(#BEGIN $name SYMLINKS)(.*)(#END $name SYMLINKS)",
+                s"$$1\n${links.sorted.mkString("\n")}\n$$3"
+              )
             } else {
               s"$content${links.mkString(s"\n#BEGIN $name SYMLINKS\n", "\n", s"\n#END $name SYMLINKS\n")}"
             }
@@ -319,7 +325,9 @@ object Build {
       useYarn := false
     )
 
-  lazy val jni: Project = project in file("files/jni")
+  lazy val jni: Project = (project in file("files/jni")).settings(
+    clangfmt / fileInputs += baseDirectory.value.toGlob / "src" / ** / "*.{cc,h,hh,c}"
+  )
   lazy val files: CrossProject = crossProject(JSPlatform, JVMPlatform)
     .in(file("files"))
     .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin).dependsOn(nio.js))
@@ -336,7 +344,6 @@ object Build {
       scalaJSModuleKind := ModuleKind.CommonJSModule,
       webpackBundlingMode := BundlingMode.LibraryOnly(),
       useYarn := false,
-      clangfmtSources += (files.js.base / "npm" / "src", ExtensionFilter("cc", "h", "hh"), true),
       createCrossLinks("FILESJS"),
       cleanAllGlobals,
       nodeNativeLibs,
@@ -478,24 +485,27 @@ object Build {
     )
     .jvmSettings(
       createCrossLinks("FILESJVM"),
-      clangfmtSources +=
-        (files.jvm.base / "src" / "main" / "native", ExtensionFilter("cc", "h", "hh"), true),
-      javacOptions ++= Seq("-source",
-                           "1.7",
-                           "-target",
-                           "1.7",
-                           "-h",
-                           sourceDirectory.value.toPath.resolve("main/native/include").toString) ++
+      javacOptions ++= Seq(
+        "-source",
+        "1.7",
+        "-target",
+        "1.7",
+        "-h",
+        sourceDirectory.value.toPath.resolve("main/native/include").toString
+      ) ++
         BuildKeys.java8rt.value.map(rt => Seq("-bootclasspath", rt)).getOrElse(Seq.empty) ++
         Seq("-Xlint:unchecked", "-Xlint:deprecation"),
       jacocoReportSettings in Test := JacocoReportSettings()
         .withThresholds(
-          JacocoThresholds(instruction = 82,
-                           branch = 73,
-                           line = 84,
-                           clazz = 100,
-                           complexity = 68,
-                           method = 84)),
+          JacocoThresholds(
+            instruction = 82,
+            branch = 73,
+            line = 84,
+            clazz = 100,
+            complexity = 68,
+            method = 84
+          )
+        ),
       jacocoExcludes in Test := Seq(
         "com.swoval.runtime.*",
         "com.swoval.files.CachedDirectories*",
@@ -523,8 +533,8 @@ object Build {
       skip in formatSources := System.getProperty("swoval.format", "true") == "true",
       formatSources := Def.taskDyn {
         if ((skip in formatSources).value) Def.task {
-          javafmt.toTask("").value
-          clangfmt.toTask("").value
+          (Compile / javafmt).value
+          clangfmt.value
           ()
         } else Def.task(())
       }.value,
@@ -533,9 +543,11 @@ object Build {
       forkOptions in Test := {
         val prev = (forkOptions in Test).value
         prev.withRunJVMOptions(
-          prev.runJVMOptions ++ Option(System.getProperty("swoval.test.debug")).map(v =>
-            s"-Dswoval.test.debug=$v") ++ Option(System.getProperty("swoval.test.debug.logger"))
-            .map(v => s"-Dswoval.test.debug.logger=$v"))
+          prev.runJVMOptions ++ Option(System.getProperty("swoval.test.debug")).map(
+            v => s"-Dswoval.test.debug=$v"
+          ) ++ Option(System.getProperty("swoval.test.debug.logger"))
+            .map(v => s"-Dswoval.test.debug.logger=$v")
+        )
       },
       travisQuickListReflectionTest := {
         quickListReflectionTest
@@ -575,8 +587,11 @@ object Build {
               (fullClasspath in Test).value.map(_.data).filterNot(_.toString.contains("jacoco"))
             val prefix = Seq("java", "-classpath", cp.mkString(File.pathSeparator))
             val args = prefix ++ (if (arg.nonEmpty) Seq(s"-Dswoval.directory.lister=$arg") else Nil) ++
-              Seq("com.swoval.files.QuickListReflectionTest",
-                  if (arg.isEmpty) "com.swoval.files.NativeDirectoryLister" else arg)
+              Seq(
+                "com.swoval.files.QuickListReflectionTest",
+                if (arg.isEmpty) "com.swoval.files.NativeDirectoryLister"
+                else arg
+              )
             val proc = new ProcessBuilder(args: _*).start()
             proc.waitFor(5, TimeUnit.SECONDS)
             val in = Source.fromInputStream(proc.getInputStream).mkString
