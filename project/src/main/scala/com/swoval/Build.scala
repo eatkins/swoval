@@ -9,10 +9,9 @@ import java.util.jar.JarFile
 import com.github.sbt.jacoco.JacocoKeys.{ jacocoExcludes, jacocoReportSettings }
 import com.github.sbt.jacoco.report.{ JacocoReportSettings, JacocoThresholds }
 import com.swoval.Dependencies._
-import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, javafmt }
+import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, javafmt, scalafmt }
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import org.apache.commons.codec.digest.DigestUtils
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmt
 import org.scalajs.core.tools.linker.backend.ModuleKind
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.{ fastOptJS, fullOptJS, scalaJSModuleKind }
 import sbt.Keys.{ sources, _ }
