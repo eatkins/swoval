@@ -531,13 +531,11 @@ object Build {
       crossPaths := false,
       autoScalaLibrary := false,
       skip in formatSources := System.getProperty("swoval.format", "true") == "true",
-      formatSources := Def.taskDyn {
-        if ((skip in formatSources).value) Def.task {
+      formatSources := {
           (Compile / javafmt).value
           clangfmt.value
           ()
-        } else Def.task(())
-      }.value,
+      },
       Compile / compile := (Compile / compile).dependsOn(formatSources).value,
       fork in Test := System.getProperty("swoval.fork.tests", "false") == "true",
       forkOptions in Test := {
