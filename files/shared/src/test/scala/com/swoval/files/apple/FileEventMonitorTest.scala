@@ -10,8 +10,10 @@ import utest.framework.ExecutionContext.RunNow
 
 object FileEventMonitorTest extends TestSuite {
 
-  def getFileEventsApi(onFileEvent: FileEvent => Unit,
-                       onStreamClosed: String => Unit = (_: String) => {}): FileEventMonitor =
+  def getFileEventsApi(
+      onFileEvent: FileEvent => Unit,
+      onStreamClosed: String => Unit = (_: String) => {}
+  ): FileEventMonitor =
     FileEventMonitors.get((fe: FileEvent) => onFileEvent(fe), (s: String) => onStreamClosed(s))
 
   val tests: Tests = testOn(MacOS) {

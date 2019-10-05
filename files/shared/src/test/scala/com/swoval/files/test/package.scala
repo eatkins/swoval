@@ -25,8 +25,9 @@ package object test {
           throw e
       }(utest.framework.ExecutionContext.RunNow)
   }
-  def using[C <: AutoCloseable, R: NotFuture](closeable: => C)(f: C => R)(
-      implicit testLogger: TestLogger): Future[R] = {
+  def using[C <: AutoCloseable, R: NotFuture](
+      closeable: => C
+  )(f: C => R)(implicit testLogger: TestLogger): Future[R] = {
     val res = com.swoval.test
       .usingT(closeable)(f)
     res.onComplete {
@@ -35,8 +36,9 @@ package object test {
     }(utest.framework.ExecutionContext.RunNow)
     res
   }
-  def usingAsync[C <: AutoCloseable, R](closeable: => C)(f: C => Future[R])(
-      implicit testLogger: TestLogger): Future[R] = {
+  def usingAsync[C <: AutoCloseable, R](
+      closeable: => C
+  )(f: C => Future[R])(implicit testLogger: TestLogger): Future[R] = {
     val res = com.swoval.test.usingAsyncT(closeable)(f)
     res.onComplete {
       case Success(_)            => if ("true" == System.getProperty("swoval.test.debug")) printLog(testLogger)
@@ -82,7 +84,8 @@ package object test {
           promises.enqueue(tp)
           def dequeue[R](r: => R): R = { promises.dequeueAll(_ == tp); r }
           p.future.transform(r => dequeue(f(r)), e => dequeue(e))(
-            utest.framework.ExecutionContext.RunNow)
+            utest.framework.ExecutionContext.RunNow
+          )
       })
     def add(t: T): Unit = lock.synchronized {
       queue.enqueue(t)

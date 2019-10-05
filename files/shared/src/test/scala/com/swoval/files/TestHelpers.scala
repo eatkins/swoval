@@ -38,7 +38,8 @@ object TestHelpers extends PlatformFiles {
       oncreate: Entry[T] => Unit,
       onupdate: (Entry[T], Entry[T]) => Unit,
       ondelete: Entry[T] => Unit,
-      onerror: IOException => Unit = _ => {}): FileTreeDataViews.CacheObserver[T] =
+      onerror: IOException => Unit = _ => {}
+  ): FileTreeDataViews.CacheObserver[T] =
     new FileTreeDataViews.CacheObserver[T] {
       override def onCreate(newEntry: Entry[T]): Unit = oncreate(newEntry)
 

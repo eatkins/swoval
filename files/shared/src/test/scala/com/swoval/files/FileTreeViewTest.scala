@@ -159,7 +159,9 @@ class FileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView) e
             }
           }
         }
-      } else { Future.successful(()) }
+      } else {
+        Future.successful(())
+      }
   }
   object symlinks {
     def file: Future[Unit] = withTempFileSync { file =>
@@ -174,7 +176,8 @@ class FileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView) e
         val dirFile = dir.resolve("link").resolve("file")
         newFileTreeView(dir, Integer.MAX_VALUE, true).ls(dir, recursive = true, AllPass) === Set(
           link,
-          dirFile)
+          dirFile
+        )
       }
     }
     object loop {
@@ -183,8 +186,10 @@ class FileTreeViewTest(newFileTreeView: (Path, Int, Boolean) => DirectoryView) e
           val dirToOtherDirLink = dir.resolve("other") linkTo otherDir
           val otherDirToDirLink = otherDir.resolve("dir") linkTo dir
           newFileTreeView(dir, Integer.MAX_VALUE, true)
-            .ls(dir, recursive = true, AllPass) === Set(dirToOtherDirLink,
-                                                        dirToOtherDirLink.resolve("dir"))
+            .ls(dir, recursive = true, AllPass) === Set(
+            dirToOtherDirLink,
+            dirToOtherDirLink.resolve("dir")
+          )
         }
       }
     }
@@ -237,9 +242,11 @@ object DefaultFileTreeViewTest
           view.list(path, actualDepth, filter)
         }
         override def getMaxDepth: Int = depth
-        override def list(path: Path,
-                          maxDepth: Int,
-                          filter: Filter[_ >: TypedPath]): util.List[TypedPath] = {
+        override def list(
+            path: Path,
+            maxDepth: Int,
+            filter: Filter[_ >: TypedPath]
+        ): util.List[TypedPath] = {
           if (path.startsWith(getPath)) {
             val distance = getPath.relativize(path).getNameCount - 1
             val actualDepth =
@@ -256,9 +263,12 @@ object DefaultFileTreeViewTest
 object NioFileTreeViewTest
     extends FileTreeViewTest(
       (path: Path, depth: Int, followLinks: Boolean) =>
-        new CachedDirectoryImpl[Path](TypedPaths.get(path),
-                                      (tp: TypedPath) => tp.getPath,
-                                      depth,
-                                      AllPass,
-                                      followLinks,
-                                      FileTreeViews.getNio(followLinks)).init())
+        new CachedDirectoryImpl[Path](
+          TypedPaths.get(path),
+          (tp: TypedPath) => tp.getPath,
+          depth,
+          AllPass,
+          followLinks,
+          FileTreeViews.getNio(followLinks)
+        ).init()
+    )

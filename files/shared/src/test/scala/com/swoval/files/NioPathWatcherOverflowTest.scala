@@ -43,7 +43,8 @@ object NioPathWatcherOverflowTest extends TestSuite {
           new BoundedWatchService(4, RegisterableWatchServices.get()),
           new DirectoryRegistryImpl(),
           logger
-        )) { c =>
+        )
+      ) { c =>
         c.addObserver(callback)
         c.register(dir, Integer.MAX_VALUE)
         executor.run(() => subdirs.foreach(_.createDirectory()))
