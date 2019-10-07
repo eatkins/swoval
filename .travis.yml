@@ -25,6 +25,7 @@ matrix:
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
        - tar -xvf sbt-1.3.2.tgz
        - brew install clang-format
+       - brew install mingw-w64
        - rm sbt-1.3.2.tgz
        - mv sbt /tmp/sbt
        - npm install -g cmake-js;
@@ -50,6 +51,7 @@ matrix:
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
        - tar -xvf sbt-1.3.2.tgz
        - brew install clang-format
+       - brew install mingw-w64
        - rm sbt-1.3.2.tgz
        - mv sbt /tmp/sbt
        - npm install -g cmake-js;
@@ -75,6 +77,7 @@ matrix:
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
        - tar -xvf sbt-1.3.2.tgz
        - brew install clang-format
+       - brew install mingw-w64
        - rm sbt-1.3.2.tgz
        - mv sbt /tmp/sbt
        - npm install -g cmake-js;
