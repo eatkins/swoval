@@ -18,11 +18,13 @@ val jniInclude = taskKey[String]("the jni include directory")
 pat"$target/objects/apple/x86_64/%.o" :-
   (pat"src/main/apple/%.cc", pat"src/include/apple/%.hpp", pat"src/include/%.h") build
   sh(
-    m"${"CC"} ${"CC_FLAGS"} $jniInclude ${"INCLUDES"}/apple -c ${`$<`} -framework Carbon -o ${`$@`}")
+    m"${"CC"} ${"CC_FLAGS"} $jniInclude ${"INCLUDES"}/apple -c ${`$<`} -framework Carbon -o ${`$@`}"
+  )
 p"$target/x86_64/lib${"LIB_NAME"}.dylib" :- pat"$target/objects/apple/x86_64/%.o" build {
   sh(
     m"${"CC"} -dynamiclib -framework Carbon ${"CC_FLAGS"} -Wl,-headerpad_max_install_names" +
-      m" -install_name @rpath/lib${"LIB_NAME"} ${`$^`} -o ${`$@`}")
+      m" -install_name @rpath/lib${"LIB_NAME"} ${`$^`} -o ${`$@`}"
+  )
 
 }
 
@@ -34,7 +36,8 @@ p"$target/x86_64/${"LIB_NAME"}.dll" :- pat"$target/objects/windows/x86_64/%.o" b
   sh(
     m"${"WIN64CC"} ${`$<`} ${"CC_FLAGS"} -Wl,-headerpad_max_install_names -o ${`$@`} " +
       "-D__WIN__ -Wall -Wextra  -nostdlib -ffreestanding -mconsole -Os -fno-stack-check " +
-      "-fno-stack-protector -mno-stack-arg-probe -fno-leading-underscore -lkernel32 -fPIC -shared")
+      "-fno-stack-protector -mno-stack-arg-probe -fno-leading-underscore -lkernel32 -fPIC -shared"
+  )
 }
 
 pat"$target/objects/linux/x86_64/%.o" :- pat"src/main/posix/%.cc" build
@@ -76,7 +79,7 @@ def getProcOutput(args: String*): String = {
       }
     }
   }
-  proc.waitFor(5, TimeUnit.SECONDS)
+  proc.waitFor(20, TimeUnit.SECONDS)
   thread.interrupt()
   thread.join(5000)
   drain()
@@ -93,7 +96,7 @@ def parentPath(args: String*)(cond: String => Boolean): Option[Path] =
 
 Global / jniInclude := {
   (Global / jniInclude).previous.getOrElse {
-    System.getProperty("java8.home") match {
+    System.getProperty("java.home") match {
       case null =>
         if (Properties.isMac) {
           parentPath("mdfind", "-name", "jni.h")(_.contains("jdk1.8"))
@@ -107,8 +110,9 @@ Global / jniInclude := {
           }
         }
       case h =>
-        val platform = if (Properties.isMac) "darwin" else "linux"
-        s"-I$h/include/ -i$h/include/$platform"
+        val includeDir = Paths.get(h).getParent / "include"
+        val platformIncludeDir = includeDir / (if (Properties.isMac) "darwin" else "linux")
+        s"-I$includeDir -I$platformIncludeDir"
     }
   }
 }
