@@ -12,7 +12,7 @@ val jniInclude = taskKey[String]("the jni include directory")
 "WIN64CC" := "x86_64-w64-mingw32-g++"
 "INCLUDES" := m"-I$baseDirectory/src/include"
 "CLASS_INCLUDES" := m"-I$baseDirectory/src-generated/include"
-"CC_FLAGS" := m"-Wno-unused-command-line-argument -std=c++11 -O3 ${"CLASS_INCLUDES"} ${"INCLUDES"}"
+"CC_FLAGS" := m"-Wno-unused-command-line-argument -fPIC -std=c++11 -O3 ${"CLASS_INCLUDES"} ${"INCLUDES"}"
 "LIB_NAME" := "swoval-files0"
 
 pat"$target/objects/apple/x86_64/%.o" :-
@@ -86,28 +86,28 @@ def getProcOutput(args: String*): String = {
   if (!err.isEmpty) System.err.println(new String(err.asScala.toArray))
   new String(out.asScala.toArray)
 }
-def parentPath(args: String*)(cond: String => Boolean): Option[Path] =
-  getProcOutput(args: _*).linesIterator.collectFirst {
-    case l if cond(l) =>
-      val f = Paths.get(l)
-      assert(Files.exists(f), s"$f did not exist")
-      f.getParent
-  }
+
+def parentPath(platform: String, args: String*)(cond: String => Boolean): String =
+  getProcOutput(args: _*).linesIterator
+    .collectFirst {
+      case l if cond(l) =>
+        val f = Paths.get(l)
+        assert(Files.exists(f), s"$f did not exist")
+        f.getParent
+    }
+    .map(p => s"-I$p -I$p/$platform")
+    .getOrElse {
+      throw new IllegalStateException("Couldn't find jni.h for jdk 8")
+    }
 
 Global / jniInclude := {
   (Global / jniInclude).previous.getOrElse {
     System.getProperty("java.home") match {
       case null =>
         if (Properties.isMac) {
-          parentPath("mdfind", "-name", "jni.h")(_.contains("jdk1.8"))
-            .map(p => s"-I$p -I$p/darwin")
-            .getOrElse {
-              throw new IllegalStateException("Couldn't find jni.h for jdk 8")
-            }
+          parentPath("darwin", "mdfind", "-name", "jni.h")(_.contains("jdk1.8"))
         } else {
-          parentPath("locate", "jni.h")(_ => true).map(p => s"-I$p -I$p/linux").getOrElse {
-            throw new IllegalStateException("Couldn't find jni.h for jdk 8")
-          }
+          parentPath("linux", "locate", "jni.h")(_ => true)
         }
       case h =>
         val includeDir = Paths.get(h).getParent / "include"
