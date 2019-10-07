@@ -2,8 +2,8 @@ language: node_js
 
 env:
   global:
-  - SBT_VER=1.2.8
-  - TRAVIS_JDK=adopt@1.8.192-12
+  - SBT_VER=1.3.2
+  - TRAVIS_JDK=adopt@1.8.0-222
 
 addons:
   homebrew:
@@ -12,24 +12,24 @@ addons:
 
 matrix:
   include:
-   - scala: 2.12.8
+   - scala: 2.12.10
      os: osx
      env:
        CMD="checkFormat filesJVM/jacoco filesJS/test plugin/compile filesJVM/travisQuickListReflectionTest filesJVM/allTests"
-       TRAVIS_SCALA_VERSION=2.12.8
+       TRAVIS_SCALA_VERSION=2.12.10
      osx_image: xcode9.4
      before_install:
        - unset _JAVA_OPTIONS;
-       - wget https://github.com/sbt/sbt/releases/download/v1.2.8/sbt-1.2.8.tgz
-       - tar -xvf sbt-1.2.8.tgz
-       - rm sbt-1.2.8.tgz
+       - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
+       - tar -xvf sbt-1.3.2.tgz
+       - rm sbt-1.3.2.tgz
        - mv sbt /tmp/sbt
        - npm install -g cmake-js;
 
-   - scala: 2.12.8
+   - scala: 2.12.10
      env:
        CMD="filesJVM/jacoco filesJS/test plugin/compile filesJVM/travisQuickListReflectionTest filesJVM/allTests"
-       TRAVIS_SCALA_VERSION=2.12.8
+       TRAVIS_SCALA_VERSION=2.12.10
      install:
          - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
          - $JABBA_HOME/bin/jabba install $TRAVIS_JDK
@@ -77,9 +77,9 @@ before_install:
   # https://github.com/travis-ci/travis-ci/issues/8408
   - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
   - unset _JAVA_OPTIONS;
-  - wget https://github.com/sbt/sbt/releases/download/v1.2.8/sbt-1.2.8.tgz
-  - tar -xvf sbt-1.2.8.tgz
-  - rm sbt-1.2.8.tgz
+  - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
+  - tar -xvf sbt-1.3.2.tgz
+  - rm sbt-1.3.2.tgz
   - mv sbt /tmp/sbt
   - npm install -g cmake-js;
 
