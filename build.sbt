@@ -25,6 +25,8 @@ if (Properties.isMac) {
   mac ++ win ++ (buildJNIImpl :-
     (p"${filesJVM / Compile / resourceDirectory}/native/x86_64/lib${"LIB_NAME"}.dylib",
     p"${filesJVM / Compile / resourceDirectory}/native/x86_64/${"LIB_NAME"}.dll") build { () })
+} else if (Properties.isWin) {
+  (buildJNIImpl := { () }) :: Nil
 } else if (Properties.isLinux) {
   (p"${filesJVM / Compile / resourceDirectory}/native/x86_64/lib${"LIB_NAME"}.so" :-
     p"${jni / target}/x86_64/lib${"LIB_NAME"}.so" build Files.copy(`$<`, `$@`, REPLACE_EXISTING)) ++
