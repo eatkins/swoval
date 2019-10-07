@@ -9,7 +9,7 @@ import java.util.jar.JarFile
 import com.github.sbt.jacoco.JacocoKeys.{ jacocoExcludes, jacocoReportSettings }
 import com.github.sbt.jacoco.report.{ JacocoReportSettings, JacocoThresholds }
 import com.swoval.Dependencies._
-import com.swoval.format.SourceFormatPlugin.autoImport.{ clangfmt, javafmt, scalafmt }
+import com.swoval.format.Keys.{ clangfmt, javafmt, scalafmt }
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import org.apache.commons.codec.digest.DigestUtils
 import org.scalajs.core.tools.linker.backend.ModuleKind
@@ -203,7 +203,7 @@ object Build {
       checkFormat := {
         import sys.process._
         (Compile / javafmt).value
-        clangfmt.value
+        (jni / clangfmt).value
         (scalafmt in Compile).value
         val output = Seq("git", "status").!!
         println(output)
@@ -490,7 +490,7 @@ object Build {
         "-target",
         "1.7",
         "-h",
-        sourceDirectory.value.toPath.resolve("main/native/include").toString
+        ((jni / baseDirectory).value.toPath / "src-generated" / "include").toString
       ) ++
         BuildKeys.java8rt.value.map(rt => Seq("-bootclasspath", rt)).getOrElse(Seq.empty) ++
         Seq("-Xlint:unchecked", "-Xlint:deprecation"),

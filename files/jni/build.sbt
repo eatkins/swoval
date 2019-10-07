@@ -11,7 +11,8 @@ val jniInclude = taskKey[String]("the jni include directory")
 "CC" := "g++"
 "WIN64CC" := "x86_64-w64-mingw32-g++"
 "INCLUDES" := m"-I$baseDirectory/src/include"
-"CC_FLAGS" := m"-Wno-unused-command-line-argument -std=c++11 -O3 ${"INCLUDES"}"
+"CLASS_INCLUDES" := m"-I$baseDirectory/src-generated/include"
+"CC_FLAGS" := m"-Wno-unused-command-line-argument -std=c++11 -O3 ${"CLASS_INCLUDES"} ${"INCLUDES"}"
 "LIB_NAME" := "swoval-files0"
 
 pat"$target/objects/apple/x86_64/%.o" :-
