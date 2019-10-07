@@ -577,8 +577,6 @@ object Build {
         process.waitFor()
         if (process.exitValue != 0) throw new IllegalStateException("AllTests failed")
       },
-      TaskKey[java.nio.file.Path]("javafmtConfig", "", Int.MaxValue) :=
-        (baseDirectory.value.toPath / ".javafmtconf"),
       quickListReflectionTest := {
         ("" +: Def.spaceDelimited("<arg>").parsed) foreach {
           arg =>
