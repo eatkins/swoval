@@ -9,6 +9,8 @@ addons:
   homebrew:
     packages:
       - clang-format
+  apt:
+    update: true
 
 matrix:
   include:
@@ -82,6 +84,7 @@ before_install:
   - rm sbt-1.3.2.tgz
   - mv sbt /tmp/sbt
   - npm install -g cmake-js;
+  - sudo apt-get install clang-format
 
 cache:
   directories:
