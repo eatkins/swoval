@@ -1,7 +1,6 @@
 import java.nio.file._
 import java.util.concurrent.TimeUnit
 
-import sbt.nio.file.FileTreeView
 import sjsonnew.BasicJsonProtocol._
 
 import scala.annotation.tailrec
@@ -111,10 +110,11 @@ Global / jniInclude := {
           parentPath("linux", "locate", "jni.h")(_ => true)
         }
       case h =>
-        val includeDir = Paths.get(h).getParent / "include"
-        println(FileTreeView.default.list(Paths.get(h)).map(_._1) mkString "\n")
-        println("-----")
-        println(FileTreeView.default.list(includeDir).map(_._1) mkString "\n")
+        val home = Paths.get(h)
+        val includeDir =
+          if (Files.exists(home / "include")) home / "include"
+          else if (Files.exists(home.getParent / "include")) home.getParent / "include"
+          else throw new IllegalStateException(s"Include directory did not exists in $home")
         val platformIncludeDir = includeDir / (if (Properties.isMac) "darwin" else "linux")
         s"-I$includeDir -I$platformIncludeDir"
     }
