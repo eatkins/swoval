@@ -6,14 +6,11 @@ import java.nio.file.{ Files, Path }
 
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.TypedPath
-import com.swoval.functional
 import sbt.SourceWrapper._
 import sbt._
 import sbt.internal.BuildStructure
 import sbt.internal.io.Source
 import sbt.io.NothingFilter
-
-import scala.util.Try
 
 object Compat {
   object internal {
@@ -33,7 +30,6 @@ object Compat {
   type WatchSource = sbt.internal.io.Source
   type FileFilter = sbt.io.FileFilter
   val global = Global
-  def extraProjectSettings: Seq[Def.Setting[_]] = Nil
   def settings(s: Seq[Def.Setting[_]]): Seq[Def.Setting[_]] = s
 
   case class EntryImpl(getTypedPath: TypedPath) extends Entry[Path] {

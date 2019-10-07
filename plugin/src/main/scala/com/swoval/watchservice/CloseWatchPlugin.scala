@@ -119,7 +119,13 @@ object CloseWatchPlugin extends AutoPlugin {
         val path = f.toPath
         cache.register(path, recursive)
         cache
-          .list(path, if (recursive) Integer.MAX_VALUE else 0, t => filter.accept(t.getPath.toFile))
+          .list(
+            path,
+            if (recursive) Integer.MAX_VALUE else 0,
+            new functional.Filter[TypedPath] {
+              override def accept(t: TypedPath): Boolean = filter.accept(t.getPath.toFile)
+            }
+          )
           .asScala
           .map(_.getPath.toFile)
       }
@@ -225,7 +231,7 @@ object CloseWatchPlugin extends AutoPlugin {
           println(s"No difference in $ref between sbt default source files and from the cache.")
       }
     }.value
-  ) ++ Compat.extraProjectSettings
+  )
   override lazy val projectSettings: Seq[Def.Setting[_]] = super.projectSettings ++
     Compat.settings(projectSettingsImpl) ++ Seq(
     closeWatchTransitiveSources := Def

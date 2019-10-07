@@ -4,11 +4,8 @@ package watchservice
 import java.io.{ File, IOException }
 import java.nio.file._
 
-import com.swoval.files.FileTreeDataViews.{ Converter, Entry }
-import com.swoval.files.{ FileTreeRepositories, TypedPath, TypedPaths }
-import com.swoval.watchservice.CloseWatchPlugin.autoImport.closeWatchFileCache
-import sbt.Keys._
-import scala.util.Try
+import com.swoval.files.FileTreeDataViews.Entry
+import com.swoval.files.{ TypedPath, TypedPaths }
 
 class FileSource(file: File, f: Filter) extends File(file.toString) with SourcePath {
   private val _f = f
@@ -59,8 +56,10 @@ class BaseFileSource(val file: File, filter: functional.Filter[Entry[Path]], _id
 
 object Compat {
   case class EntryImpl(getTypedPath: TypedPath) extends Entry[Path] {
-    override def getValue: functional.Either[IOException, Path] = functional.Either.right(getTypedPath.getPath)
-    override def compareTo(o: Entry[Path]): Int = getTypedPath.getPath.compareTo(o.getTypedPath.getPath)
+    override def getValue: functional.Either[IOException, Path] =
+      functional.Either.right(getTypedPath.getPath)
+    override def compareTo(o: Entry[Path]): Int =
+      getTypedPath.getPath.compareTo(o.getTypedPath.getPath)
   }
   object internal {
     val Act = sbt.Act
@@ -85,9 +84,11 @@ object Compat {
       override def accept(f: File): Boolean = filter.accept(f) && other.accept(f)
     }
   }
-  def makeScopedSource(p: Path,
-                       pathFilter: functional.Filter[Entry[Path]],
-                       id: Def.ScopedKey[_]): WatchSource = {
+  def makeScopedSource(
+      p: Path,
+      pathFilter: functional.Filter[Entry[Path]],
+      id: Def.ScopedKey[_]
+  ): WatchSource = {
     new BaseFileSource(p.toFile, pathFilter, id)
   }
   def makeSource(p: Path, pathFilter: Filter): WatchSource =
@@ -105,8 +106,10 @@ object Compat {
   }
   def settings(s: Seq[Def.Setting[_]]): Seq[Def.Setting[_]] =
     inConfig(Compile)(s) ++ inConfig(Test)(s)
-  def reapply(newSettings: Seq[Setting[_]],
-              structure: BuildStructure,
-              showKey: Show[Def.ScopedKey[_]]): BuildStructure =
+  def reapply(
+      newSettings: Seq[Setting[_]],
+      structure: BuildStructure,
+      showKey: Show[Def.ScopedKey[_]]
+  ): BuildStructure =
     Load.reapply(newSettings, structure)(showKey)
 }

@@ -9,8 +9,8 @@ import com.swoval.concurrent.ThreadFactory
 import com.swoval.files.FileTreeDataViews.Entry
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files._
-import com.swoval.watchservice.CloseWatchPlugin.{ closeWatchGlobalFileRepository, PathWatcherOps }
 import com.swoval.watchservice.CloseWatchPlugin.autoImport._
+import com.swoval.watchservice.CloseWatchPlugin.{ PathWatcherOps, closeWatchGlobalFileRepository }
 import sbt.BasicCommandStrings._
 import sbt.BasicCommands._
 import sbt.CommandUtil._
@@ -70,8 +70,6 @@ object Continuously {
       override def onNext(cacheEntry: Entry[Path]): Unit = {
         if (sources.exists(s => s.filter.accept(cacheEntry.getTypedPath.getPath))) {
           offer(Triggered(cacheEntry.getTypedPath.getPath))
-        } else {
-          debug(s"No source filter found for ${cacheEntry.getTypedPath.getPath}")
         }
       }
 
