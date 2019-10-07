@@ -24,6 +24,7 @@ matrix:
        - unset _JAVA_OPTIONS;
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
        - tar -xvf sbt-1.3.2.tgz
+       - brew install clang-format
        - rm sbt-1.3.2.tgz
        - mv sbt /tmp/sbt
        - npm install -g cmake-js;
@@ -36,7 +37,7 @@ matrix:
          - curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . ~/.jabba/jabba.sh
          - $JABBA_HOME/bin/jabba install $TRAVIS_JDK
          - unset _JAVA_OPTIONS
-         - export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+         - sudo apt-get install clang-format
 
    - scala: 2.11.12
      os: osx
