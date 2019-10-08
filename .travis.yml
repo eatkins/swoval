@@ -16,13 +16,12 @@ matrix:
      env:
        CMD="checkFormat filesJVM/jacoco filesJS/test plugin/compile filesJVM/travisQuickListReflectionTest filesJVM/allTests"
        TRAVIS_SCALA_VERSION=2.12.10
-     osx_image: xcode9.4
+     osx_image: xcode11
      addons:
        homebrew:
          packages:
          - clang-format
          - mingw-w64
-         update: true
      before_install:
        - unset _JAVA_OPTIONS;
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
@@ -46,13 +45,12 @@ matrix:
      env:
        CMD="filesJVM/jacoco filesJS/test filesJVM/allTests"
        TRAVIS_SCALA_VERSION=2.11.12
-     osx_image: xcode9.3
+     osx_image: xcode11
      addons:
        homebrew:
          packages:
          - clang-format
          - mingw-w64
-         update: true
      before_install:
        - unset _JAVA_OPTIONS;
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
@@ -76,13 +74,12 @@ matrix:
      env:
        CMD="filesJVM/jacoco plugin/compile filesJVM/allTests"
        TRAVIS_SCALA_VERSION=2.10.7
-     osx_image: xcode9.3
+     osx_image: xcode11
      addons:
        homebrew:
          packages:
          - clang-format
          - mingw-w64
-         update: true
      before_install:
        - unset _JAVA_OPTIONS;
        - wget https://github.com/sbt/sbt/releases/download/v1.3.2/sbt-1.3.2.tgz
