@@ -96,6 +96,11 @@ class FileCachePendingFiles extends Lockable {
       return false;
     }
   }
+
+  @Override
+  public String toString() {
+    return pendingFiles.toString();
+  }
 }
 
 class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<T> {
@@ -270,10 +275,19 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
     final TypedPath typedPath = event.getTypedPath();
     final List<TypedPath> symlinks = new ArrayList<>();
     final List<Callback> callbacks = new ArrayList<>();
+    logger.debug("pending " + pendingFiles);
+    logger.debug(
+        "event WTF "
+            + typedPath.getPath()
+            + " "
+            + typedPath.exists()
+            + " "
+            + typedPath.isDirectory());
     if (!closed.get() && directories.lock()) {
       try {
         final Path path = typedPath.getPath();
         if (typedPath.exists()) {
+          logger.debug("FUCK " + path + " exists");
           final CachedDirectory<T> dir = find(typedPath.getPath());
           if (dir != null) {
             try {
@@ -286,6 +300,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
                 logger.debug(
                     this + " updating " + updatePath.getPath() + " in " + dir.getTypedPath());
               dir.update(updatePath, rescan).observe(callbackObserver(callbacks, symlinks));
+              pendingFiles.remove(path);
             } catch (final IOException e) {
               handleDelete(path, callbacks, symlinks);
             }
@@ -303,6 +318,7 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
                   logger.debug(this + " unable to initialize directory for " + path);
                 cachedDirectory = newCachedDirectory(path, -1);
               }
+              logger.debug("BLAH " + directoryRegistry.maxDepthFor(path));
               final CachedDirectory<T> previous = directories.put(path, cachedDirectory);
               if (previous != null) previous.close();
               addCallback(
@@ -319,10 +335,13 @@ class FileCacheDirectoryTree<T> implements ObservableCache<T>, FileTreeDataView<
                 final FileTreeDataViews.Entry<T> entry = it.next();
                 addCallback(callbacks, symlinks, entry, null, entry, Create, null);
               }
+              pendingFiles.remove(path);
+            } catch (final NoSuchFileException e) {
+              System.err.println("WHOOPS!\n\n\n");
+              // ignore
             } catch (final IOException e) {
               System.err.println("Caught unexpected io exception handling event for " + path);
               e.printStackTrace(System.err);
-              pendingFiles.add(path);
             }
           }
         } else {
