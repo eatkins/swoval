@@ -2,7 +2,7 @@ language: node_js
 
 env:
   global:
-  - SBT_VER=1.3.13
+  - SBT_VER=1.4.1-SNAPSHOT
   - TRAVIS_JDK=zulu@1.8.252
 
 addons:
@@ -25,7 +25,7 @@ matrix:
        TRAVIS_SCALA_VERSION=2.12.12
 
 
-script: /tmp/sbt/bin/sbt -Dswoval.alltest.timeout=20 -Dswoval.format=false -Dsbt.version=$SBT_VER -Dswoval.skip.native=true -Dswoval.fork.tests=true -Dswoval.alltests.iterations=50 ++$TRAVIS_SCALA_VERSION $CMD
+script: /tmp/sbt/bin/sbt -Dswoval.alltest.timeout=20 -Dswoval.format=false -Dsbt.version=$SBT_VER -Dswoval.skip.native=true -Dswoval.fork.tests=true -Dswoval.alltests.iterations=50 -Dsbt.color=true -Dsbt.ci=true ++$TRAVIS_SCALA_VERSION $CMD
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/8408
@@ -40,6 +40,10 @@ before_install:
   - jabba install $TRAVIS_JDK
   - unset _JAVA_OPTIONS
   - export JAVA_HOME="$JABBA_HOME/jdk/$TRAVIS_JDK" && export PATH="$JAVA_HOME/bin:$PATH" && java -Xmx32m -version
+  - git clone https://github.com/eatkins/sbt.git --branch ansi-color-fixes --single-branch
+  - cd sbt
+  - /tmp/sbt/bin/sbt publishLocal
+  - cd ..
 cache:
   directories:
     - $HOME/.ivy2/cache
