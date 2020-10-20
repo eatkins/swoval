@@ -435,22 +435,6 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
           }
         }
       }
-      'quicklyDeleted - withTempDirectory { root =>
-        implicit val logger: TestLogger = new CachingLogger
-        val dir = root.resolve("register-delete")
-        val latch = new CountDownLatch(2)
-        usingAsync(simpleCache((e: Entry[Path]) => {
-          System.err.println("HUH " + e)
-          if (e.path == dir) latch.countDown()
-        })) { c =>
-          c.register(dir)
-          dir.createDirectories()
-          dir.delete()
-          latch.waitFor(1.second) {
-            assert(dir.exists)
-          }
-        }
-      }
       'replaced - withTempDirectory { root =>
         implicit val logger: TestLogger = new CachingLogger
         val dir = root.resolve("register-replace").createDirectories()
@@ -478,10 +462,9 @@ trait BasicFileCacheTest extends TestSuite with FileCacheTest {
               .waitFor(DEFAULT_TIMEOUT) {
                 c.ls(dir) === Seq.empty[Path]
                 newFile.createFile(mkdirs = true)
-                System.err.println("HUH" + newFile.exists)
               }
               .flatMap { _ =>
-                newFileLatch.waitFor(1.second) {
+                newFileLatch.waitFor(DEFAULT_TIMEOUT) {
                   c.ls(dir) === Seq(newFile)
                 }
               }
